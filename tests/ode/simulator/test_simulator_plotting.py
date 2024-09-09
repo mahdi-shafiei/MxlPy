@@ -5,7 +5,8 @@ from __future__ import annotations
 import unittest
 
 import matplotlib.pyplot as plt
-from modelbase.ode import Model, Simulator
+
+from modelbase2.ode import Model, Simulator
 
 
 def mass_action(s, kf):

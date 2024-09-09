@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any, Dict
 
 import pytest
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 
 def constant(x: float) -> float:

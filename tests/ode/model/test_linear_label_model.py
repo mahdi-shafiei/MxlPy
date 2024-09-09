@@ -5,7 +5,8 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from modelbase.ode import LinearLabelModel
+
+from modelbase2.ode import LinearLabelModel
 
 
 class CreationTests(unittest.TestCase):
@@ -32,7 +33,9 @@ class CreationTests(unittest.TestCase):
         label_model = LinearLabelModel()
         label_model.add_compounds(compounds={"x": 1, "y": 2})
         self.assertEqual(label_model.compounds, ["x__0", "y__0", "y__1"])
-        self.assertEqual(label_model.isotopomers, {"x": ["x__0"], "y": ["y__0", "y__1"]})
+        self.assertEqual(
+            label_model.isotopomers, {"x": ["x__0"], "y": ["y__0", "y__1"]}
+        )
 
     def test_add_rate(self):
         label_model = LinearLabelModel()
@@ -98,7 +101,9 @@ class CreationTests(unittest.TestCase):
         label_model = LinearLabelModel()
         label_model.add_compounds({"x": 1})
         with self.assertWarns(UserWarning):
-            label_model.add_reaction(rate_name="v1", stoichiometry={"x": 1}, labelmap=[0])
+            label_model.add_reaction(
+                rate_name="v1", stoichiometry={"x": 1}, labelmap=[0]
+            )
         self.assertEqual(label_model.stoichiometries, {"v1__0": {"EXT": -1, "x__0": 1}})
 
     def test_add_reaction_outflux(self):

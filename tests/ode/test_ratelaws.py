@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from modelbase.ode import Model
-from modelbase.ode import ratelaws as rl
+from modelbase2.ode import Model
+from modelbase2.ode import ratelaws as rl
 
 
 class RateLawTests(unittest.TestCase):

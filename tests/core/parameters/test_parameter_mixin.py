@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 
-from modelbase.ode import Model
+from modelbase2.ode import Model
 
 
 class ModelBasicTests(unittest.TestCase):
@@ -119,14 +119,18 @@ class ModelTests(unittest.TestCase):
             m1 = Model(parameters=parameters)
             m2 = Model()
             m1.store_parameters_to_file(filename=f"{tmpdir}/test", filetype="json")
-            m2.load_parameters_from_file(filename=f"{tmpdir}/test.json", filetype="json")
+            m2.load_parameters_from_file(
+                filename=f"{tmpdir}/test.json", filetype="json"
+            )
             self.assertEqual(m1.parameters, m2.parameters)
         with tempfile.TemporaryDirectory() as tmpdir:
             parameters = {"k1": 1, "k2": 2}
             m1 = Model(parameters=parameters)
             m2 = Model()
             m1.store_parameters_to_file(filename=f"{tmpdir}/test.json", filetype="json")
-            m2.load_parameters_from_file(filename=f"{tmpdir}/test.json", filetype="json")
+            m2.load_parameters_from_file(
+                filename=f"{tmpdir}/test.json", filetype="json"
+            )
             self.assertEqual(m1.parameters, m2.parameters)
 
     def test_store_and_load_parameters_new_pickle(self):
@@ -151,14 +155,18 @@ class ModelTests(unittest.TestCase):
             m1 = Model(parameters=parameters)
             m2 = Model(parameters=parameters)
             m1.store_parameters_to_file(filename=f"{tmpdir}/test", filetype="json")
-            m2.load_parameters_from_file(filename=f"{tmpdir}/test.json", filetype="json")
+            m2.load_parameters_from_file(
+                filename=f"{tmpdir}/test.json", filetype="json"
+            )
             self.assertEqual(m1.parameters, m2.parameters)
         with tempfile.TemporaryDirectory() as tmpdir:
             parameters = {"k1": 1, "k2": 2}
             m1 = Model(parameters=parameters)
             m2 = Model(parameters=parameters)
             m1.store_parameters_to_file(filename=f"{tmpdir}/test.json", filetype="json")
-            m2.load_parameters_from_file(filename=f"{tmpdir}/test.json", filetype="json")
+            m2.load_parameters_from_file(
+                filename=f"{tmpdir}/test.json", filetype="json"
+            )
             self.assertEqual(m1.parameters, m2.parameters)
 
     def test_store_and_load_parameters_existing_pickle(self):
@@ -181,11 +189,15 @@ class ModelTests(unittest.TestCase):
         model = Model()
         with self.assertRaises(ValueError):
             with tempfile.TemporaryDirectory() as tmpdir:
-                model.store_parameters_to_file(filename=f"{tmpdir}/test", filetype="xml")
+                model.store_parameters_to_file(
+                    filename=f"{tmpdir}/test", filetype="xml"
+                )
 
         with self.assertRaises(ValueError):
             with tempfile.TemporaryDirectory() as tmpdir:
-                model.load_parameters_from_file(filename=f"{tmpdir}/test", filetype="xml")
+                model.load_parameters_from_file(
+                    filename=f"{tmpdir}/test", filetype="xml"
+                )
 
     def test_restore_initialization_parameters(self):
         parameters = {"k1": 1}

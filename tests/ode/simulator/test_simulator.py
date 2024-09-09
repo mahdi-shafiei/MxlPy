@@ -5,8 +5,9 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from modelbase.ode import Model, Simulator
-from modelbase.ode import ratefunctions as rf
+
+from modelbase2.ode import Model, Simulator
+from modelbase2.ode import ratefunctions as rf
 
 
 def GENERATE_MODEL():
@@ -263,7 +264,9 @@ class SimulationTests(unittest.TestCase):
     def test_get_full_results_array_shape(self):
         s = SIM.copy()
         self.assertEqual(s.get_full_results_array(concatenated=True).shape, (11, 10))
-        self.assertEqual(s.get_full_results_array(concatenated=False)[0].shape, (11, 10))
+        self.assertEqual(
+            s.get_full_results_array(concatenated=False)[0].shape, (11, 10)
+        )
         self.assertEqual(s.full_results[0].shape, (11, 10))
 
     def test_get_full_results_dict_shape(self):
@@ -318,7 +321,9 @@ class SimulationTests(unittest.TestCase):
     def test_get_variable_shape(self):
         s = SIM.copy()
         self.assertEqual(s.get_variable(variable="a", concatenated=True).shape, (11,))
-        self.assertEqual(s.get_variable(variable="a", concatenated=False)[0].shape, (11,))
+        self.assertEqual(
+            s.get_variable(variable="a", concatenated=False)[0].shape, (11,)
+        )
 
     def test_get_variables_shape(self):
         s = SIM.copy()
@@ -396,7 +401,9 @@ class SimulationTests(unittest.TestCase):
             df.values, [[0.0, 1.0], [1.0, 1.0], [1.5, 0.5]]
         )
         #
-        np.testing.assert_array_almost_equal(s.get_fluxes_array(), [[1.0], [1.0], [0.5]])
+        np.testing.assert_array_almost_equal(
+            s.get_fluxes_array(), [[1.0], [1.0], [0.5]]
+        )
         #
         d = s.get_fluxes_dict()
         self.assertEqual(list(d.keys()), ["rate_1"])

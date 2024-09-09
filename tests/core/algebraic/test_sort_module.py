@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from modelbase.ode import Model
+from modelbase2.ode import Model
 
 
 def dummy_func(*args):

@@ -5,7 +5,8 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from modelbase.ode import LabelModel, Simulator, _LabelSimulate
+
+from modelbase2.ode import LabelModel, Simulator, _LabelSimulate
 
 
 def GENERATE_RESULTS() -> _LabelSimulate:
@@ -153,24 +154,33 @@ class LabelSimulatorTests(unittest.TestCase):
     def test_get_concentrations_of_n_labeled_dict(self) -> None:
         simulator = SIM.copy()
         simulator.get_concentrations_of_n_labeled_dict(compound="x", n_labels=1)
-        list(
-            simulator.get_concentrations_of_n_labeled_dict(
-                compound="x", n_labels=0
-            ).keys()
-        ), ["x__00"]
-        list(
-            simulator.get_concentrations_of_n_labeled_dict(
-                compound="x", n_labels=1
-            ).keys()
-        ), [
-            "x__10",
-            "x__01",
-        ]
-        list(
-            simulator.get_concentrations_of_n_labeled_dict(
-                compound="x", n_labels=2
-            ).keys()
-        ), ["x__11"]
+        (
+            list(
+                simulator.get_concentrations_of_n_labeled_dict(
+                    compound="x", n_labels=0
+                ).keys()
+            ),
+            ["x__00"],
+        )
+        (
+            list(
+                simulator.get_concentrations_of_n_labeled_dict(
+                    compound="x", n_labels=1
+                ).keys()
+            ),
+            [
+                "x__10",
+                "x__01",
+            ],
+        )
+        (
+            list(
+                simulator.get_concentrations_of_n_labeled_dict(
+                    compound="x", n_labels=2
+                ).keys()
+            ),
+            ["x__11"],
+        )
 
     def test_get_concentrations_of_n_labeled_df(self) -> None:
         simulator = SIM.copy()

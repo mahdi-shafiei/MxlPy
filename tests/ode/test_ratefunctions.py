@@ -5,7 +5,7 @@ from __future__ import annotations
 import unittest
 from math import factorial
 
-from modelbase.ode import ratefunctions as rf
+from modelbase2.ode import ratefunctions as rf
 
 
 class RateFunctionTests(unittest.TestCase):
@@ -248,19 +248,27 @@ class RateFunctionTests(unittest.TestCase):
 
     def test_reversible_michaelis_menten_keq(self):
         self.assertEqual(
-            rf.reversible_michaelis_menten_keq(S=1, P=1, vmax_fwd=1, kms=1, kmp=1, keq=1),
+            rf.reversible_michaelis_menten_keq(
+                S=1, P=1, vmax_fwd=1, kms=1, kmp=1, keq=1
+            ),
             0,
         )
         self.assertEqual(
-            rf.reversible_michaelis_menten_keq(S=2, P=1, vmax_fwd=1, kms=1, kmp=1, keq=1),
+            rf.reversible_michaelis_menten_keq(
+                S=2, P=1, vmax_fwd=1, kms=1, kmp=1, keq=1
+            ),
             0.25,
         )
         self.assertEqual(
-            rf.reversible_michaelis_menten_keq(S=1, P=2, vmax_fwd=1, kms=1, kmp=1, keq=1),
+            rf.reversible_michaelis_menten_keq(
+                S=1, P=2, vmax_fwd=1, kms=1, kmp=1, keq=1
+            ),
             -0.25,
         )
         self.assertEqual(
-            rf.reversible_michaelis_menten_keq(S=1, P=1, vmax_fwd=1, kms=1, kmp=1, keq=4),
+            rf.reversible_michaelis_menten_keq(
+                S=1, P=1, vmax_fwd=1, kms=1, kmp=1, keq=4
+            ),
             0.25,
         )
         self.assertEqual(
@@ -270,11 +278,15 @@ class RateFunctionTests(unittest.TestCase):
             -1,
         )
         self.assertEqual(
-            rf.reversible_michaelis_menten_keq(S=2, P=1, vmax_fwd=1, kms=3, kmp=1, keq=1),
+            rf.reversible_michaelis_menten_keq(
+                S=2, P=1, vmax_fwd=1, kms=3, kmp=1, keq=1
+            ),
             0.125,
         )
         self.assertEqual(
-            rf.reversible_michaelis_menten_keq(S=2, P=1, vmax_fwd=1, kms=1, kmp=3, keq=1),
+            rf.reversible_michaelis_menten_keq(
+                S=2, P=1, vmax_fwd=1, kms=1, kmp=3, keq=1
+            ),
             0.3,
         )
 
@@ -282,7 +294,9 @@ class RateFunctionTests(unittest.TestCase):
         self.assertEqual(rf.competitive_inhibition(S=1, I=1, vmax=1, km=0.5, ki=1), 0.5)
 
     def test_uncompetitive_inhibition(self):
-        self.assertEqual(rf.uncompetitive_inhibition(S=1, I=1, vmax=1, km=0.5, ki=1), 0.4)
+        self.assertEqual(
+            rf.uncompetitive_inhibition(S=1, I=1, vmax=1, km=0.5, ki=1), 0.4
+        )
 
     def test_noncompetitive_inhibition(self):
         self.assertEqual(
@@ -296,7 +310,9 @@ class RateFunctionTests(unittest.TestCase):
         self.assertEqual(rf.competitive_activation(S=1, A=1, vmax=1, km=0.5, ka=1), 0.5)
 
     def test_uncompetitive_activation(self):
-        self.assertEqual(rf.uncompetitive_activation(S=1, A=1, vmax=1, km=0.5, ka=1), 0.4)
+        self.assertEqual(
+            rf.uncompetitive_activation(S=1, A=1, vmax=1, km=0.5, ka=1), 0.4
+        )
 
     def test_noncompetitive_activation(self):
         self.assertEqual(
@@ -431,7 +447,9 @@ class MultiSubstrateTests(unittest.TestCase):
         self.assertEqual(rf.ping_pong_2(A=2, B=1, vmax=1, kmA=1, kmB=1), 0.4)
 
     def test_ping_pong_3(self):
-        self.assertEqual(rf.ping_pong_3(A=1, B=1, C=1, vmax=1, kmA=1, kmB=1, kmC=1), 0.25)
+        self.assertEqual(
+            rf.ping_pong_3(A=1, B=1, C=1, vmax=1, kmA=1, kmB=1, kmC=1), 0.25
+        )
 
     def test_ping_pong_4(self):
         self.assertEqual(

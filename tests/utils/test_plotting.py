@@ -6,7 +6,8 @@ import unittest
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from modelbase.utils.plotting import (
+
+from modelbase2.utils.plotting import (
     _get_plot_kwargs,
     _style_subplot,
     heatmap_from_dataframe,

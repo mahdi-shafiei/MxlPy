@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import numpy as np
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 parameters = {
     # Pools

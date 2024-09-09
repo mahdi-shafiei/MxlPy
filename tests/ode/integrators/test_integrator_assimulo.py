@@ -6,11 +6,12 @@ import unittest
 import warnings
 
 import numpy as np
-from modelbase.ode import Model, Simulator
-from modelbase.ode import ratefunctions as rf
+
+from modelbase2.ode import Model, Simulator
+from modelbase2.ode import ratefunctions as rf
 
 try:
-    from modelbase.ode.integrators import Assimulo
+    from modelbase2.ode.integrators import Assimulo
 
     class SimulatorBaseTests(unittest.TestCase):
         def test_initialise(self):

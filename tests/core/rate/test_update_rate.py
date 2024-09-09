@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 
 def function1(*args):
@@ -318,7 +319,9 @@ def test_update_other_keep_dynamic_variables():
 
 def test_update_args():
     model = DEFAULT_MODEL.copy()
-    model.update_rate(rate_name="rate1", args=["k11", "k12", "m11", "m12", "s11", "s12"])
+    model.update_rate(
+        rate_name="rate1", args=["k11", "k12", "m11", "m12", "s11", "s12"]
+    )
 
     rate = model.rates["rate1"]
     assert rate["dynamic_variables"] == ["m11", "m12", "s11", "s12"]
@@ -327,7 +330,9 @@ def test_update_args():
 
 def test_update_other_keep_args():
     model = DEFAULT_MODEL.copy()
-    model.update_rate(rate_name="rate1", args=["k11", "k12", "m11", "m12", "s11", "s12"])
+    model.update_rate(
+        rate_name="rate1", args=["k11", "k12", "m11", "m12", "s11", "s12"]
+    )
     model.update_rate(rate_name="rate1", function=function2)
 
     rate = model.rates["rate1"]

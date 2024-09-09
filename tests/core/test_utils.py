@@ -5,7 +5,8 @@ from __future__ import annotations
 import unittest
 
 import pytest
-from modelbase.core.utils import (
+
+from modelbase2.core.utils import (
     RE_LAMBDA_ALGEBRAIC_MODULE_FUNC,
     RE_LAMBDA_FUNC,
     RE_LAMBDA_RATE_FUNC,

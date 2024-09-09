@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 
 def test_generate_compounds_source_code_single():

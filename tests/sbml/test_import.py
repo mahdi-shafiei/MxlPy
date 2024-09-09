@@ -7,8 +7,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from modelbase.ode import Simulator
-from modelbase.sbml.parser import Parser
+
+from modelbase2.ode import Simulator
+from modelbase2.sbml.parser import Parser
 
 try:
     import assimulo  # type: ignore

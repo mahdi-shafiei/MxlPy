@@ -6,8 +6,9 @@ import unittest
 
 import numpy as np
 import pytest
-from modelbase.ode import Model
-from modelbase.ode import ratelaws as rl
+
+from modelbase2.ode import Model
+from modelbase2.ode import ratelaws as rl
 
 
 def test_str(multiline_comparison):

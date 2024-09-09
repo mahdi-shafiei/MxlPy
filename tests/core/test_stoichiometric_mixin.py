@@ -5,7 +5,8 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 
 class ModelBasicTests(unittest.TestCase):
@@ -141,7 +142,9 @@ class ModelTests(unittest.TestCase):
         model = Model()
         model.add_compounds(compounds=("x", "y"))
         model.add_stoichiometry(rate_name="v1", stoichiometry={"x": -1, "y": 1})
-        self.assertEqual(model.get_rate_stoichiometry(rate_name="v1"), {"x": -1, "y": 1})
+        self.assertEqual(
+            model.get_rate_stoichiometry(rate_name="v1"), {"x": -1, "y": 1}
+        )
 
     def test_get_compound_stoichiometry(self):
         model = Model()

@@ -6,8 +6,9 @@ import unittest
 
 import matplotlib.pyplot as plt
 import numpy as np
-from modelbase.ode import LinearLabelModel, Model, Simulator
-from modelbase.ode import ratefunctions as rf
+
+from modelbase2.ode import LinearLabelModel, Model, Simulator
+from modelbase2.ode import ratefunctions as rf
 
 
 def BUILD_MODEL():

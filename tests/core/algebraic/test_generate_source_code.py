@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 
 def test_generate_source_code_one_module(multiline_comparison):
@@ -19,7 +20,10 @@ def test_generate_source_code_one_module(multiline_comparison):
     )
 
     module_funcs, modules = model._generate_algebraic_modules_source_code()
-    expected = ["def mod1(s, keq):", "    return (s / (1 + keq), (s * keq / (1 + keq)))"]
+    expected = [
+        "def mod1(s, keq):",
+        "    return (s / (1 + keq), (s * keq / (1 + keq)))",
+    ]
     multiline_comparison(expected, module_funcs)
 
     expected = [

@@ -7,8 +7,9 @@ from tempfile import TemporaryDirectory
 
 import numpy as np
 import pytest
-from modelbase.ode import Model, Simulator
-from modelbase.ode import ratefunctions as rf
+
+from modelbase2.ode import Model, Simulator
+from modelbase2.ode import ratefunctions as rf
 
 
 def GENERATE_RESULTS():

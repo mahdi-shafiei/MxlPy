@@ -5,9 +5,10 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from modelbase.ode import Model, Simulator
-from modelbase.ode import ratefunctions as rf
-from modelbase.ode.integrators import Scipy
+
+from modelbase2.ode import Model, Simulator
+from modelbase2.ode import ratefunctions as rf
+from modelbase2.ode.integrators import Scipy
 
 
 class SimulatorBaseTests(unittest.TestCase):

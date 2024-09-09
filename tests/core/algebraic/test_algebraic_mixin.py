@@ -5,7 +5,8 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from modelbase.ode import Model
+
+from modelbase2.ode import Model
 
 
 class ModelWarningsTests(unittest.TestCase):
@@ -231,7 +232,9 @@ class ModelAlgebraicModuleTests(unittest.TestCase):
 
     def test_get_algebraic_module_compounds(self):
         model = self.create_minimal_model()
-        self.assertEqual(model.get_algebraic_module_compounds(module_name="mod1"), ["A"])
+        self.assertEqual(
+            model.get_algebraic_module_compounds(module_name="mod1"), ["A"]
+        )
 
     def test_get_algebraic_module_derived_compounds(self):
         model = self.create_minimal_model()
@@ -352,7 +355,8 @@ class FullConcentrationDictTests(unittest.TestCase):
             parameters=["keq"],
         )
         self.assertEqual(
-            model._get_fcd(y={"A": 1, "B": 1}, t=0), {"A": 1, "B": 1, "time": 0, "x1": 2}
+            model._get_fcd(y={"A": 1, "B": 1}, t=0),
+            {"A": 1, "B": 1, "time": 0, "x1": 2},
         )
 
     def test_two_one_array(self):

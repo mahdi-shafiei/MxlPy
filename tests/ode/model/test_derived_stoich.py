@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from modelbase.ode import DerivedStoichiometry, Model
+from modelbase2.ode import DerivedStoichiometry, Model
 
 
 def return_arg(x: float) -> float:

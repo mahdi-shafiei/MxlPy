@@ -110,3 +110,6 @@ venv.bak/
 # temporary files and folders
 *temp*
 tmp
+# pixi environments
+.pixi
+*.egg-info

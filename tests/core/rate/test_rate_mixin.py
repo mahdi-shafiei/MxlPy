@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from modelbase.ode import Model
-from modelbase.ode import ratefunctions as rf
+from modelbase2.ode import Model
+from modelbase2.ode import ratefunctions as rf
 
 
 class ModelWarningsTests(unittest.TestCase):
@@ -179,7 +179,9 @@ class ModelTests(unittest.TestCase):
         model = self.create_reversible_modified_minimal_model()
 
         rate = model.rates["v1"]
-        self.assertEqual(rate["function"].__name__, "reversible_uncompetitive_inhibition")
+        self.assertEqual(
+            rate["function"].__name__, "reversible_uncompetitive_inhibition"
+        )
         self.assertEqual(rate["parameters"], ["vmax", "vmax_bwd", "kms", "kmp", "ki"])
         self.assertEqual(rate["substrates"], ["x1"])
         self.assertEqual(rate["products"], ["y"])
@@ -195,7 +197,9 @@ class ModelTests(unittest.TestCase):
         model.update_rate(rate_name="v1")
 
         rate = model.rates["v1"]
-        self.assertEqual(rate["function"].__name__, "reversible_uncompetitive_inhibition")
+        self.assertEqual(
+            rate["function"].__name__, "reversible_uncompetitive_inhibition"
+        )
         self.assertEqual(rate["parameters"], ["vmax", "vmax_bwd", "kms", "kmp", "ki"])
         self.assertEqual(rate["substrates"], ["x1"])
         self.assertEqual(rate["products"], ["y"])
@@ -217,7 +221,9 @@ class ModelTests(unittest.TestCase):
         )
 
         rate = model.rates["v1"]
-        self.assertEqual(rate["function"].__name__, "reversible_uncompetitive_inhibition")
+        self.assertEqual(
+            rate["function"].__name__, "reversible_uncompetitive_inhibition"
+        )
         self.assertEqual(rate["parameters"], ["vmax", "vmax_bwd", "kms", "kmp", "ki"])
         self.assertEqual(rate["substrates"], ["x2"])
         self.assertEqual(rate["products"], ["y2"])
@@ -519,7 +525,9 @@ class FluxesTests(unittest.TestCase):
             parameters=["k"],
             reversible=True,
         )
-        self.assertEqual(model._get_fluxes(fcd={"x": 2, "y": 3, "xi": 4}), {"v1": -0.25})
+        self.assertEqual(
+            model._get_fluxes(fcd={"x": 2, "y": 3, "xi": 4}), {"v1": -0.25}
+        )
 
     def test_irreversible_modifier_time(self):
         parameters = {"k": 1}
@@ -534,7 +542,9 @@ class FluxesTests(unittest.TestCase):
             parameters=["k"],
             reversible=False,
         )
-        self.assertEqual(model._get_fluxes(fcd={"x": 2, "y": 3, "time": 4}), {"v1": 0.5})
+        self.assertEqual(
+            model._get_fluxes(fcd={"x": 2, "y": 3, "time": 4}), {"v1": 0.5}
+        )
 
     def test_reversible_modifier_time(self):
         parameters = {"k": 1}

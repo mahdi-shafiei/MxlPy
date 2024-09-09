@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from modelbase.ode import LabelModel
-from modelbase.ode import ratefunctions as rf
+from modelbase2.ode import LabelModel
+from modelbase2.ode import ratefunctions as rf
 
 
 class LabelModelTests(unittest.TestCase):
@@ -668,7 +668,9 @@ class LabelModelTests(unittest.TestCase):
 
     def test_repack_stoichiometries_1_1(self):
         self.assertEqual(
-            LabelModel._repack_stoichiometries(new_substrates=["x"], new_products=["y"]),
+            LabelModel._repack_stoichiometries(
+                new_substrates=["x"], new_products=["y"]
+            ),
             {"x": -1, "y": 1},
         )
 
@@ -682,7 +684,9 @@ class LabelModelTests(unittest.TestCase):
 
     def test_assign_compound_labels_no_label(self):
         self.assertEqual(
-            LabelModel._assign_compound_labels(base_compounds=["x"], label_suffixes=[""]),
+            LabelModel._assign_compound_labels(
+                base_compounds=["x"], label_suffixes=[""]
+            ),
             ["x"],
         )
 
