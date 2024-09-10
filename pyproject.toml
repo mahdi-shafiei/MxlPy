@@ -67,6 +67,8 @@ more-itertools = ">=10.5.0,<11"
 ipykernel = ">=6.29.5,<7"
 notebook = ">=7.2.2,<8"
 pebble = ">=5.0.7,<6"
+seaborn = ">=0.13.2,<0.14"
+assimulo = ">=3.5.2,<4"
 
 [tool.pixi.project]
 channels = ["conda-forge"]
@@ -111,6 +113,7 @@ ignore = [
   "TD002",   # missing todo author
   "TD003",   # missing todo link
   "PLR0913", # max num of arguments
+  "PD010",   # pivot table
 ]
 select = ["ALL"]
 unfixable = []
