@@ -581,5 +581,5 @@ def test_model():
         "vDHAP_out": np.array([0.45962031]),
         "vSt": np.array([-0.16180949]),
     }
-    for k, v in model.get_fluxes_dict(y0).items():
+    for k, v in model.get_fluxes(y0).items():
         assert np.isclose(expected[k], v)

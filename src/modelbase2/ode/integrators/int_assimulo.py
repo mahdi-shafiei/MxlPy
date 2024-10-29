@@ -95,7 +95,7 @@ class _IntegratorAssimulo(AbstractIntegrator):
         integrator_kwargs: dict[str, Any],
         simulation_kwargs: dict[str, Any],
         rel_norm: bool,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[float | None, ArrayLike | None]:
         for k, v in integrator_kwargs.items():
             setattr(self.integrator, k, v)
         max_rounds = simulation_kwargs.get("max_rounds", 3)

@@ -44,7 +44,6 @@ class _LinearLabelSimulate(_BaseSimulator[_LinearLabelModel]):
             model=model,
             integrator=integrator,
             y0=y0,
-            time=time,
             results=results,
         )
 
@@ -125,7 +124,7 @@ class _LinearLabelSimulate(_BaseSimulator[_LinearLabelModel]):
 
         """
         compounds = self.model.isotopomers[compound]
-        res = self.get_results_df(concatenated=True)
+        res = self.get_results(concatenated=True)
         if res is None:
             return None
         return cast(Array, res.loc[:, compounds].values)

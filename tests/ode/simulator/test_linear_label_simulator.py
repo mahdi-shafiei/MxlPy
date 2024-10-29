@@ -61,7 +61,7 @@ def BUILD_MODEL():
     )
 
     y_ss = base_y0
-    v_ss = {k: v[0] for k, v in model.get_fluxes_dict(y_ss).items()}
+    v_ss = {k: v[0] for k, v in model.get_fluxes(y_ss).items()}
 
     llm = model.to_linear_labelmodel(
         labelcompounds={"GAP": 3, "DHAP": 3, "FBP": 6},

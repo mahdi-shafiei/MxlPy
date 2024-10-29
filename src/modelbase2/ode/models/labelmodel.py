@@ -989,7 +989,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
             y = dict(zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T))
         return {k: np.ones(len(t)) * v for k, v in self._get_fcd(t=t, y=y).items()}  # type: ignore
 
-    def get_fluxes_dict(
+    def get_fluxes(
         self,
         y: dict[str, float]
         | dict[str, ArrayLike]
@@ -1003,7 +1003,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
         ones = np.ones(len(fcd["time"]))
         if len(fcd["time"]) == 1:
             return {k: ones * v for k, v in self._get_fluxes(fcd=fcd).items()}  # type: ignore
-        return {k: ones * v for k, v in self._get_fluxes_array(fcd=fcd).items()}  # type: ignore
+        return {k: ones * v for k, v in self._get_fluxes_from_df(fcd=fcd).items()}  # type: ignore
 
     def get_total_fluxes(
         self,

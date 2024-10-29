@@ -87,7 +87,7 @@ def routine(test):
     s = Simulator(m)
     s.initialise(y0)
     s.simulate(time_points=expected.index, **sim_kwargs)
-    result = s.get_full_results_df()
+    result = s.get_full_results()
     if result is None:
         return False
     result = add_constant_species_to_results(m, expected, result)

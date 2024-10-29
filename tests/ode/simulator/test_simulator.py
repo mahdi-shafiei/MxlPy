@@ -380,7 +380,7 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(list(d.keys()), ["x"])
         np.testing.assert_array_almost_equal(d["x"], [0.0, 1.0, 1.5])
         #
-        df = s.get_results_df()
+        df = s.get_results()
         self.assertEqual(list(df.keys()), ["x"])
         self.assertEqual(list(df.index), [0.0, 1.0, 2.0])
         np.testing.assert_array_almost_equal(df.values, [[0.0], [1.0], [1.5]])
@@ -394,7 +394,7 @@ class SimulationTests(unittest.TestCase):
         np.testing.assert_array_almost_equal(d["x"], [0.0, 1.0, 1.5])
         np.testing.assert_array_almost_equal(d["A"], [1.0, 1.0, 0.5])
         #
-        df = s.get_full_results_df()
+        df = s.get_full_results()
         self.assertEqual(list(df.keys()), ["x", "A"])
         self.assertEqual(list(df.index), [0.0, 1.0, 2.0])
         np.testing.assert_array_almost_equal(
@@ -409,7 +409,7 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(list(d.keys()), ["rate_1"])
         np.testing.assert_array_almost_equal(d["rate_1"], np.array([1.0, 1.0, 0.5]))
         #
-        df = s.get_fluxes_df()
+        df = s.get_fluxes()
         self.assertEqual(list(df.keys()), ["rate_1"])
         self.assertEqual(list(df.index), [0.0, 1.0, 2.0])
         np.testing.assert_array_almost_equal(d["rate_1"], np.array([1.0, 1.0, 0.5]))
@@ -489,25 +489,25 @@ class SimulationTests(unittest.TestCase):
 
         # df
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_results_df(normalise=2)["x"]
+            (y / 2).flatten(), s.get_results(normalise=2)["x"]
         )
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_results_df(normalise=np.ones(len(y)) * 2)["x"]
+            (y / 2).flatten(), s.get_results(normalise=np.ones(len(y)) * 2)["x"]
         )
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_results_df(normalise=[np.ones(len(y)) * 2])["x"]
+            (y / 2).flatten(), s.get_results(normalise=[np.ones(len(y)) * 2])["x"]
         )
 
         # full df
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_full_results_df(normalise=2)["x"]
+            (y / 2).flatten(), s.get_full_results(normalise=2)["x"]
         )
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_full_results_df(normalise=np.ones(len(y)) * 2)["x"]
+            (y / 2).flatten(), s.get_full_results(normalise=np.ones(len(y)) * 2)["x"]
         )
         np.testing.assert_array_equal(
             (y / 2).flatten(),
-            s.get_full_results_df(normalise=[np.ones(len(y)) * 2])["x"],
+            s.get_full_results(normalise=[np.ones(len(y)) * 2])["x"],
         )
 
         # variable
@@ -556,11 +556,11 @@ class SimulationTests(unittest.TestCase):
 
         # fluxes df
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_fluxes_df(normalise=2)["v1"]
+            (y / 2).flatten(), s.get_fluxes(normalise=2)["v1"]
         )
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_fluxes_df(normalise=np.ones(len(y)) * 2)["v1"]
+            (y / 2).flatten(), s.get_fluxes(normalise=np.ones(len(y)) * 2)["v1"]
         )
         np.testing.assert_array_equal(
-            (y / 2).flatten(), s.get_fluxes_df(normalise=[np.ones(len(y)) * 2])["v1"]
+            (y / 2).flatten(), s.get_fluxes(normalise=[np.ones(len(y)) * 2])["v1"]
         )

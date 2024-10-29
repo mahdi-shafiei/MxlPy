@@ -44,7 +44,6 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
             model=model,
             integrator=integrator,
             y0=y0,
-            time=time,
             results=results,
             parameters=parameters,
         )
@@ -112,7 +111,7 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
     def get_all_isotopomer_concentrations_df(self, compound: str) -> pd.Series | None:
         """Get concentrations of all isotopomers of a compound."""
         isotopomers = self.model.get_compound_isotopomers(compound=compound)
-        df = self.get_results_df()
+        df = self.get_results()
         if isotopomers is None or df is None:
             return None
         df = cast(pd.DataFrame, df)[isotopomers]
@@ -121,7 +120,7 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
     def get_concentrations_by_reg_exp_array(self, reg_exp: str) -> Array | None:
         """Get concentrations of all isotopomers matching the regular expression."""
         isotopomers = [i for i in self.model.get_compounds() if re.match(reg_exp, i)]
-        df = self.get_results_df()
+        df = self.get_results()
         if isotopomers is None or df is None:
             return None
         df = cast(pd.DataFrame, df)[isotopomers]
@@ -132,7 +131,7 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
     ) -> dict[str, Array] | None:
         """Get concentrations of all isotopomers of a compound."""
         isotopomers = [i for i in self.model.get_compounds() if re.match(reg_exp, i)]
-        df = self.get_results_df(concatenated=True)
+        df = self.get_results(concatenated=True)
         if isotopomers is None or df is None:
             return None
         df = df[isotopomers]
@@ -141,7 +140,7 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
     def get_concentrations_by_reg_exp_df(self, reg_exp: str) -> pd.DataFrame | None:
         """Get concentrations of all isotopomers of a compound."""
         isotopomers = [i for i in self.model.get_compounds() if re.match(reg_exp, i)]
-        df = self.get_results_df(concatenated=True)
+        df = self.get_results(concatenated=True)
         if isotopomers is None or df is None:
             return None
         df = df[isotopomers]
@@ -193,7 +192,7 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
             compound=compound,
             n_labels=n_labels,
         )
-        res = self.get_results_df(concatenated=True)
+        res = self.get_results(concatenated=True)
         if res is None:
             return None
         return res[isotopomers]
@@ -232,7 +231,7 @@ class _LabelSimulate(_BaseRateSimulator[LabelModel]):
             [f"{i}__total" for i in self.model.label_compounds]
             + self.model.nonlabel_compounds
         )
-        y = self.get_full_results_df(concatenated=True, include_readouts=False)
+        y = self.get_full_results(concatenated=True, include_readouts=False)
         if y is None:
             return None, None
         y = y.loc[:, compounds]

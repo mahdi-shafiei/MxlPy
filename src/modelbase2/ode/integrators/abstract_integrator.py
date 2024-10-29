@@ -42,7 +42,7 @@ class AbstractIntegrator(ABC):
         integrator_kwargs: dict[str, Any],
         simulation_kwargs: dict[str, Any],
         rel_norm: bool,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]: ...
+    ) -> tuple[float | None, ArrayLike | None]: ...
 
     @abstractmethod
     def get_integrator_kwargs(self) -> dict[str, Any]:

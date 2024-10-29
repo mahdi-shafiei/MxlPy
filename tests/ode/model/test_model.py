@@ -686,7 +686,7 @@ class SimulationFunctionTests(unittest.TestCase):
         model = create_toy_model()
         t = 0
         y = [1, 2, 3]
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["influx"], 2)
         self.assertEqual(fluxes["v1"], -1.75)
         self.assertEqual(fluxes["v2"], 1)
@@ -698,7 +698,7 @@ class SimulationFunctionTests(unittest.TestCase):
         model = create_toy_model()
         t = 0
         y = {"A": 1, "x1": 2, "y1": 3}
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["influx"], 2)
         self.assertEqual(fluxes["v1"], -1.75)
         self.assertEqual(fluxes["v2"], 1)
@@ -711,7 +711,7 @@ class SimulationFunctionTests(unittest.TestCase):
         t = 0
         y = {"A": 1, "x1": 2, "y1": 3}
         y = model.get_full_concentration_dict(y=y, t=t)
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["influx"], 2)
         self.assertEqual(fluxes["v1"], -1.75)
         self.assertEqual(fluxes["v2"], 1)
@@ -725,7 +725,7 @@ class SimulationFunctionTests(unittest.TestCase):
         # is tested in test_get_fluxes_time
         t = np.zeros(10)
         y = np.ones((10, 3)) * [1, 2, 3]
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertTrue((fluxes["influx"] == 2).all())
         self.assertTrue((fluxes["v1"] == -1.75).all())
         self.assertTrue((fluxes["v2"] == 1).all())
@@ -742,7 +742,7 @@ class SimulationFunctionTests(unittest.TestCase):
             stoichiometry={"x": 1},
             modifiers=["time"],
         )
-        fluxes = model.get_fluxes_dict(y=[0], t=0)
+        fluxes = model.get_fluxes(y=[0], t=0)
         self.assertEqual(fluxes["v1"], 0)
 
     def test_get_fluxes_time_array(self):
@@ -754,7 +754,7 @@ class SimulationFunctionTests(unittest.TestCase):
             stoichiometry={"x": 1},
             modifiers=["time"],
         )
-        fluxes = model.get_fluxes_dict(y=[0], t=np.arange(10))
+        fluxes = model.get_fluxes(y=[0], t=np.arange(10))
         np.testing.assert_array_equal(fluxes["v1"], np.arange(10))
 
     def test_get_fluxes_array_single(self):
@@ -908,7 +908,7 @@ class StructureChangesTests(unittest.TestCase):
         self.assertEqual(fcd["y"], 0)
         self.assertEqual(fcd["time"], 0)
 
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["v1"], 2)
 
         rhs = model.get_right_hand_side(y=y, t=t)
@@ -938,7 +938,7 @@ class StructureChangesTests(unittest.TestCase):
         self.assertEqual(fcd["y"], 0)
         self.assertEqual(fcd["time"], 0)
 
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["v1"], 2)
 
         rhs = model.get_right_hand_side(y=y, t=t)
@@ -976,7 +976,7 @@ class StructureChangesTests(unittest.TestCase):
         self.assertEqual(fcd["y"], 0)
         self.assertEqual(fcd["time"], 0)
 
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["v1"], 2)
 
         rhs = model.get_right_hand_side(y=y, t=t)
@@ -1014,7 +1014,7 @@ class StructureChangesTests(unittest.TestCase):
         self.assertEqual(fcd["y"], 0)
         self.assertEqual(fcd["time"], 0)
 
-        fluxes = model.get_fluxes_dict(y=y, t=t)
+        fluxes = model.get_fluxes(y=y, t=t)
         self.assertEqual(fluxes["v1"], 2)
 
         rhs = model.get_right_hand_side(y=y, t=t)

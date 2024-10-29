@@ -70,7 +70,6 @@ class _Simulate(_BaseRateSimulator[Model]):
             model=model,
             integrator=integrator,
             y0=y0,
-            time=time,
             results=results,
             parameters=parameters,
         )
@@ -163,7 +162,7 @@ class _Simulate(_BaseRateSimulator[Model]):
     ) -> tuple[Figure | None, Axis | None]:
         """Plot simulation results for a selection of compounds."""
         compounds = self.model.get_compounds()
-        y = self.get_full_results_df(normalise=normalise, concatenated=True)
+        y = self.get_full_results(normalise=normalise, concatenated=True)
         if y is None:
             return None, None
         return plot(
@@ -207,7 +206,7 @@ class _Simulate(_BaseRateSimulator[Model]):
         producing_names: list[str] = []
         consuming_names: list[str] = []
         time = self.get_time()
-        fluxes = self.get_fluxes_df()
+        fluxes = self.get_fluxes()
         title = compound if title is None else title
         if fluxes is None or time is None:
             return None, None

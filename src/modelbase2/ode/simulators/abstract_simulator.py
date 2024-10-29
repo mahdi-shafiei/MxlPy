@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from torch import full
+
 __all__ = [
     "_BaseRateSimulator",
     "_BaseSimulator",
 ]
 
 import copy
-import json
-import pickle
 import sys
 import warnings
 from abc import ABC, abstractmethod
@@ -24,10 +24,57 @@ from typing_extensions import Literal, Self
 from modelbase2.typing import Array, ArrayLike, Axes, Axis, Figure
 from modelbase2.utils.plotting import _get_plot_kwargs, _style_subplot, plot, plot_grid
 
-from . import BASE_MODEL_TYPE, RATE_MODEL_TYPE
+from . import (
+    BASE_MODEL_TYPE,
+    RATE_MODEL_TYPE,
+    _AbstractRateModel,
+    _AbstractStoichiometricModel,
+)
 
 if TYPE_CHECKING:
     from modelbase2.ode.integrators import AbstractIntegrator
+
+
+def _empty_conc_series(model: _AbstractStoichiometricModel) -> pd.Series:
+    return pd.Series(
+        data=np.full(shape=len(model.compounds), fill_value=np.nan),
+        index=model.compounds,
+    )
+
+
+def _empty_flux_series(model: _AbstractRateModel) -> pd.Series:
+    return pd.Series(
+        data=np.full(shape=len(model.rates), fill_value=np.nan),
+        index=model.rates,
+    )
+
+
+def _empty_conc_df(
+    model: _AbstractStoichiometricModel, time_points: Array
+) -> pd.DataFrame:
+    return pd.DataFrame(
+        data=np.full(
+            shape=(len(time_points), len(model.compounds)),
+            fill_value=np.nan,
+        ),
+        index=time_points,
+        columns=model.compounds,
+    )
+
+
+def _empty_flux_df(model: _AbstractRateModel, time_points: Array) -> pd.DataFrame:
+    return pd.DataFrame(
+        data=np.full(
+            shape=(len(time_points), len(model.rates)),
+            fill_value=np.nan,
+        ),
+        index=time_points,
+        columns=model.rates,
+    )
+
+
+def empty_time_point(model: _AbstractRateModel) -> tuple[pd.Series, pd.Series]:
+    return _empty_conc_series(model), _empty_flux_series(model)
 
 
 class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
@@ -36,17 +83,15 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         model: BASE_MODEL_TYPE,
         integrator: type[AbstractIntegrator],
         y0: ArrayLike | None = None,
-        time: list[Array] | None = None,
-        results: list[Array] | None = None,
+        results: list[pd.DataFrame] | None = None,
     ) -> None:
         self.model = model
         self._integrator = integrator
         self.integrator: AbstractIntegrator | None = None
 
         # For restoring purposes
-        self.y0 = y0
-        self.time = time
-        self.results = results
+        self.y0: ArrayLike | None = y0
+        self.results: list[pd.DataFrame] | None = results
 
     def __reduce__(self) -> Any:
         """Pickle this class."""
@@ -58,14 +103,12 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
             ),
             (
                 ("y0", self.y0),
-                ("time", self.time),
                 ("results", self.results),
             ),
         )
 
     def clear_results(self) -> None:
         """Clear simulation results."""
-        self.time = None
         self.results = None
         if self.integrator is not None:
             self.integrator.reset()
@@ -75,7 +118,10 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
 
         Required for assimulo, as it needs y0 to initialise
         """
-        self.integrator = self._integrator(rhs=self.model._get_rhs, y0=y0)
+        self.integrator = self._integrator(
+            rhs=self.model._get_rhs,  # noqa: SLF001
+            y0=y0,
+        )
 
     def get_integrator_params(self) -> dict[str, Any] | None:
         if self.integrator is None:
@@ -86,23 +132,21 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
     def copy(self) -> Any:
         """Create a copy."""
 
-    def _normalise_split_array(
+    def _normalise_split_results(
         self,
         *,
-        split_array: list[Array],
+        results: list[pd.DataFrame],
         normalise: float | ArrayLike,
-    ) -> list[Array]:
+    ) -> list[pd.DataFrame]:
         if isinstance(normalise, (int, float)):
-            return [i / normalise for i in split_array]
-        if len(normalise) == len(split_array):
-            return [
-                i / np.reshape(j, (len(i), 1)) for i, j in zip(split_array, normalise)
-            ]
+            return [i / normalise for i in results]
+        if len(normalise) == len(results):
+            return [(i.T / j).T for i, j in zip(results, normalise)]
 
         results = []
         start = 0
         end = 0
-        for i in split_array:
+        for i in results:
             end += len(i)
             results.append(i / np.reshape(normalise[start:end], (len(i), 1)))
             start += end
@@ -113,43 +157,17 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         """Perform a test step of the simulation in Python to get proper error handling."""
 
     def _save_simulation_results(
-        self, *, time: Array, results: Array, skipfirst: bool
+        self,
+        *,
+        results: pd.DataFrame,
+        skipfirst: bool,
     ) -> None:
-        if self.time is None or self.results is None:
-            self.time = [time]
+        if self.results is None:
             self.results = [results]
         elif skipfirst:
-            self.time.append(time[1:])
-            self.results.append(results[1:, :])
+            self.results.append(results.iloc[1:, :])
         else:
-            self.time.append(time)
             self.results.append(results)
-
-    @overload
-    def get_time(self, concatenated: Literal[False]) -> None | list[Array]:  # type: ignore
-        # The type error here comes from List[Array] and Array overlapping
-        # Can safely be ignore
-        ...
-
-    @overload
-    def get_time(self, concatenated: Literal[True]) -> None | Array: ...
-
-    @overload
-    def get_time(self, concatenated: bool = True) -> None | Array: ...
-
-    def get_time(self, concatenated: bool = True) -> None | Array | list[Array]:
-        """Get simulation time.
-
-        Returns
-        -------
-        time : numpy.array
-
-        """
-        if self.time is None:
-            return None
-        if concatenated:
-            return np.concatenate(self.time, axis=0)  # type: ignore
-        return self.time.copy()
 
     def simulate(
         self,
@@ -157,7 +175,7 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         steps: int | None = None,
         time_points: ArrayLike | None = None,
         **integrator_kwargs: dict[str, Any],
-    ) -> tuple[Array | None, Array | None]:
+    ) -> pd.DataFrame | None:
         """Simulate the model."""
         if self.integrator is None:
             msg = "Initialise the simulator first."
@@ -167,7 +185,8 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
             warnings.warn(
                 """
             You can either specify the steps or the time return points.
-            I will use the time return points"""
+            I will use the time return points""",
+                stacklevel=1,
             )
             if t_end is None:
                 t_end = time_points[-1]
@@ -198,13 +217,18 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
             )
 
         if time is None or results is None:
-            return None, None
-        time_array = np.array(time)
-        results_array = np.array(results)
-        self._save_simulation_results(
-            time=time_array, results=results_array, skipfirst=True
+            return None
+
+        # NOTE: IMPORTANT!
+        # model._get_rhs sorts the return array by model.get_compounds()
+        # Do NOT change this ordering
+        results_df = pd.DataFrame(
+            results,
+            index=time,
+            columns=self.model.get_compounds(),
         )
-        return time_array, results_array
+        self._save_simulation_results(results=results_df, skipfirst=True)
+        return results_df
 
     def simulate_and(
         self,
@@ -225,15 +249,18 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         self,
         tolerance: float = 1e-6,
         simulation_kwargs: dict[str, Any] | None = None,
+        *,
         rel_norm: bool = False,
         **integrator_kwargs: dict[str, Any],
-    ) -> tuple[Array | None, Array | None]:
+    ) -> pd.Series | None:
         """Simulate the model."""
         if self.integrator is None:
             msg = "Initialise the simulator first."
             raise AttributeError(msg)
+
         if simulation_kwargs is None:
             simulation_kwargs = {}
+
         time, results = self.integrator._simulate_to_steady_state(
             tolerance=tolerance,
             simulation_kwargs=simulation_kwargs,
@@ -241,18 +268,24 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
             rel_norm=rel_norm,
         )
         if time is None or results is None:
-            return None, None
-        time_array = np.array([time])
-        results_array = np.array([results])
-        self._save_simulation_results(
-            time=time_array, results=results_array, skipfirst=False
+            return None
+
+        # NOTE: IMPORTANT!
+        # model._get_rhs sorts the return array by model.get_compounds
+        # Do NOT change this ordering
+        results_df = pd.DataFrame(
+            data=[results],
+            index=[time],
+            columns=self.model.get_compounds(),
         )
-        return time_array, results_array
+        self._save_simulation_results(results=results_df, skipfirst=False)
+        return results_df.iloc[-1]
 
     def simulate_to_steady_state_and(
         self,
         tolerance: float = 1e-6,
         simulation_kwargs: dict[str, Any] | None = None,
+        *,
         rel_norm: bool = False,
         **integrator_kwargs: dict[str, Any],
     ) -> Self:
@@ -265,83 +298,7 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         return self
 
     @overload
-    def get_results_array(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> None | list[Array]: ...
-
-    @overload
-    def get_results_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> None | Array: ...
-
-    def get_results_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> None | Array | list[Array]:
-        """Get simulation results."""
-        if self.results is None:
-            return None
-
-        results = self.results.copy()
-        if normalise is not None:
-            results = self._normalise_split_array(
-                split_array=results, normalise=normalise
-            )
-        if concatenated:
-            return np.concatenate(results, axis=0)  # type: ignore
-        return results
-
-    @overload
-    def get_results_dict(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> None | list[dict[str, Array]]: ...
-
-    @overload
-    def get_results_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-    ) -> None | dict[str, Array]: ...
-
-    @overload
-    def get_results_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> None | dict[str, Array]: ...
-
-    def get_results_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> None | dict[str, Array] | list[dict[str, Array]]:
-        """Get simulation results."""
-        if concatenated:
-            results = self.get_results_array(normalise=normalise, concatenated=True)
-            if results is None:
-                return None
-            return dict(zip(self.model.get_compounds(), results.T))
-        results_ = self.get_results_array(normalise=normalise, concatenated=False)
-        if results_ is None:
-            return None
-        return [dict(zip(self.model.get_compounds(), i.T)) for i in results_]
-
-    @overload
-    def get_results_df(  # type: ignore
+    def get_results(  # type: ignore
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -349,7 +306,7 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
     ) -> None | list[pd.DataFrame]: ...
 
     @overload
-    def get_results_df(
+    def get_results(
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -357,108 +314,37 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
     ) -> None | pd.DataFrame: ...
 
     @overload
-    def get_results_df(
+    def get_results(
         self,
         *,
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> None | pd.DataFrame: ...
 
-    def get_results_df(
+    def get_results(
         self,
         *,
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> None | pd.DataFrame | list[pd.DataFrame]:
         """Get simulation results."""
-        results = self.get_results_array(normalise=normalise, concatenated=concatenated)
-        time = self.get_time(concatenated=concatenated)
-        if results is None or time is None:
+        if self.results is None:
             return None
+
+        results = self.results.copy()
+        if normalise is not None:
+            results = self._normalise_split_results(
+                results=results, normalise=normalise
+            )
         if concatenated:
-            return pd.DataFrame(
-                data=results,
-                index=self.get_time(),
-                columns=self.model.get_compounds(),
-            )
-        return [
-            pd.DataFrame(
-                data=result,
-                index=t,
-                columns=self.model.get_compounds(),
-            )
-            for t, result in zip(time, results)
-        ]
+            return pd.concat(results, axis=0)
+
+        return results
 
     def get_new_y0(self) -> dict[str, float] | None:
-        if (res := self.get_results_df()) is None:
+        if (res := self.get_results()) is None:
             return None
         return dict(res.iloc[-1])
-
-    def store_results_to_file(self, filename: str, filetype: str = "json") -> None:
-        """Store the simulation results into a json or pickle file.
-
-        Parameters
-        ----------
-        filename
-            The name of the pickle file
-        filetype
-            Output file type. Json or pickle.
-
-        """
-        if self.time is None or self.results is None:
-            msg = "Cannot save results, since none are stored in the simulator"
-            raise ValueError(msg)
-
-        res = cast(
-            Dict[str, Array], self.get_results_dict(concatenated=True)
-        )  # cast is just typing annotation
-        time = cast(
-            Array, self.get_time(concatenated=True)
-        )  # cast is just typing annotation
-        res["time"] = time
-
-        res = {k: v.tolist() for k, v in res.items()}
-        if filetype == "json":
-            if not filename.endswith(".json"):
-                filename += ".json"
-            with open(filename, "w") as f:
-                json.dump(obj=res, fp=f)
-        elif filetype == "pickle":
-            if not filename.endswith(".p"):
-                filename += ".p"
-            with open(filename, "wb") as f:  # type: ignore
-                pickle.dump(obj=res, file=f)  # type: ignore
-        else:
-            msg = "Can only save to json or pickle"
-            raise ValueError(msg)
-
-    def load_results_from_file(self, filename: str, filetype: str = "json") -> None:
-        """Load simulation results from a json or pickle file.
-
-        Parameters
-        ----------
-        filename
-            The name of the pickle file
-        filetype
-            Input file type. Json or pickle.
-
-        """
-        if filetype == "json":
-            with open(filename) as f:
-                res: dict[str, Array] = json.load(fp=f)
-        elif filetype == "pickle":
-            with open(filename, "rb") as f:  # type: ignore
-                res = pickle.load(file=f)  # type: ignore
-        else:
-            msg = "Can only save to json or pickle"
-            raise ValueError(msg)
-        res = {k: np.array(v) for k, v in res.items()}
-        self.time = [res.pop("time")]
-        cpds = np.array([v for k, v in res.items()]).reshape(
-            (len(self.time[0]), len(self.model.get_compounds()))
-        )
-        self.results = [cpds]
 
 
 class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYPE]):  # type: ignore
@@ -467,16 +353,19 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         model: RATE_MODEL_TYPE,
         integrator: type[AbstractIntegrator],
         y0: ArrayLike | None = None,
-        time: list[Array] | None = None,
-        results: list[Array] | None = None,
+        results: list[pd.DataFrame] | None = None,
         parameters: list[dict[str, float]] | None = None,
     ) -> None:
         _BaseSimulator.__init__(
-            self, model=model, integrator=integrator, y0=y0, time=time, results=results
+            self,
+            model=model,
+            integrator=integrator,
+            y0=y0,
+            results=results,
         )
-        self.full_results: list[Array] | None = None
-        self.fluxes: list[Array] | None = None
-        self.simulation_parameters = parameters
+        self.full_results: list[pd.DataFrame] | None = None
+        self.fluxes: list[pd.DataFrame] | None = None
+        self.simulation_parameters: list[dict[str, float]] | None = parameters
 
     def __reduce__(self) -> Any:
         """Pickle this class."""
@@ -488,7 +377,6 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             ),
             (
                 ("y0", self.y0),
-                ("time", self.time),
                 ("results", self.results),
                 ("parameters", self.simulation_parameters),
             ),
@@ -504,7 +392,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         if self.full_results is not None:
             new.full_results = self.full_results.copy()
         if new.results is not None:
-            new._initialise_integrator(y0=new.results[-1])
+            new._initialise_integrator(y0=new.results[-1].to_numpy())
         elif new.y0 is not None:
             new.initialise(y0=new.y0, test_run=False)
         return new
@@ -518,18 +406,16 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def _test_run(self) -> None:
         """Test run of a single integration step to get proper error handling."""
-        if not self.model.rates:
-            msg = "Please set at least one rate for the integration"
-            raise AttributeError(msg)
 
         if self.y0 is not None:
             y = self.model.get_full_concentration_dict(y=self.y0, t=0)
-            self.model.get_fluxes_dict(y=y, t=0)
+            self.model.get_fluxes(y=y, t=0)
             self.model.get_right_hand_side(y=y, t=0)
 
     def initialise(
         self,
         y0: ArrayLike | dict[str, float],
+        *,
         test_run: bool = True,
     ) -> Self:
         """Initialise the integrator."""
@@ -561,6 +447,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         self,
         parameter_name: str,
         factor: float,
+        *,
         verbose: bool = False,
     ) -> Self:
         """Scale a model parameter."""
@@ -577,11 +464,12 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         return self
 
     def _save_simulation_results(
-        self, *, time: Array, results: Array, skipfirst: bool
+        self,
+        *,
+        results: pd.DataFrame,
+        skipfirst: bool,
     ) -> None:
-        super()._save_simulation_results(
-            time=time, results=results, skipfirst=skipfirst
-        )
+        super()._save_simulation_results(results=results, skipfirst=skipfirst)
         if self.simulation_parameters is None:
             self.simulation_parameters = []
         self.simulation_parameters.append(self.model.get_parameters())
@@ -592,7 +480,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         steps: int | None = None,
         time_points: ArrayLike | None = None,
         **integrator_kwargs: dict[str, Any],
-    ) -> tuple[Array | None, Array | None]:
+    ) -> pd.DataFrame | None:
         """Simulate the model.
 
         You can either supply only a terminal time point, or additionally also the
@@ -610,7 +498,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             Integrator options
 
         """
-        time, results = super().simulate(
+        results = super().simulate(
             t_end=t_end,
             steps=steps,
             time_points=time_points,
@@ -618,17 +506,18 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         )
         self.full_results = None
         self.fluxes = None
-        return time, results
+        return results
 
     def simulate_to_steady_state(
         self,
         tolerance: float = 1e-8,
         simulation_kwargs: dict[str, Any] | None = None,
+        *,
         rel_norm: bool = False,
         **integrator_kwargs: dict[str, Any],
-    ) -> tuple[Array | None, Array | None]:
+    ) -> pd.DataFrame | None:
         """Simulate the model to steady state."""
-        time, results = super().simulate_to_steady_state(
+        results = super().simulate_to_steady_state(
             tolerance=tolerance,
             simulation_kwargs=simulation_kwargs,
             rel_norm=rel_norm,
@@ -636,107 +525,22 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         )
         self.full_results = None
         self.fluxes = None
-        return time, results
+        return results
 
     def _calculate_fluxes(self) -> None:
-        time = self.time
-        results = self.results
-        pars = self.simulation_parameters
-        if time is None or results is None or pars is None:
+        if (fcd := self.get_full_results(concatenated=False)) is None:
+            return
+        if (pars := self.simulation_parameters) is None:
             return
 
-        fluxes = []
-        for t, y, p in zip(time, results, pars):
+        fluxes: list[pd.DataFrame] = []
+        for y, p in zip(fcd, pars):
             self.update_parameters(parameters=p)
-            fluxes_array = self.model.get_fluxes_array(y=y, t=t)
-            fluxes.append(fluxes_array)
+            fluxes.append(self.model._get_fluxes_from_df(fcd=y))  # noqa: SLF001
         self.fluxes = fluxes
 
     @overload
-    def get_fluxes_array(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> list[Array] | None: ...
-
-    @overload
-    def get_fluxes_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-    ) -> Array | None: ...
-
-    @overload
-    def get_fluxes_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> Array | None: ...
-
-    def get_fluxes_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> Array | list[Array] | None:
-        """Get the model fluxes for the simulation."""
-        if self.time is None or self.results is None:
-            return None
-        if self.fluxes is None:
-            self._calculate_fluxes()
-        # Cast is ok
-        fluxes = cast(List[Array], self.fluxes)
-        if normalise is not None:
-            fluxes = self._normalise_split_array(
-                split_array=fluxes, normalise=normalise
-            )
-        if concatenated:
-            return np.concatenate(fluxes, axis=0)  # type: ignore
-        return fluxes
-
-    @overload
-    def get_fluxes_dict(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> list[dict[str, Array]] | None: ...
-
-    @overload
-    def get_fluxes_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-    ) -> dict[str, Array] | None: ...
-
-    @overload
-    def get_fluxes_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> dict[str, Array] | None: ...
-
-    def get_fluxes_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> dict[str, Array] | list[dict[str, Array]] | None:
-        """Get the model fluxes for the simulation."""
-        fluxes = self.get_fluxes_array(normalise=normalise, concatenated=concatenated)
-        if fluxes is None:
-            return None
-        if concatenated:
-            return dict(zip(self.model.rates, cast(Array, fluxes).T))
-        return [dict(zip(self.model.rates, i.T)) for i in fluxes]
-
-    @overload
-    def get_fluxes_df(
+    def get_fluxes(  # type: ignore
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -744,7 +548,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> list[pd.DataFrame] | None: ...
 
     @overload
-    def get_fluxes_df(
+    def get_fluxes(
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -752,178 +556,58 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> pd.DataFrame | None: ...
 
     @overload
-    def get_fluxes_df(
+    def get_fluxes(
         self,
         *,
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> pd.DataFrame | None: ...
 
-    def get_fluxes_df(
+    def get_fluxes(
         self,
         *,
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
         """Get the model fluxes for the simulation."""
-        fluxes = self.get_fluxes_array(normalise=normalise, concatenated=concatenated)
-        time = self.get_time(concatenated=concatenated)
-        if fluxes is None or time is None:
+        if self.results is None:
             return None
+        if self.fluxes is None:
+            self._calculate_fluxes()
+
+        fluxes = self.fluxes
+        if fluxes is None:
+            return None
+        if normalise is not None:
+            fluxes = self._normalise_split_results(results=fluxes, normalise=normalise)
         if concatenated:
-            return pd.DataFrame(
-                data=fluxes,
-                index=time,
-                columns=self.model.get_rate_names(),
-            )
-        return [
-            pd.DataFrame(
-                data=flux,
-                index=t,
-                columns=self.model.get_rate_names(),
-            )
-            for t, flux in zip(time, fluxes)
-        ]
-
-    def get_results_and_fluxes_df(
-        self,
-    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
-        return self.get_results_df(), self.get_fluxes_df()
-
-    def get_full_results_and_fluxes_df(
-        self,
-        *,
-        include_readouts: bool = True,
-    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
-        return (
-            self.get_full_results_df(include_readouts=include_readouts),
-            self.get_fluxes_df(),
-        )
+            return pd.concat(fluxes, axis=0)
+        return fluxes
 
     def _calculate_full_results(
         self,
         *,
         include_readouts: bool,
     ) -> None:
-        full_results = []
-        for t, y, p in zip(self.time, self.results, self.simulation_parameters):  # type: ignore
+        all_full_results: list[pd.DataFrame] = []
+        if (results := self.results) is None:
+            raise ValueError
+        if (params := self.simulation_parameters) is None:
+            raise ValueError
+
+        for res, p in zip(results, params):
             self.update_parameters(parameters=p)
-            results = self.model.get_full_concentration_dict(
-                y=y,
-                t=t,
+            full_results = self.model.get_full_concentration_dict(
+                y=res.to_numpy(),
+                t=res.index.to_numpy(),
                 include_readouts=include_readouts,
             )
-            del results["time"]
-            full_results.append(
-                np.reshape(list(results.values()), (len(results), len(t))).T
-            )  # type: ignore
-        self.full_results = full_results
+            del full_results["time"]
+            all_full_results.append(pd.DataFrame(data=full_results, index=res.index))
+        self.full_results = all_full_results
 
     @overload
-    def get_full_results_array(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-        include_readouts: bool = True,
-    ) -> list[Array] | None: ...
-
-    @overload
-    def get_full_results_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-        include_readouts: bool = True,
-    ) -> Array | None: ...
-
-    @overload
-    def get_full_results_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        include_readouts: bool = True,
-    ) -> Array | None: ...
-
-    def get_full_results_array(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        include_readouts: bool = True,
-    ) -> Array | list[Array] | None:
-        """Get simulation results and derived compounds.
-
-        Returns
-        -------
-        results : numpy.array
-
-        """
-        if self.results is None or self.time is None:
-            return None
-        if self.full_results is None:
-            self._calculate_full_results(include_readouts=include_readouts)
-        # Cast is ok
-        full_results = cast(List[Array], self.full_results).copy()
-        if normalise is not None:
-            full_results = self._normalise_split_array(
-                split_array=full_results,
-                normalise=normalise,
-            )
-        if concatenated:
-            return np.concatenate(full_results, axis=0)  # type: ignore
-        return full_results
-
-    @overload
-    def get_full_results_dict(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-        include_readouts: bool = True,
-    ) -> list[dict[str, Array]] | None: ...
-
-    @overload
-    def get_full_results_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-        include_readouts: bool = True,
-    ) -> dict[str, Array] | None: ...
-
-    @overload
-    def get_full_results_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        include_readouts: bool = True,
-    ) -> dict[str, Array] | None: ...
-
-    def get_full_results_dict(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        include_readouts: bool = True,
-    ) -> dict[str, Array] | list[dict[str, Array]] | None:
-        """Get simulation results and derived compounds."""
-        full_results = self.get_full_results_array(
-            normalise=normalise,
-            concatenated=concatenated,
-            include_readouts=include_readouts,
-        )
-        if full_results is None:
-            return None
-        all_compounds = self.model.get_all_compounds()
-        if concatenated:
-            return dict(zip(all_compounds, cast(Array, full_results).T))
-        return [dict(zip(all_compounds, i.T)) for i in full_results]
-
-    @overload
-    def get_full_results_df(
+    def get_full_results(  # type: ignore
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -932,7 +616,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> list[pd.DataFrame] | None: ...
 
     @overload
-    def get_full_results_df(
+    def get_full_results(
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -941,7 +625,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> pd.DataFrame | None: ...
 
     @overload
-    def get_full_results_df(
+    def get_full_results(
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -949,7 +633,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         include_readouts: bool = True,
     ) -> pd.DataFrame | None: ...
 
-    def get_full_results_df(
+    def get_full_results(
         self,
         *,
         normalise: float | ArrayLike | None = None,
@@ -957,134 +641,68 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         include_readouts: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
         """Get simulation results and derived compounds."""
-        full_results = self.get_full_results_array(
-            normalise=normalise,
-            concatenated=concatenated,
-            include_readouts=include_readouts,
-        )
-        time = self.get_time(concatenated=concatenated)
-        if full_results is None or time is None:
+
+        if self.full_results is None:
+            self._calculate_full_results(include_readouts=include_readouts)
+
+        if (full_results := self.full_results) is None:
             return None
-        all_compounds = self.model.get_all_compounds() + list(
-            self.model.get_readout_names()
-        )
 
+        full_results = full_results.copy()
+
+        if normalise is not None:
+            full_results = self._normalise_split_results(
+                results=full_results,
+                normalise=normalise,
+            )
         if concatenated:
-            return pd.DataFrame(data=full_results, index=time, columns=all_compounds)
-        return [
-            pd.DataFrame(data=res, index=t, columns=all_compounds)
-            for t, res in zip(time, full_results)
-        ]
+            return pd.concat(full_results, axis=0)
+        return full_results
 
-    @overload
-    def get_variable(  # type: ignore
+    def get_results_and_fluxes(
         self,
-        variable: str,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> list[Array] | None: ...
+    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+        return self.get_results(), self.get_fluxes()
 
-    @overload
-    def get_variable(
+    def get_full_results_and_fluxes(
         self,
-        variable: str,
         *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-    ) -> Array | None: ...
-
-    @overload
-    def get_variable(
-        self,
-        variable: str,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> Array | None: ...
-
-    def get_variable(
-        self,
-        variable: str,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> Array | list[Array] | None:
-        """Get simulation results for a specific variable.
-
-        Returns
-        -------
-        results : numpy.array
-
-        """
-        full_results_dict = self.get_full_results_dict(
-            normalise=normalise, concatenated=concatenated
+        include_readouts: bool = True,
+    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+        return (
+            self.get_full_results(include_readouts=include_readouts),
+            self.get_fluxes(),
         )
-        if full_results_dict is None:
-            return None
-        if concatenated:
-            return cast(Dict[str, Array], full_results_dict)[variable]
-        return [i[variable] for i in cast(List[Dict[str, Array]], full_results_dict)]
-
-    @overload
-    def get_variables(  # type: ignore
-        self,
-        variables: list[str],
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> list[Array]: ...
-
-    @overload
-    def get_variables(
-        self,
-        variables: list[str],
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-    ) -> Array: ...
-
-    @overload
-    def get_variables(
-        self,
-        variables: list[str],
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> Array: ...
-
-    def get_variables(
-        self,
-        variables: list[str],
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> Array | list[Array]:
-        """Get simulation results for a specific variable."""
-        full_results_df = self.get_full_results_df(
-            normalise=normalise, concatenated=concatenated
-        )
-        if concatenated:
-            full_results_df = cast(pd.DataFrame, full_results_df)
-            return full_results_df.loc[:, variables].values  # type: ignore
-        full_results_df = cast(List[pd.DataFrame], full_results_df)
-        return [i.loc[:, variables].values for i in full_results_df]
 
     def get_right_hand_side(
         self,
         *,
         annotate_names: bool = True,
-    ) -> pd.DataFrame:
+    ) -> pd.DataFrame | None:
         rhs = pd.DataFrame()
-        for t, y, p in zip(self.time, self.results, self.simulation_parameters):  # type: ignore
+
+        if (res := self.results) is None:
+            return None
+        if (pars := self.simulation_parameters) is None:
+            return None
+
+        for y, p in zip(res, pars):
             self.update_parameters(p)
-            _rhs = [
-                self.model.get_right_hand_side(
-                    y=yi, t=ti, annotate_names=annotate_names
+            rhs = pd.concat(
+                (
+                    rhs,
+                    pd.DataFrame(
+                        {
+                            ti: self.model.get_right_hand_side(
+                                y=yi.to_numpy(),
+                                t=cast(float, ti),
+                                annotate_names=annotate_names,
+                            )
+                            for ti, yi in y.iterrows()
+                        }
+                    ),
                 )
-                for ti, yi in zip(t, y)
-            ]
-            rhs = pd.concat((rhs, pd.DataFrame(_rhs, index=t)))
+            )
         return rhs
 
     @staticmethod
@@ -1093,49 +711,55 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         *,
         parameter_name: str,
         model: RATE_MODEL_TYPE,
-        Sim: type[_BaseRateSimulator],
+        sim: type[_BaseRateSimulator],
         integrator: type[AbstractIntegrator],
         tolerance: float,
         y0: list[float],
         integrator_kwargs: dict[str, Any],
         include_fluxes: bool,
         rel_norm: bool,
-    ) -> tuple[float, dict[str, float], dict[str, float]]:
+    ) -> tuple[float, pd.Series, pd.Series]:
         m = model.copy()
-        s = Sim(model=m, integrator=integrator)
+        s = sim(model=m, integrator=integrator)
         s.initialise(y0=y0, test_run=False)
         s.update_parameter(
-            parameter_name=parameter_name, parameter_value=parameter_value
+            parameter_name=parameter_name,
+            parameter_value=parameter_value,
         )
-        t, y = s.simulate_to_steady_state(
-            tolerance=tolerance, rel_norm=rel_norm, **integrator_kwargs
-        )
-        if t is None or y is None:
-            concentrations = dict(
-                zip(
-                    m.get_all_compounds(),  # type: ignore
-                    np.full(len(m.get_all_compounds()), np.nan),  # type: ignore
-                ),
+
+        if (
+            s.simulate_to_steady_state(
+                tolerance=tolerance,
+                rel_norm=rel_norm,
+                **integrator_kwargs,
             )
-            fluxes = dict(
-                zip(
-                    m.get_rate_names(),  # type: ignore
-                    np.full(len(m.get_rate_names()), np.nan),  # type: ignore
-                ),
-            )
-            return parameter_value, concentrations, fluxes
+            is None
+        ):
+            return parameter_value, _empty_conc_series(model), _empty_flux_series(model)
+
+        if (full_results := s.get_full_results(concatenated=True)) is None:
+            return parameter_value, _empty_conc_series(model), _empty_flux_series(model)
+        last_full_results = full_results.iloc[-1]
+
         if include_fluxes:
-            fluxes = dict(s.get_fluxes_df(concatenated=True).iloc[-1])  # type: ignore
+            if (fluxes := s.get_fluxes(concatenated=True)) is None:
+                return (
+                    parameter_value,
+                    _empty_conc_series(model),
+                    _empty_flux_series(model),
+                )
+            last_fluxes = fluxes.iloc[-1]
         else:
-            fluxes = {}
-        concentrations = dict(s.get_full_results_df(concatenated=True).iloc[-1])  # type: ignore
-        return parameter_value, concentrations, fluxes  # type: ignore
+            last_fluxes = pd.Series()
+
+        return parameter_value, last_full_results, last_fluxes
 
     def parameter_scan(
         self,
         parameter_name: str,
         parameter_values: ArrayLike,
         tolerance: float = 1e-8,
+        *,
         multiprocessing: bool = True,
         max_workers: int | None = None,
         disable_tqdm: bool = False,
@@ -1159,6 +783,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         parameter_name: str,
         parameter_values: ArrayLike,
         tolerance: float = 1e-8,
+        *,
         multiprocessing: bool = True,
         disable_tqdm: bool = False,
         max_workers: int | None = None,
@@ -1170,13 +795,14 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             warnings.warn(
                 """
                 Windows does not behave well with multiple processes.
-                Falling back to threading routine."""
+                Falling back to threading routine.""",
+                stacklevel=1,
             )
         worker = partial(
             self._parameter_scan_worker,
             parameter_name=parameter_name,
             model=self.model,
-            Sim=self.__class__,
+            sim=self.__class__,
             integrator=self._integrator,
             tolerance=tolerance,
             y0=self.y0,
@@ -1185,7 +811,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             rel_norm=rel_norm,
         )
 
-        results: Iterable[tuple[float, dict[str, Array], dict[str, Array]]]
+        results: Iterable[tuple[float, pd.Series, pd.Series]]
         if sys.platform in ["win32", "cygwin"] or not multiprocessing:
             results = tqdm(
                 map(worker, parameter_values),
@@ -1211,6 +837,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         p1: tuple[str, ArrayLike],
         p2: tuple[str, ArrayLike],
         tolerance: float = 1e-8,
+        *,
         disable_tqdm: bool = False,
         multiprocessing: bool = True,
         max_workers: int | None = None,
@@ -1243,6 +870,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         p1: tuple[str, ArrayLike],
         p2: tuple[str, ArrayLike],
         tolerance: float = 1e-8,
+        *,
         disable_tqdm: bool = False,
         multiprocessing: bool = True,
         max_workers: int | None = None,
@@ -1279,6 +907,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
+        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1294,7 +923,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         compounds = self.model.get_compounds()
         y = cast(
             pd.DataFrame,
-            self.get_full_results_df(normalise=normalise, concatenated=True),
+            self.get_full_results(normalise=normalise, concatenated=True),
         )
         if y is None:
             return None, None
@@ -1327,6 +956,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
+        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1342,7 +972,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         compounds = self.model.get_compounds()
         y = cast(
             pd.DataFrame,
-            self.get_full_results_df(normalise=normalise, concatenated=True),
+            self.get_full_results(normalise=normalise, concatenated=True),
         )
         if y is None:
             return None, None
@@ -1379,6 +1009,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
+        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1394,7 +1025,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         compounds = self.model.get_derived_compounds()
         y = cast(
             pd.DataFrame,
-            self.get_full_results_df(normalise=normalise, concatenated=True),
+            self.get_full_results(normalise=normalise, concatenated=True),
         )
         if y is None:
             return None, None
@@ -1423,6 +1054,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
+        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1438,7 +1070,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         compounds = self.model.get_all_compounds()
         y = cast(
             pd.DataFrame,
-            self.get_full_results_df(normalise=normalise, concatenated=True),
+            self.get_full_results(normalise=normalise, concatenated=True),
         )
         if y is None:
             return None, None
@@ -1468,6 +1100,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
+        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1482,7 +1115,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> tuple[Figure | None, Axis | None]:
         y = cast(
             pd.DataFrame,
-            self.get_full_results_df(normalise=normalise, concatenated=True),
+            self.get_full_results(normalise=normalise, concatenated=True),
         )
         if y is None:
             return None, None
@@ -1536,7 +1169,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         """
         y = cast(
             pd.DataFrame,
-            self.get_full_results_df(normalise=normalise, concatenated=True),
+            self.get_full_results(normalise=normalise, concatenated=True),
         )
         if y is None:
             return None, None
@@ -1624,7 +1257,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> tuple[Figure | None, Axis | None]:
         if xlabel is None:
             xlabel = variable
-        results = cast(pd.DataFrame, self.get_full_results_df(concatenated=True))
+        results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
         compounds = cast(List[str], self.model.get_compounds())
@@ -1669,7 +1302,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> tuple[Figure | None, Axis | None]:
         if xlabel is None:
             xlabel = variable
-        results = cast(pd.DataFrame, self.get_full_results_df(concatenated=True))
+        results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
         compounds = cast(List[str], self.model.get_derived_compounds())
@@ -1714,7 +1347,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> tuple[Figure | None, Axis | None]:
         if xlabel is None:
             xlabel = variable
-        results = cast(pd.DataFrame, self.get_full_results_df(concatenated=True))
+        results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
         compounds = cast(List[str], self.model.get_all_compounds())
@@ -1760,7 +1393,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     ) -> tuple[Figure | None, Axis | None]:
         if xlabel is None:
             xlabel = variable
-        results = cast(pd.DataFrame, self.get_full_results_df(concatenated=True))
+        results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
         x = results.loc[:, variable].values  # type: ignore
@@ -1786,6 +1419,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def plot_fluxes(
         self,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1802,14 +1436,12 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         label_kwargs: dict[str, Any] | None = None,
         title_kwargs: dict[str, Any] | None = None,
     ) -> tuple[Figure | None, Axis | None]:
-        rate_names = cast(List[str], self.model.get_rate_names())
-        y = self.get_fluxes_df(normalise=normalise, concatenated=True)
+        y = self.get_fluxes(normalise=normalise, concatenated=True)
         if y is None:
             return None, None
-        y = cast(pd.DataFrame, y)
         return plot(
-            plot_args=(y.loc[:, rate_names],),
-            legend=rate_names,
+            plot_args=(y,),
+            legend=y.columns,
             xlabel=xlabel,
             ylabel=ylabel,
             title=title,
@@ -1845,7 +1477,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         label_kwargs: dict[str, Any] | None = None,
         title_kwargs: dict[str, Any] | None = None,
     ) -> tuple[Figure | None, Axis | None]:
-        y = self.get_fluxes_df(normalise=normalise, concatenated=True)
+        y = self.get_fluxes(normalise=normalise, concatenated=True)
         if y is None:
             return None, None
         y = cast(pd.DataFrame, y)
@@ -1897,7 +1529,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         >>> plot_fluxes_grid([["v1", "v2"], ["v3", "v4]])
 
         """
-        fluxes = self.get_fluxes_df(normalise=normalise, concatenated=True)
+        fluxes = self.get_fluxes(normalise=normalise, concatenated=True)
         if fluxes is None:
             return None, None
         fluxes = cast(pd.DataFrame, fluxes)
@@ -1946,7 +1578,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             xlabel = variable
         rate_names = cast(List[str], self.model.get_rate_names())
         x = self.get_variable(variable=variable)
-        y = self.get_fluxes_df(concatenated=True)
+        y = self.get_fluxes(concatenated=True)
         if x is None or y is None:
             return None, None
         y = cast(pd.DataFrame, y).loc[:, rate_names].values
@@ -1991,7 +1623,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         if xlabel is None:
             xlabel = variable
         x = self.get_variable(variable=variable)
-        y = self.get_fluxes_df(concatenated=True)
+        y = self.get_fluxes(concatenated=True)
         if x is None or y is None:
             return None, None
         y = cast(pd.DataFrame, y).loc[:, rate_names].values

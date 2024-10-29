@@ -8,7 +8,6 @@ __all__ = [
     "DerivedStoichiometry",
     "Model",
 ]
-
 import copy
 import itertools as it
 import subprocess
@@ -40,9 +39,17 @@ from modelbase2.core.utils import convert_id_to_sbml
 from . import _AbstractRateModel
 
 if TYPE_CHECKING:
-    from modelbase2.typing import Array, ArrayLike
+    from modelbase2.ode.surrogates import AbstractSurrogate
+    from modelbase2.typing import Array, ArrayLike, T
 
     from . import LabelModel, LinearLabelModel
+
+
+def _without(d: dict[str, T], key: str) -> dict[str, T]:
+    new_d = d.copy()
+    if key in d:
+        new_d.pop(key)
+    return new_d
 
 
 @dataclass
@@ -72,6 +79,7 @@ class Model(_AbstractRateModel, BaseModel):
         RateMixin.__init__(self, rates=rates, functions=functions)
         self.meta_info["model"].sbo = "SBO:0000062"  # continuous framework
         self.derived_stoichiometries: dict[str, dict[str, DerivedStoichiometry]] = {}
+        self.surrogates: list[AbstractSurrogate] = []
 
     def __enter__(self) -> Model:
         """Enter the context manager.
@@ -679,6 +687,18 @@ class Model(_AbstractRateModel, BaseModel):
         return self
 
     ##########################################################################
+    # Surrogates functions
+    ##########################################################################
+
+    def add_surrogate(
+        self,
+        surrogate: AbstractSurrogate,
+    ) -> Self:
+        self.surrogates.append(surrogate)
+        self.add_stoichiometries(surrogate.stoichiometries)
+        return self
+
+    ##########################################################################
     # Conversion functions
     ##########################################################################
 
@@ -702,7 +722,20 @@ class Model(_AbstractRateModel, BaseModel):
         # Change all modifiers / parameters etc. accordingly
         for rate_name, rate in self.rates.items():
             if name in rate.args:
-                self.update_reaction_from_args(rate_name=rate_name, args=rate.args)
+                self.update_reaction_from_args(
+                    rate_name=rate_name,
+                    args=rate.args,
+                    stoichiometry=_without(self.stoichiometries[rate_name], name),
+                )
+
+        # There can be rates which change `name` without having it as an argument
+        stoichs_by_cpd = copy.deepcopy(self.stoichiometries_by_compounds)
+
+        for rate_name in stoichs_by_cpd.get(name, {}):
+            self.update_reaction_from_args(
+                rate_name=rate_name,
+                stoichiometry=_without(self.stoichiometries[rate_name], name),
+            )
         return self
 
     ##########################################################################
@@ -713,6 +746,7 @@ class Model(_AbstractRateModel, BaseModel):
         self,
         y: dict[str, float] | dict[str, Array] | ArrayLike | Array,
         t: float | ArrayLike | Array = 0.0,
+        *,
         include_readouts: bool = False,
     ) -> dict[str, Array]:
         """Calculate the derived variables (at time(s) t).
@@ -755,7 +789,62 @@ class Model(_AbstractRateModel, BaseModel):
         s.name = "derived_variables"
         return s
 
-    def get_fluxes_dict(
+    def _get_fluxes(
+        self,
+        *,
+        fcd: dict[str, float],
+    ) -> dict[str, float]:
+        args = self.parameters | fcd
+        fluxes = {}
+        for name, rate in self.rates.items():
+            try:
+                fluxes[name] = float(rate.function(*(args[arg] for arg in rate.args)))
+            except KeyError as e:  # noqa: PERF203
+                msg = f"Could not find argument {e} for rate {name}"
+                raise KeyError(msg) from e
+        for surrogate in self.surrogates:
+            outputs = surrogate.predict(
+                np.array([args[arg] for arg in surrogate.inputs]).flatten()
+            )
+            fluxes |= outputs
+        return fluxes
+
+    def _get_fluxes_from_df(
+        self,
+        *,
+        fcd: pd.DataFrame,
+    ) -> pd.DataFrame:
+        _p = self.parameters
+        pars_df = pd.DataFrame(
+            np.full(
+                (len(fcd), len(_p)),
+                np.fromiter(_p.values(), dtype=float),
+            ),
+            index=fcd.index,
+            columns=list(_p.keys()),
+        )
+        args = pd.concat((fcd, pars_df), axis=1)
+
+        fluxes: dict[str, Array] = {}
+        for name, rate in self.rates.items():
+            try:
+                fluxes[name] = rate.function(*args.loc[:, rate.args].to_numpy().T)
+
+            except KeyError as e:  # noqa: PERF203
+                msg = f"Could not find argument {e} for rate {name}"
+                raise KeyError(msg) from e
+
+        flux_df = pd.DataFrame(fluxes, index=args.index)
+
+        for surrogate in self.surrogates:
+            outputs = [
+                surrogate.predict(y) for y in args.loc[:, surrogate.inputs].to_numpy()
+            ]
+
+            flux_df = pd.concat((flux_df, pd.DataFrame(outputs)), axis=1)
+        return flux_df
+
+    def get_fluxes(
         self,
         y: dict[str, float]
         | dict[str, ArrayLike]
@@ -769,7 +858,7 @@ class Model(_AbstractRateModel, BaseModel):
         ones = np.ones(len(fcd["time"]))
         if len(fcd["time"]) == 1:
             return {k: ones * v for k, v in self._get_fluxes(fcd=fcd).items()}  # type: ignore
-        return {k: ones * v for k, v in self._get_fluxes_array(fcd=fcd).items()}  # type: ignore
+        return {k: ones * v for k, v in self._get_fluxes_from_df(fcd=fcd).items()}  # type: ignore
 
     # This can't get keyword-only arguments, as the integrators are calling it with
     # positional arguments
@@ -863,6 +952,7 @@ class Model(_AbstractRateModel, BaseModel):
         self,
         labelcompounds: dict[str, int],
         labelmaps: dict[str, list[int]],
+        *,
         show_warnings: bool = True,
     ) -> LinearLabelModel:
         """Create a LinearLabelModel from this model.
@@ -916,7 +1006,10 @@ class Model(_AbstractRateModel, BaseModel):
                     labelmap=labelmaps[rate_name],
                 )
             elif show_warnings:
-                warnings.warn(f"Skipping reaction {rate_name} as no labelmap is given")
+                warnings.warn(
+                    f"Skipping reaction {rate_name} as no labelmap is given",
+                    stacklevel=1,
+                )
         return lm
 
     ##########################################################################
@@ -924,7 +1017,10 @@ class Model(_AbstractRateModel, BaseModel):
     ##########################################################################
 
     def generate_model_source_code(
-        self, linted: bool = True, include_meta_info: bool = False
+        self,
+        *,
+        linted: bool = True,
+        include_meta_info: bool = False,
     ) -> str:
         """Generate source code of the model.
 

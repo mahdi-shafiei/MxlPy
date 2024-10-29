@@ -19,6 +19,7 @@ from typing import (
 
 import libsbml
 import numpy as np
+import pandas as pd
 from typing_extensions import Self
 
 from . import BaseModel, CompoundMixin, ParameterMixin
@@ -557,31 +558,29 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
         *,
         fcd: dict[str, float],
     ) -> dict[str, float]:
-        # args = self.parameters | fcd # python 3.9+ syntax
-        args = {**self.get_all_parameters(), **fcd}
+        args = self.parameters | fcd
         fluxes = {}
         for name, rate in self.rates.items():
             try:
                 fluxes[name] = float(rate.function(*(args[arg] for arg in rate.args)))
-            except KeyError as e:
+            except KeyError as e:  # noqa: PERF203
                 msg = f"Could not find argument {e} for rate {name}"
                 raise KeyError(msg) from e
         return fluxes
 
-    def _get_fluxes_array(
+    def _get_fluxes_from_df(
         self,
         *,
         fcd: dict[str, float],
     ) -> dict[str, Array]:
-        # args = self.parameters | fcd # python 3.9+ syntax
-        args = {**self.get_all_parameters(), **fcd}
+        args = self.parameters | fcd
         fluxes = {}
         for name, rate in self.rates.items():
             try:
                 fluxes[name] = np.atleast_1d(
                     rate.function(*(args[arg] for arg in rate.args))
                 )
-            except KeyError as e:
+            except KeyError as e:  # noqa: PERF203
                 msg = f"Could not find argument {e} for rate {name}"
                 raise KeyError(msg) from e
         return fluxes

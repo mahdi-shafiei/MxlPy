@@ -85,7 +85,6 @@ def Simulator(
             model=model,
             integrator=integrator,
             y0=y0,
-            time=time,
             results=results,
             parameters=parameters,
         )
@@ -94,7 +93,6 @@ def Simulator(
             model=model,
             integrator=integrator,
             y0=y0,
-            time=time,
             results=results,
         )
     if isinstance(model, _Model):
@@ -102,7 +100,6 @@ def Simulator(
             model=model,
             integrator=integrator,
             y0=y0,
-            time=time,
             results=results,
             parameters=parameters,
         )

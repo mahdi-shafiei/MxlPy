@@ -177,7 +177,7 @@ def _time_course_worker(
         .initialise(y0)
         .update_parameters(pars.to_dict())
         .simulate_and(time_points=time_points)
-        .get_full_results_and_fluxes_df()
+        .get_full_results_and_fluxes()
     )
     if c is None or v is None:
         return empty_time_course(model, time_points)
@@ -248,7 +248,7 @@ def _time_course_over_protocol_worker(
         t_end = cast(pd.Timedelta, t_end)
         s.update_parameters(ser.to_dict())
         s.simulate(t_end.total_seconds(), steps=time_points_per_step)
-    c, v = s.get_full_results_and_fluxes_df()
+    c, v = s.get_full_results_and_fluxes()
     if c is None or v is None:
         return empty_time_course(model, time_points)
     return c, v

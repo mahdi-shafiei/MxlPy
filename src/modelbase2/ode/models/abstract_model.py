@@ -77,7 +77,7 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
     ) -> dict[str, Array]: ...
 
     @abstractmethod
-    def get_fluxes_dict(
+    def get_fluxes(
         self,
         y: dict[str, float]
         | dict[str, ArrayLike]
@@ -97,7 +97,7 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
         t: float | ArrayLike | Array = 0.0,
     ) -> Array:
         """Calculate the fluxes at time point(s) t."""
-        return np.array(list(self.get_fluxes_dict(y=y, t=t).values())).T
+        return np.array(list(self.get_fluxes(y=y, t=t).values())).T
 
     def get_fluxes_df(
         self,
@@ -112,7 +112,7 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
         if isinstance(t, (int, float)):
             t = [t]  # type: ignore
         return pd.DataFrame(
-            data=self.get_fluxes_dict(y=y, t=t), index=t, columns=self.get_rate_names()
+            data=self.get_fluxes(y=y, t=t), index=t, columns=self.get_rate_names()
         )
 
     def get_right_hand_side(
