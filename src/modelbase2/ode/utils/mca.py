@@ -35,7 +35,7 @@ from matplotlib import cm
 from tqdm.auto import tqdm
 
 from modelbase2.ode.simulators import Simulator
-from modelbase2.typing import Array, ArrayLike, Axes, Axis
+from modelbase2.types import Array, ArrayLike, Axes, Axis
 from modelbase2.utils.plotting import get_norm as _get_norm
 from modelbase2.utils.plotting import heatmap_from_dataframe as _heatmap_from_dataframe
 

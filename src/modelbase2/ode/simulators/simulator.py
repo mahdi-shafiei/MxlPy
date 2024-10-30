@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
     from modelbase2.ode.integrators import AbstractIntegrator
-    from modelbase2.typing import Array, ArrayLike, Axes, Axis
+    from modelbase2.types import Array, ArrayLike, Axes, Axis
 
 warnings.formatwarning = warning_on_one_line  # type: ignore
 

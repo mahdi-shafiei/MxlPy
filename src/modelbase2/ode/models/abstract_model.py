@@ -20,7 +20,7 @@ from modelbase2.core import (
 )
 
 if TYPE_CHECKING:
-    from modelbase2.typing import Array, ArrayLike
+    from modelbase2.types import Array, ArrayLike
 
 
 class _AbstractStoichiometricModel(StoichiometricMixin, CompoundMixin, BaseModel, ABC):

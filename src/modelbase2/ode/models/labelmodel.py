@@ -20,7 +20,7 @@ from modelbase2.core import (
     StoichiometricMixin,
 )
 from modelbase2.core.utils import convert_id_to_sbml, warning_on_one_line
-from modelbase2.typing import Array, ArrayLike
+from modelbase2.types import Array, ArrayLike
 
 from . import _AbstractRateModel
 

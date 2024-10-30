@@ -19,7 +19,7 @@ import numpy as np
 from matplotlib.colors import colorConverter  # type: ignore
 from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 
-from modelbase2.typing import Array, ArrayLike, Axes, Axis
+from modelbase2.types import Array, ArrayLike, Axes, Axis
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

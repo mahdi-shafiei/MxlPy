@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 import matplotlib.pyplot as plt
 
-from modelbase2.typing import Axis, Figure, unwrap
+from modelbase2.types import Axis, Figure, unwrap
 
 if TYPE_CHECKING:
     import pandas as pd

@@ -14,7 +14,7 @@ import pandas as pd
 
 from modelbase2.core import BaseModel, CompoundMixin, StoichiometricMixin
 from modelbase2.core.utils import convert_id_to_sbml
-from modelbase2.typing import Array, ArrayLike
+from modelbase2.types import Array, ArrayLike
 
 from . import _AbstractStoichiometricModel
 

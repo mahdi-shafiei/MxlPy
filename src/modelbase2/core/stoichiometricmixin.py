@@ -17,7 +17,7 @@ from .utils import convert_id_to_sbml, warning_on_one_line
 if TYPE_CHECKING:
     import libsbml
 
-    from modelbase2.typing import Array
+    from modelbase2.types import Array
 
 warnings.formatwarning = warning_on_one_line  # type: ignore
 

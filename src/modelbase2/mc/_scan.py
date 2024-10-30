@@ -11,7 +11,7 @@ import seaborn as sns
 from modelbase2.mc._parallel import Cache, parallelise
 from modelbase2.mc._plot import _fig_ax_if_neccessary, _plot_line_mean_std
 from modelbase2.ode import Model, Simulator
-from modelbase2.typing import Array, Axis, default_if_none
+from modelbase2.types import Array, Axis, default_if_none
 from modelbase2.utils.plotting import grid
 
 

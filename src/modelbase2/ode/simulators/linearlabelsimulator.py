@@ -8,7 +8,7 @@ import copy
 from typing import TYPE_CHECKING, Any, Self, cast
 
 from modelbase2.ode.models import LinearLabelModel as _LinearLabelModel
-from modelbase2.typing import Array, ArrayLike, Axis
+from modelbase2.types import Array, ArrayLike, Axis
 from modelbase2.utils.plotting import plot, plot_grid
 
 from . import _BaseSimulator

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from modelbase2.typing import Array
+from modelbase2.types import Array
 
 
 @dataclass

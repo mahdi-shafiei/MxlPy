@@ -18,15 +18,12 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from modelbase2.typing import Array, ArrayLike, Axes, Axis, Figure
-from modelbase2.utils.plotting import _get_plot_kwargs, _style_subplot, plot, plot_grid
+from modelbase2.types import Array, ArrayLike, Axes, Axis, Figure
+from modelbase2.utils.plotting import (_get_plot_kwargs, _style_subplot, plot,
+                                       plot_grid)
 
-from . import (
-    BASE_MODEL_TYPE,
-    RATE_MODEL_TYPE,
-    _AbstractRateModel,
-    _AbstractStoichiometricModel,
-)
+from . import (BASE_MODEL_TYPE, RATE_MODEL_TYPE, _AbstractRateModel,
+               _AbstractStoichiometricModel)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

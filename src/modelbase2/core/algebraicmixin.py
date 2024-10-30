@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     import libsbml
 
-    from modelbase2.typing import ArrayLike
+    from modelbase2.types import ArrayLike
 
 warnings.formatwarning = warning_on_one_line  # type: ignore
 

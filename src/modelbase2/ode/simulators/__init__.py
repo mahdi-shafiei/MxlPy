@@ -29,7 +29,7 @@ from .linearlabelsimulator import _LinearLabelSimulate
 from .simulator import _Simulate
 
 if TYPE_CHECKING:
-    from modelbase2.typing import ArrayLike
+    from modelbase2.types import ArrayLike
 
 try:
     from modelbase2.ode.integrators import Assimulo

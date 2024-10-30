@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from modelbase2.ode.surrogates import AbstractSurrogate
-    from modelbase2.typing import Array, ArrayLike, T
+    from modelbase2.types import Array, ArrayLike, T
 
     from . import LabelModel, LinearLabelModel
 

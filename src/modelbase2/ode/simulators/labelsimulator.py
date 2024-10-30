@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from modelbase2.ode.models import LabelModel
-from modelbase2.typing import Array, ArrayLike, Axis
+from modelbase2.types import Array, ArrayLike, Axis
 from modelbase2.utils.plotting import plot, plot_grid
 
 from .abstract_simulator import _BaseRateSimulator
