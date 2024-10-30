@@ -37,6 +37,9 @@ class Assimulo:
         self.integrator.maxncf = self.maxncf
         self.integrator.verbosity = self.verbosity
 
+    def reset(self) -> None:
+        self.integrator.reset()
+
     def integrate(
         self,
         *,
@@ -58,7 +61,7 @@ class Assimulo:
         rel_norm: bool,
         t_max: float = 1_000_000_000,
     ) -> tuple[float | None, ArrayLike | None]:
-        self.integrator.reset()
+        self.reset()
 
         try:
             for t_end in np.geomspace(1000, t_max, 3):

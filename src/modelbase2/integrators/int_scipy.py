@@ -30,7 +30,7 @@ class Scipy:
     def __post_init__(self) -> None:
         self._y0_orig = self.y0.copy()
 
-    def _reset(self) -> None:
+    def reset(self) -> None:
         self.t0 = 0
         self.y0 = self._y0_orig.copy()
 
@@ -80,7 +80,7 @@ class Scipy:
         max_steps: int = 1000,
         integrator: str = "lsoda",
     ) -> tuple[float | None, ArrayLike | None]:
-        self._reset()
+        self.reset()
         integ = spi.ode(self.rhs)
         integ.set_integrator(
             name=integrator,

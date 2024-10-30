@@ -1,10 +1,16 @@
-from typing import Protocol
-
-from modelbase2.types import ArrayLike
+from modelbase2.types import ArrayLike, Callable, Protocol
 
 
-class Integrator(Protocol):
+class IntegratorProtocol(Protocol):
     """Interface for integrators"""
+
+    def __init__(
+        self,
+        rhs: Callable,
+        y0: ArrayLike,
+    ) -> None: ...
+
+    def reset(self) -> None: ...
 
     def integrate(
         self,

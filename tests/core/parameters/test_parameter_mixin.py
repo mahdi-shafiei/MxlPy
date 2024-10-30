@@ -219,22 +219,6 @@ class ModelTests(unittest.TestCase):
         model = Model(parameters=parameters)
         self.assertEqual(model.get_parameters(), {"k1": 1, "k2": 2})
 
-    ############################################################################
-    # Updating meta info
-    ############################################################################
-
-    # def test_update_parameter_meta_info(self):
-    #     model = Model()
-    #     model.add_parameter(parameter_name="x", parameter_value=0)
-    #     model.update_parameter_meta_info(parameter="x", meta_info={"unit": "X"})
-    #     self.assertEqual(model.meta_info["parameters"]["x"].unit, "X")
-
-    # def test_update_parameter_meta_info_replacing(self):
-    #     model = Model()
-    #     model.add_parameter(parameter_name="x", parameter_value=0, **{"unit": "X1"})
-    #     model.update_parameter_meta_info(parameter="x", meta_info={"unit": "X2"})
-    #     self.assertEqual(model.meta_info["parameters"]["x"].unit, "X2")
-
 
 class DerivedParameterTests(unittest.TestCase):
     def test_add_derived_parameter(self):

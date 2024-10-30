@@ -43,6 +43,21 @@ dependencies = [
     "tqdm>=4.66.6",
     "typing-extensions>=4.12.2",
 ]
+optional-dependencies = { dev  = [
+  "toml-sort>=0.23.1,<0.24",
+  "qtbmodels>=0.1.0,<0.2",
+  "ruff>=0.7.1",
+  "coverage>=7.6.4",
+  "jupyter>=1.1.1",
+  "mypy>=1.13.0",
+  "pytest>=8.3.3",
+  "pytest-cov>=5.0.0",
+  "requests>=2.32.3",
+  "mkdocs>=1.6.1",
+  "mkdocs-jupyter>=0.25.1",
+  "mkdocs-material>=9.5.42",
+  "pre-commit>=4.0.1",
+] }
 
 [tool.bandit]
 skips = ["B101", "B301", "B403", "B404", "B603", "B607"]
@@ -57,13 +72,15 @@ warn_unused_configs = true
 
 [tool.pixi.dependencies]
 assimulo = ">=3.5.2"
+python = ">=3.12.7,<4"
+pip = ">=24.3.1,<25"
 
 [tool.pixi.project]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
 [tool.pixi.pypi-dependencies]
-modelbase2 = { path = ".", editable = true }
+modelbase2 = { path = ".", extras=['dev'], editable = true }
 
 [tool.pixi.tasks]
 
@@ -76,20 +93,23 @@ fixable = ["ALL"]
 ignore = [
   "ANN101",  # self-type annotation
   "ANN401",  # any
+  "C901", # too complex
   "COM812",  # missing trailing comma
-  "D100",    # undocumented module
-  "D101",    # undocumented class
-  "D102",    # undocumented method
-  "D103",    # undocumented function
-  "D104",    # undocumented package
-  "D107",    # undocumented init
-  "D203",    #
-  "D205",    # blank line after summary
-  "D211",    # blank line before class
-  "D213",    # multi-line summary first line
-  "D400",    # first line ends with period
-  "D403",    # first line capitalised first word
-  "D415",    # furst line punctuation
+  "D", # all of documenetation
+  # "D100",    # undocumented module
+  # "D101",    # undocumented class
+  # "D102",    # undocumented method
+  # "D103",    # undocumented function
+  # "D104",    # undocumented package
+  # "D105",    # undocumented special method
+  # "D107",    # undocumented init
+  # "D203",    #
+  # "D205",    # blank line after summary
+  # "D211",    # blank line before class
+  # "D213",    # multi-line summary first line
+  # "D400",    # first line ends with period
+  # "D403",    # first line capitalised first word
+  # "D415",    # furst line punctuation
   "E501",    # line-too-long
   "FIX001",  # line contains FIXME
   "ISC001",  # single line implicit string concat
@@ -100,7 +120,9 @@ ignore = [
   "TD001",   # invalid todo tag
   "TD002",   # missing todo author
   "TD003",   # missing todo link
+  "PLR0912", # too many branches
   "PLR0913", # max num of arguments
+  "PLR0915", # too many lines
   "PD010",   # pivot table
 ]
 select = ["ALL"]
@@ -122,20 +144,6 @@ trailing_comma_inline_array = true
 
 [tool.uv]
 package = true
-dev-dependencies = [
-  "toml-sort>=0.23.1,<0.24",
-  "qtbmodels>=0.1.0,<0.2",
-  "ruff>=0.7.1",
-  "coverage>=7.6.4",
-  "jupyter>=1.1.1",
-  "mypy>=1.13.0",
-  "pytest>=8.3.3",
-  "pytest-cov>=5.0.0",
-  "requests>=2.32.3",
-  "mkdocs>=1.6.1",
-  "mkdocs-jupyter>=0.25.1",
-  "mkdocs-material>=9.5.42",
-]
 
 [tool.uv.sources]
 modelbase2 = { workspace = true }

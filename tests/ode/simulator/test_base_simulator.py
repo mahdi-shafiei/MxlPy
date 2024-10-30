@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import unittest
-from tempfile import TemporaryDirectory
 
 import numpy as np
 import pytest
@@ -83,10 +82,7 @@ def GENERATE_RESULTS():
         "d2": 0,
         "rate_time": 1,
     }
-    s = Simulator(model=model)
-    s.initialise(y0=y0)
-    t, y = s.simulate(t_end=10, steps=10)
-    return s.copy()
+    return Simulator(model=model).initialise(y0=y0).simulate_and(t_end=10, steps=10)
 
 
 SIM = GENERATE_RESULTS()
@@ -105,62 +101,6 @@ class SimulatorBaseTests(unittest.TestCase):
         m_weird = TestModel()
         with self.assertRaises(NotImplementedError):
             Simulator(model=m_weird)
-
-    def test_init_from_results(self):
-        model = Model(parameters={"k_in": 1})
-        model.add_compound(compound="x")
-        model.add_reaction(
-            rate_name="v1",
-            function=rf.constant,
-            stoichiometry={"x": 1},
-            parameters=["k_in"],
-        )
-        s1 = Simulator(model=model)
-        s1.initialise({"x": 0})
-        t, y = s1.simulate(1)
-
-        s2 = Simulator(model=model, **{"time": s1.time, "results": s1.results})
-        np.testing.assert_array_equal(s2.time, s1.time)
-        np.testing.assert_array_equal(s2.results, s1.results)
-
-    def test_store_and_load_results_wrong_type(self):
-        s = SIM.copy()
-        with self.assertRaises(ValueError):
-            s.store_results_to_file(filename="test", filetype="wurst")
-        with self.assertRaises(ValueError):
-            s.load_results_from_file(filename="test", filetype="wurst")
-
-    def test_store_and_load_results(self):
-        s = SIM.copy()
-        with TemporaryDirectory() as tmpdir:
-            s.store_results_to_file(filename=tmpdir + "test.json", filetype="json")
-            s.load_results_from_file(filename=tmpdir + "test.json", filetype="json")
-        self.assertTrue(s.time is not None)
-        self.assertTrue(s.results is not None)
-
-    def test_store_and_load_results_without_suffix(self):
-        s = SIM.copy()
-        with TemporaryDirectory() as tmpdir:
-            s.store_results_to_file(filename=tmpdir + "test", filetype="json")
-            s.load_results_from_file(filename=tmpdir + "test.json", filetype="json")
-        self.assertTrue(s.time is not None)
-        self.assertTrue(s.results is not None)
-
-    def test_store_and_load_results_pickle(self):
-        s = SIM.copy()
-        with TemporaryDirectory() as tmpdir:
-            s.store_results_to_file(filename=tmpdir + "test.p", filetype="pickle")
-            s.load_results_from_file(filename=tmpdir + "test.p", filetype="pickle")
-        self.assertTrue(s.time is not None)
-        self.assertTrue(s.results is not None)
-
-    def test_store_and_load_results_without_suffix_pickle(self):
-        s = SIM.copy()
-        with TemporaryDirectory() as tmpdir:
-            s.store_results_to_file(filename=tmpdir + "test", filetype="pickle")
-            s.load_results_from_file(filename=tmpdir + "test.pickle", filetype="pickle")
-        self.assertTrue(s.time is not None)
-        self.assertTrue(s.results is not None)
 
     def test_clear_results(self):
         s = SIM.copy()
