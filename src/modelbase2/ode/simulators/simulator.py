@@ -5,11 +5,7 @@ __all__ = [
 ]
 
 import warnings
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 from scipy.optimize import minimize

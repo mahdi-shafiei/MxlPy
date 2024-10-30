@@ -11,11 +11,7 @@ import re
 import warnings
 from collections import defaultdict
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, cast
 
 import libsbml
 import numpy as np

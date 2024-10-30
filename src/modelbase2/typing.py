@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 __all__ = [
-    "Figure",
     "Axis",
+    "Figure",
 ]
 
 from collections.abc import Hashable, Iterable

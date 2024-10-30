@@ -6,12 +6,7 @@ import copy
 import itertools as it
 import warnings
 from collections import defaultdict
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Self,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import numpy as np
 import pandas as pd
@@ -994,11 +989,13 @@ class LabelModel(_AbstractRateModel, BaseModel):
 
     def get_fluxes(
         self,
-        y: dict[str, float]
-        | dict[str, ArrayLike]
-        | dict[str, Array]
-        | Array
-        | ArrayLike,
+        y: (
+            dict[str, float]
+            | dict[str, ArrayLike]
+            | dict[str, Array]
+            | Array
+            | ArrayLike
+        ),
         t: float | ArrayLike | Array = 0.0,
     ) -> dict[str, Array]:
         """Calculate the fluxes at time point(s) t."""

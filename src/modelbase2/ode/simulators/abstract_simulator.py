@@ -11,15 +11,7 @@ import warnings
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Generic,
-    Literal,
-    Self,
-    cast,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Generic, Literal, Self, cast, overload
 
 import matplotlib.pyplot as plt
 import numpy as np

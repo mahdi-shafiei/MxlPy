@@ -17,15 +17,11 @@ import warnings
 from typing import TYPE_CHECKING, overload
 
 from modelbase2.ode.integrators import AbstractIntegrator, Scipy
-from modelbase2.ode.models import (
-    BASE_MODEL_TYPE,
-    RATE_MODEL_TYPE,
-    _AbstractRateModel,
-    _AbstractStoichiometricModel,
-)
+from modelbase2.ode.models import BASE_MODEL_TYPE, RATE_MODEL_TYPE
 from modelbase2.ode.models import LabelModel as _LabelModel
 from modelbase2.ode.models import LinearLabelModel as _LinearLabelModel
 from modelbase2.ode.models import Model as _Model
+from modelbase2.ode.models import _AbstractRateModel, _AbstractStoichiometricModel
 
 from .abstract_simulator import _BaseRateSimulator, _BaseSimulator
 from .labelsimulator import _LabelSimulate

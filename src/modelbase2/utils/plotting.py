@@ -12,20 +12,12 @@ __all__ = [
 
 import itertools as it
 import math
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import (
-    LogNorm,
-    Normalize,
-    SymLogNorm,
-    colorConverter,  # type: ignore
-)
+from matplotlib.colors import colorConverter  # type: ignore
+from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 
 from modelbase2.typing import Array, ArrayLike, Axes, Axis
 

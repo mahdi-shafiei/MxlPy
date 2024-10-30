@@ -59,9 +59,9 @@ class StoichiometricMixin(CompoundMixin, BaseModel):
 
         # Stoichiometries by compounds
         for compound, factor in stoichiometry.items():
-            self.stoichiometries_by_compounds.setdefault(compound, {})[rate_name] = (
-                factor
-            )
+            self.stoichiometries_by_compounds.setdefault(compound, {})[
+                rate_name
+            ] = factor
         return self
 
     def add_stoichiometry_by_compound(

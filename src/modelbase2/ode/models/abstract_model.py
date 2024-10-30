@@ -80,21 +80,25 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
     @abstractmethod
     def get_fluxes(
         self,
-        y: dict[str, float]
-        | dict[str, ArrayLike]
-        | dict[str, Array]
-        | Array
-        | ArrayLike,
+        y: (
+            dict[str, float]
+            | dict[str, ArrayLike]
+            | dict[str, Array]
+            | Array
+            | ArrayLike
+        ),
         t: float | ArrayLike | Array = 0.0,
     ) -> dict[str, Array]: ...
 
     def get_fluxes_array(
         self,
-        y: dict[str, float]
-        | dict[str, ArrayLike]
-        | dict[str, Array]
-        | Array
-        | ArrayLike,
+        y: (
+            dict[str, float]
+            | dict[str, ArrayLike]
+            | dict[str, Array]
+            | Array
+            | ArrayLike
+        ),
         t: float | ArrayLike | Array = 0.0,
     ) -> Array:
         """Calculate the fluxes at time point(s) t."""
@@ -102,11 +106,13 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
 
     def get_fluxes_df(
         self,
-        y: dict[str, float]
-        | dict[str, ArrayLike]
-        | dict[str, Array]
-        | Array
-        | ArrayLike,
+        y: (
+            dict[str, float]
+            | dict[str, ArrayLike]
+            | dict[str, Array]
+            | Array
+            | ArrayLike
+        ),
         t: float | ArrayLike | Array = 0.0,
     ) -> pd.DataFrame:
         """Calculate the fluxes at time point(s) t."""
@@ -118,11 +124,13 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
 
     def get_right_hand_side(
         self,
-        y: dict[str, float]
-        | dict[str, ArrayLike]
-        | dict[str, Array]
-        | Array
-        | ArrayLike,
+        y: (
+            dict[str, float]
+            | dict[str, ArrayLike]
+            | dict[str, Array]
+            | Array
+            | ArrayLike
+        ),
         t: float | ArrayLike | Array = 0.0,
         *,
         annotate_names: bool = True,

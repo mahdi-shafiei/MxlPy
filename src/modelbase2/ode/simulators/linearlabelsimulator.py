@@ -5,12 +5,7 @@ __all__ = [
 ]
 
 import copy
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Self,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Self, cast
 
 from modelbase2.ode.models import LinearLabelModel as _LinearLabelModel
 from modelbase2.typing import Array, ArrayLike, Axis
@@ -23,9 +18,7 @@ if TYPE_CHECKING:
 
     from matplotlib.figure import Figure
 
-    from modelbase2.ode.integrators import (
-        AbstractIntegrator as _AbstractIntegrator,
-    )
+    from modelbase2.ode.integrators import AbstractIntegrator as _AbstractIntegrator
 
 
 class _LinearLabelSimulate(_BaseSimulator[_LinearLabelModel]):

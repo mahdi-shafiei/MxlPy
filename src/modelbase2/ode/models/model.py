@@ -12,12 +12,7 @@ import copy
 import itertools as it
 import subprocess
 import warnings
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Self,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import libsbml
 import numpy as np
@@ -221,9 +216,9 @@ class Model(_AbstractRateModel, BaseModel):
     def _add_derived_stoichiometry(
         self, rate_name: str, cpd_name: str, derived_stoichiometry: DerivedStoichiometry
     ) -> None:
-        self.derived_stoichiometries.setdefault(rate_name, {})[cpd_name] = (
-            derived_stoichiometry
-        )
+        self.derived_stoichiometries.setdefault(rate_name, {})[
+            cpd_name
+        ] = derived_stoichiometry
         self._update_derived_stoichiometries()
 
     def _update_derived_stoichiometries(self) -> None:
@@ -770,11 +765,13 @@ class Model(_AbstractRateModel, BaseModel):
 
     def get_fluxes(
         self,
-        y: dict[str, float]
-        | dict[str, ArrayLike]
-        | dict[str, Array]
-        | Array
-        | ArrayLike,
+        y: (
+            dict[str, float]
+            | dict[str, ArrayLike]
+            | dict[str, Array]
+            | Array
+            | ArrayLike
+        ),
         t: float | ArrayLike | Array = 0.0,
     ) -> dict[str, Array]:
         """Calculate the fluxes at time point(s) t."""

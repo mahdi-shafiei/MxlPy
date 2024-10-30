@@ -8,11 +8,7 @@ __all__ = [
 import copy
 import warnings
 from collections import defaultdict
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Self,
-)
+from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
 import pandas as pd

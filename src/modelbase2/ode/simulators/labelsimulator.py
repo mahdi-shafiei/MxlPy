@@ -5,11 +5,7 @@ __all__ = [
 ]
 
 import re
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pandas as pd
