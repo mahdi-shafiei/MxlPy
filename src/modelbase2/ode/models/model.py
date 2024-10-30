@@ -15,15 +15,13 @@ import warnings
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Dict,
+    Self,
     cast,
 )
 
 import libsbml
 import numpy as np
 import pandas as pd
-from typing_extensions import Self
 
 from modelbase2.core import (
     AlgebraicMixin,
@@ -31,7 +29,6 @@ from modelbase2.core import (
     CompoundMixin,
     ParameterMixin,
     RateMixin,
-    Readout,
     StoichiometricMixin,
 )
 from modelbase2.core.utils import convert_id_to_sbml
@@ -39,6 +36,8 @@ from modelbase2.core.utils import convert_id_to_sbml
 from . import _AbstractRateModel
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from modelbase2.ode.surrogates import AbstractSurrogate
     from modelbase2.typing import Array, ArrayLike, T
 
@@ -68,20 +67,18 @@ class Model(_AbstractRateModel, BaseModel):
         algebraic_modules: dict | None = None,
         rate_stoichiometries: dict | None = None,
         rates: dict | None = None,
-        functions: dict | None = None,
-        meta_info: dict | None = None,
     ) -> None:
-        BaseModel.__init__(self, meta_info=meta_info)
+        BaseModel.__init__(self)
         CompoundMixin.__init__(self, compounds=compounds)
         ParameterMixin.__init__(self, parameters=parameters)
         AlgebraicMixin.__init__(self, algebraic_modules=algebraic_modules)
         StoichiometricMixin.__init__(self, rate_stoichiometries=rate_stoichiometries)
-        RateMixin.__init__(self, rates=rates, functions=functions)
+        RateMixin.__init__(self, rates=rates)
         self.meta_info["model"].sbo = "SBO:0000062"  # continuous framework
         self.derived_stoichiometries: dict[str, dict[str, DerivedStoichiometry]] = {}
         self.surrogates: list[AbstractSurrogate] = []
 
-    def __enter__(self) -> Model:
+    def __enter__(self) -> Self:
         """Enter the context manager.
 
         Returns
@@ -90,7 +87,7 @@ class Model(_AbstractRateModel, BaseModel):
 
         """
         self._copy = self.copy()
-        return self.copy()
+        return cast(Self, self.copy())
 
     def copy(self) -> Model:
         """Create a deepcopy of the model.
@@ -113,8 +110,8 @@ class Model(_AbstractRateModel, BaseModel):
         """
         return (
             "Model:"
-            + f"\n    {len(self.get_compounds())} Compounds"
-            + f"\n    {len(self.get_stoichiometries())} Reactions"
+            f"\n    {len(self.get_compounds())} Compounds"
+            f"\n    {len(self.get_stoichiometries())} Reactions"
         )
 
     def _element_difference(
@@ -146,7 +143,7 @@ class Model(_AbstractRateModel, BaseModel):
     def __add__(self, other: Model) -> Model:
         return self.copy().__iadd__(other)
 
-    def __iadd__(self, other: Model) -> Model:
+    def __iadd__(self, other: Self) -> Self:
         self.add(compounds=self._element_difference(other, "compounds"))  # type: ignore
 
         for k, v in other.get_parameters().items():
@@ -201,8 +198,8 @@ class Model(_AbstractRateModel, BaseModel):
             m.remove(**{attribute: self._element_intersection(other, attribute)})  # type: ignore
         return m
 
-    def __isub__(self, other: Model) -> Model:
-        return self.copy().__sub__(other)
+    def __isub__(self, other: Self) -> Self:
+        return cast(Self, self.copy().__sub__(other))
 
     def _collect_used_parameters(self) -> set[str]:
         used_parameters = set()
@@ -216,83 +213,6 @@ class Model(_AbstractRateModel, BaseModel):
             for der_stoich in cpd_dict.values():
                 used_parameters.update(der_stoich.args)
         return used_parameters
-
-    def add(
-        self,
-        compounds: list[str] | None = None,
-        parameters: dict[str, float] | None = None,
-        algebraic_modules: dict[str, dict] | None = None,
-        rates: dict[str, dict] | None = None,
-        stoichiometries: dict[str, dict] | None = None,
-        functions: dict[str, Callable] | None = None,
-        readouts: dict[str, Readout] | None = None,
-    ) -> Self:
-        if compounds is not None:
-            self.add_compounds(compounds)
-        if parameters is not None:
-            self.add_parameters(parameters)
-        if algebraic_modules is not None:
-            self.add_algebraic_modules(algebraic_modules)
-        if rates is not None:
-            self.add_rates(rates)
-        if stoichiometries is not None:
-            self.add_stoichiometries(stoichiometries)
-        if functions is not None:
-            self.add_functions(functions)
-        if readouts is not None:
-            for name, readout in readouts.items():
-                self.add_readout(name, readout.function, readout.args)
-        return self
-
-    def update(
-        self,
-        parameters: dict[str, float] | None = None,
-        algebraic_modules: dict[str, dict] | None = None,
-        rates: dict[str, dict] | None = None,
-        stoichiometries: dict[str, dict] | None = None,
-        functions: dict[str, Callable] | None = None,
-        readouts: dict[str, Readout] | None = None,
-    ) -> Self:
-        if parameters is not None:
-            self.update_parameters(parameters)
-        if algebraic_modules is not None:
-            self.update_algebraic_modules(algebraic_modules)
-        if rates is not None:
-            self.update_rates(rates)
-        if stoichiometries is not None:
-            self.update_stoichiometries(stoichiometries)
-        if functions is not None:
-            self.update_functions(functions)
-        if readouts is not None:
-            for name, readout in readouts.items():
-                self.add_readout(name, readout.function, readout.args)
-        return self
-
-    def remove(
-        self,
-        compounds: list[str] | None = None,
-        parameters: list[str] | None = None,
-        algebraic_modules: list[str] | None = None,
-        rates: list[str] | None = None,
-        stoichiometries: list[str] | None = None,
-        functions: list[str] | None = None,
-        derived_stoichiometries: list[str] | None = None,
-    ) -> Self:
-        if compounds is not None:
-            self.remove_compounds(compounds)
-        if parameters is not None:
-            self.remove_parameters(parameters)
-        if algebraic_modules is not None:
-            self.remove_algebraic_modules(algebraic_modules)
-        if rates is not None:
-            self.remove_rates(rates)
-        if stoichiometries is not None:
-            self.remove_rate_stoichiometries(stoichiometries)
-        if functions is not None:
-            self.remove_functions(functions)
-        if derived_stoichiometries is not None:
-            self._remove_derived_stoichiometries(derived_stoichiometries)
-        return self
 
     ##########################################################################
     # Reactions
@@ -332,11 +252,13 @@ class Model(_AbstractRateModel, BaseModel):
         self,
         parameter_name: str,
         parameter_value: float,
+        *,
         update_derived: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         super().update_parameter(
-            parameter_name, parameter_value, update_derived, **meta_info
+            parameter_name,
+            parameter_value,
+            update_derived=update_derived,
         )
         self._update_derived_stoichiometries()
         return self
@@ -344,9 +266,8 @@ class Model(_AbstractRateModel, BaseModel):
     def update_parameters(
         self,
         parameters: dict[str, float],
-        meta_info: dict[str, Any] | None = None,
     ) -> Self:
-        super().update_parameters(parameters, meta_info)
+        super().update_parameters(parameters)
         self._update_derived_stoichiometries()
         return self
 
@@ -359,10 +280,10 @@ class Model(_AbstractRateModel, BaseModel):
         parameters: list[str] | None = None,
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         reversible: bool = False,
         check_consistency: bool = True,
         derived_stoichiometry: dict[str, DerivedStoichiometry] | None = None,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Add a reaction to the model.
 
@@ -413,7 +334,6 @@ class Model(_AbstractRateModel, BaseModel):
             reversible=reversible,
             args=args,
             check_consistency=check_consistency,
-            **meta_info,
         )
         return self
 
@@ -425,8 +345,8 @@ class Model(_AbstractRateModel, BaseModel):
         args: list[str],
         reversible: bool | None = None,
         derived_stoichiometry: dict[str, DerivedStoichiometry] | None = None,
+        *,
         check_consistency: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         self.add_stoichiometry(rate_name=rate_name, stoichiometry=stoichiometry)
 
@@ -470,7 +390,6 @@ class Model(_AbstractRateModel, BaseModel):
             args=args,
             reversible=reversible,
             check_consistency=check_consistency,
-            **meta_info,
         )
         return self
 
@@ -484,9 +403,9 @@ class Model(_AbstractRateModel, BaseModel):
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
         reversible: bool | None = None,
+        *,
         check_consistency: bool = True,
         derived_stoichiometry: dict[str, DerivedStoichiometry] | None = None,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Update an existing reaction.
 
@@ -522,12 +441,14 @@ class Model(_AbstractRateModel, BaseModel):
             dynamic_variables=dynamic_variables,
             args=args,
             check_consistency=check_consistency,
-            **meta_info,
         )
         return self
 
     def update_stoichiometry_of_cpd(
-        self, rate_name: str, compound: str, value: float
+        self,
+        rate_name: str,
+        compound: str,
+        value: float,
     ) -> Model:
         self.update_stoichiometry(
             rate_name=rate_name,
@@ -536,7 +457,10 @@ class Model(_AbstractRateModel, BaseModel):
         return self
 
     def scale_stoichiometry_of_cpd(
-        self, rate_name: str, compound: str, scale: float
+        self,
+        rate_name: str,
+        compound: str,
+        scale: float,
     ) -> Model:
         return self.update_stoichiometry_of_cpd(
             rate_name=rate_name,
@@ -544,7 +468,10 @@ class Model(_AbstractRateModel, BaseModel):
             value=self.stoichiometries[rate_name][compound] * scale,
         )
 
-    def update_reactions(self, reactions: dict) -> Self:
+    def update_reactions(
+        self,
+        reactions: dict,
+    ) -> Self:
         for rate_name, reaction in reactions.items():
             self.update_reaction(rate_name, **reaction)
         return self
@@ -556,9 +483,9 @@ class Model(_AbstractRateModel, BaseModel):
         stoichiometry: dict[str, float] | None = None,
         args: list[str] | None = None,
         reversible: bool | None = None,
+        *,
         check_consistency: bool = True,
         derived_stoichiometry: dict[str, DerivedStoichiometry] | None = None,
-        **meta_info: dict[str, Any],
     ) -> Self:
         if stoichiometry is not None:
             self.update_stoichiometry(rate_name=rate_name, stoichiometry=stoichiometry)
@@ -613,7 +540,6 @@ class Model(_AbstractRateModel, BaseModel):
             dynamic_variables=dynamic_variables,
             args=args,
             check_consistency=check_consistency,
-            **meta_info,
         )
         return self
 
@@ -621,7 +547,6 @@ class Model(_AbstractRateModel, BaseModel):
         self,
         rate_name: str,
         ratelaw: Any,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Add a reaction from a ratelaw.
 
@@ -645,8 +570,6 @@ class Model(_AbstractRateModel, BaseModel):
             )
 
         """
-        default_meta_info = {"sbml_function": ratelaw.get_sbml_function_string()}
-        default_meta_info.update(meta_info)
 
         self.add_rate(
             rate_name=rate_name,
@@ -656,7 +579,6 @@ class Model(_AbstractRateModel, BaseModel):
             modifiers=ratelaw.modifiers,
             parameters=ratelaw.parameters,
             reversible=ratelaw.reversible,
-            **default_meta_info,
         )
         self.add_stoichiometry(rate_name=rate_name, stoichiometry=ratelaw.stoichiometry)
         return self
@@ -757,13 +679,15 @@ class Model(_AbstractRateModel, BaseModel):
         >>> get_full_concentration_dict(y={"X": 0, "Y": 0})
 
         """
-        if isinstance(t, (int, float)):
+        if isinstance(t, int | float):
             t = [t]
         t = np.array(t)
         if isinstance(y, dict):
             y = {k: np.ones(len(t)) * v for k, v in y.items()}
         else:
-            y = dict(zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T))
+            y = dict(
+                zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T, strict=False)
+            )
 
         fcd = {
             k: np.ones(len(t)) * v
@@ -792,14 +716,14 @@ class Model(_AbstractRateModel, BaseModel):
     def _get_fluxes(
         self,
         *,
-        fcd: dict[str, float],
+        fcd: dict[str, float] | dict[str, Array],
     ) -> dict[str, float]:
         args = self.parameters | fcd
         fluxes = {}
         for name, rate in self.rates.items():
             try:
                 fluxes[name] = float(rate.function(*(args[arg] for arg in rate.args)))
-            except KeyError as e:  # noqa: PERF203
+            except KeyError as e:
                 msg = f"Could not find argument {e} for rate {name}"
                 raise KeyError(msg) from e
         for surrogate in self.surrogates:
@@ -828,9 +752,9 @@ class Model(_AbstractRateModel, BaseModel):
         fluxes: dict[str, Array] = {}
         for name, rate in self.rates.items():
             try:
-                fluxes[name] = rate.function(*args.loc[:, rate.args].to_numpy().T)
+                fluxes[name] = rate.function(*args.loc[:, rate.args].to_numpy().T)  # type: ignore
 
-            except KeyError as e:  # noqa: PERF203
+            except KeyError as e:
                 msg = f"Could not find argument {e} for rate {name}"
                 raise KeyError(msg) from e
 
@@ -870,8 +794,8 @@ class Model(_AbstractRateModel, BaseModel):
 
         Watch out that this function swaps t and y!
         """
-        y = dict(zip(self.get_compounds(), np.array(y).reshape(-1, 1)))  # type: ignore
-        fcd = self._get_fcd(t=t, y=y)  # type: ignore
+        yd = dict(zip(self.get_compounds(), np.array(y).reshape(-1, 1), strict=False))
+        fcd = self._get_fcd(t=t, y=yd)  # type: ignore
         fluxes = self._get_fluxes(fcd=fcd)  # type: ignore
         compounds_local = self.get_compounds()
         dxdt = dict(zip(compounds_local, it.repeat(0.0)))
@@ -885,7 +809,9 @@ class Model(_AbstractRateModel, BaseModel):
     ##########################################################################
 
     def to_labelmodel(
-        self, labelcompounds: dict[str, int], labelmaps: dict[str, list[int]]
+        self,
+        labelcompounds: dict[str, int],
+        labelmaps: dict[str, list[int]],
     ) -> LabelModel:
         """Create a LabelModel from this model.
 
@@ -940,7 +866,7 @@ class Model(_AbstractRateModel, BaseModel):
                 lm.add_labelmap_reaction(
                     rate_name=rate_name,
                     function=rate["function"],
-                    stoichiometry=cast(Dict[str, int], self.stoichiometries[rate_name]),
+                    stoichiometry=cast(dict[str, int], self.stoichiometries[rate_name]),
                     labelmap=labelmaps[rate_name],
                     modifiers=rate["modifiers"],
                     parameters=rate["parameters"],
@@ -992,14 +918,15 @@ class Model(_AbstractRateModel, BaseModel):
                 if rate["reversible"] and show_warnings:
                     warnings.warn(
                         f"Reaction {rate_name} is annotated as reversible. "
-                        "Did you remember to split it into a forward and backward part?"
+                        "Did you remember to split it into a forward and backward part?",
+                        stacklevel=1,
                     )
                 lm.add_reaction(
                     rate_name=rate_name,
                     stoichiometry={
                         k: v
                         for k, v in cast(
-                            Dict[str, int], self.stoichiometries[rate_name]
+                            dict[str, int], self.stoichiometries[rate_name]
                         ).items()
                         if k in labelcompounds
                     },
@@ -1020,7 +947,6 @@ class Model(_AbstractRateModel, BaseModel):
         self,
         *,
         linted: bool = True,
-        include_meta_info: bool = False,
     ) -> str:
         """Generate source code of the model.
 
@@ -1033,19 +959,11 @@ class Model(_AbstractRateModel, BaseModel):
             Whether to include meta info of the model components
 
         """
-        parameters, par_fns, derived_pars = self._generate_parameters_source_code(
-            include_meta_info=include_meta_info
-        )
-        compounds = self._generate_compounds_source_code(
-            include_meta_info=include_meta_info
-        )
+        parameters, par_fns, derived_pars = self._generate_parameters_source_code()
+        compounds = self._generate_compounds_source_code()
         functions = self._generate_function_source_code()
-        module_functions, modules = self._generate_algebraic_modules_source_code(
-            include_meta_info=include_meta_info
-        )
-        rate_functions, rates = self._generate_rates_source_code(
-            include_meta_info=include_meta_info
-        )
+        module_functions, modules = self._generate_algebraic_modules_source_code()
+        rate_functions, rates = self._generate_rates_source_code()
         stoichiometries = self._generate_stoichiometries_source_code()
 
         to_export = [
@@ -1060,7 +978,7 @@ class Model(_AbstractRateModel, BaseModel):
             par_fns,
         ):
             if i:
-                to_export.append(i)
+                to_export.append(i)  # noqa: PERF401
         to_export.append("m = Model()")
         for i in (
             parameters,
@@ -1071,12 +989,14 @@ class Model(_AbstractRateModel, BaseModel):
             stoichiometries,
         ):
             if i:
-                to_export.append(i)
+                to_export.append(i)  # noqa: PERF401
 
         model_string = "\n".join(to_export)
         if linted:
-            blacked_string = subprocess.run(
-                ["black", "-c", model_string], stdout=subprocess.PIPE, check=True
+            blacked_string = subprocess.run(  # noqa: S603
+                ["black", "-c", model_string],  # noqa: S607
+                stdout=subprocess.PIPE,
+                check=True,
             )
             return blacked_string.stdout.decode("utf-8")
         return model_string
@@ -1098,10 +1018,7 @@ class Model(_AbstractRateModel, BaseModel):
             rxn.setReversible(self.rates[rate_id]["reversible"])
 
             for compound_id, factor in stoichiometry.items():
-                if factor < 0:
-                    sref = rxn.createReactant()
-                else:
-                    sref = rxn.createProduct()
+                sref = rxn.createReactant() if factor < 0 else rxn.createProduct()
                 sref.setSpecies(convert_id_to_sbml(id_=compound_id, prefix="CPD"))
                 sref.setStoichiometry(abs(factor))
                 sref.setConstant(False)

@@ -15,7 +15,6 @@ import math
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterable,
     cast,
 )
 
@@ -31,6 +30,8 @@ from matplotlib.colors import (
 from modelbase2.typing import Array, ArrayLike, Axes, Axis
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     import pandas as pd
     from matplotlib.collections import QuadMesh
     from matplotlib.figure import Figure
@@ -53,7 +54,7 @@ def _get_plot_kwargs(
     legend_kwargs: dict[str, Any] | None,
 ) -> dict[str, dict[str, Any]]:
     """Get default plot kwargs or overwrite them."""
-    local_figure_kwargs = {"figsize": (10, 7)}
+    local_figure_kwargs = {"figsize": (6, 4)}
     local_subplot_kwargs = {"facecolor": "white"}
     local_plot_kwargs = {"linewidth": 4}
     local_grid_kwargs = {
@@ -112,6 +113,7 @@ def _get_plot_kwargs(
 
 
 def _style_subplot(
+    *,
     ax: Axis,
     kwargs: dict,
     xlabel: str | None = None,
@@ -133,13 +135,14 @@ def _style_subplot(
     if ylabel is not None:
         ax.set_ylabel(ylabel, **kwargs["label"])
     if zlabel is not None:
-        ax.set_zlabel(zlabel, **kwargs["label"])
+        ax.set_zlabel(zlabel, **kwargs["label"])  # type: ignore
     ax.tick_params(**kwargs["ticks"])
     for axis in ["top", "bottom", "left", "right"]:
         ax.spines[axis].set_linewidth(0)
 
 
 def plot(
+    *,
     plot_args: Iterable,
     legend: Iterable[str] | None = None,
     xlabel: str | None = None,
@@ -271,7 +274,7 @@ def plot_grid(
     )
     axs = cast(Axes, axs)
     for ax, plot_args, legend_args, title in zip(
-        axs.ravel(), plot_groups, legend_groups, plot_titles
+        axs.ravel(), plot_groups, legend_groups, plot_titles, strict=False
     ):
         ax.plot(*plot_args, **kwargs["plot"])
         ax.set_title(title, **kwargs["title"])
@@ -282,16 +285,16 @@ def plot_grid(
             ax.grid(True, which="major", axis="both", **kwargs["grid"])
 
     if sharey:
-        for ax, ylabel in zip(axs[:, 0], ylabels):
+        for ax, ylabel in zip(axs[:, 0], ylabels, strict=False):
             ax.set_ylabel(ylabel, **kwargs["label"])
     else:
-        for ax, ylabel in zip(axs.ravel(), ylabels):
+        for ax, ylabel in zip(axs.ravel(), ylabels, strict=False):
             ax.set_ylabel(ylabel, **kwargs["label"])
     if sharex:
-        for ax, xlabel in zip(axs[-1], xlabels):
+        for ax, xlabel in zip(axs[-1], xlabels, strict=False):
             ax.set_xlabel(xlabel, **kwargs["label"])
     else:
-        for ax, xlabel in zip(axs.ravel(), xlabels):
+        for ax, xlabel in zip(axs.ravel(), xlabels, strict=False):
             ax.set_xlabel(xlabel, **kwargs["label"])
     fig.suptitle(figure_title, y=1.025, **kwargs["title"])
     if tight_layout:
@@ -383,7 +386,7 @@ def heatmap_from_dataframe(
         hm.update_scalarmappable()  # So that get_facecolor is an array
         xpos, ypos = np.meshgrid(np.arange(len(columns)), np.arange(len(rows)))
         for x, y, val, color in zip(
-            xpos.flat, ypos.flat, hm.get_array().flat, hm.get_facecolor()
+            xpos.flat, ypos.flat, hm.get_array().flat, hm.get_facecolor(), strict=False
         ):
             text_kwargs["color"] = (
                 "black" if relative_luminance(color) > 0.45 else "white"

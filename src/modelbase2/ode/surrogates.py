@@ -31,6 +31,6 @@ class TorchSurrogate(AbstractSurrogate):
                     self.fluxes,
                     self.model(
                         torch.tensor(y, dtype=torch.float32),
-                    ).numpy(),
+                    ).numpy(), strict=False,
                 )
             )

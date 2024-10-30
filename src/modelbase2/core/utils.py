@@ -18,7 +18,10 @@ import inspect
 import re
 import subprocess
 import warnings
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
 RE_LAMBDA_RATE_FUNC = re.compile(r".*(lambda)(.+?):(.*?),")
@@ -64,9 +67,7 @@ def check_function_arity(function: Callable, arity: int) -> bool:
     if defaults is not None and len(argspec.args) + len(defaults) == arity:
         return True
     kwonly = argspec.kwonlyargs
-    if defaults is not None and len(argspec.args) + len(kwonly) == arity:
-        return True
-    return False
+    return bool(defaults is not None and len(argspec.args) + len(kwonly) == arity)
 
 
 def get_function_source_code(function: Callable) -> str | None:
@@ -78,7 +79,7 @@ def get_function_source_code(function: Callable) -> str | None:
     try:
         # for functions parsed and dynamically executed with modelbase/sbml/parser
         source: str = function.__source__  # type: ignore
-        return source
+        return source  # noqa: TRY300
     except AttributeError:
         return None
 
@@ -133,8 +134,10 @@ def get_formatted_function_source_code(
         else:
             msg = "Can only handle rate or module functions"
             raise ValueError(msg)
-    blacked_string = subprocess.run(
-        ["black", "--fast", "--code", source], stdout=subprocess.PIPE, check=True
+    blacked_string = subprocess.run(  # noqa: S603
+        ["black", "--fast", "--code", source],  # noqa: S607
+        stdout=subprocess.PIPE,
+        check=True,
     )
     return blacked_string.stdout.decode("utf-8").strip()  # Removing new lines
 

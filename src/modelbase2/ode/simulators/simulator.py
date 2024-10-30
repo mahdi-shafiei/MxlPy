@@ -4,15 +4,10 @@ __all__ = [
     "_Simulate",
 ]
 
-import json
-import pickle
 import warnings
-from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
-    Dict,
-    List,
     cast,
 )
 
@@ -26,6 +21,9 @@ from modelbase2.utils.plotting import plot, plot_grid
 from . import _BaseRateSimulator
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pandas as pd
     from matplotlib.figure import Figure
 
     from modelbase2.ode.integrators import AbstractIntegrator
@@ -56,8 +54,7 @@ class _Simulate(_BaseRateSimulator[Model]):
         model: Model,
         integrator: type[AbstractIntegrator],
         y0: ArrayLike | None = None,
-        time: list[Array] | None = None,
-        results: list[Array] | None = None,
+        results: list[pd.DataFrame] | None = None,
         parameters: list[dict[str, float]] | None = None,
     ) -> None:
         """Parameters
@@ -85,11 +82,11 @@ class _Simulate(_BaseRateSimulator[Model]):
 
         def residual(par_values: ArrayLike, data: ArrayLike) -> float:
             self.clear_results()
-            self.update_parameters(dict(zip(par_names, par_values)))
-            y_ss = self.simulate_to_steady_state()[1]
+            self.update_parameters(dict(zip(par_names, par_values, strict=False)))
+            y_ss = self.simulate_to_steady_state()
             if y_ss is None:
                 return cast(float, np.inf)
-            return cast(float, np.sqrt(np.mean(np.square(data - y_ss.flatten()))))
+            return cast(float, np.sqrt(np.mean(np.square(data - y_ss.to_numpy()))))
 
         res = dict(
             zip(
@@ -101,6 +98,7 @@ class _Simulate(_BaseRateSimulator[Model]):
                     bounds=[(1e-12, 1e6) for _ in range(len(p0))],
                     method="L-BFGS-B",
                 ).x,
+                strict=False,
             )
         )
         self.model.update_parameters(p_orig)
@@ -115,17 +113,17 @@ class _Simulate(_BaseRateSimulator[Model]):
         par_names = list(p0.keys())
         x0 = list(p0.values())
         p_orig = self.model.get_parameters().copy()
-        assert len(data) == len(time_points)
+        if len(data) != len(time_points):
+            raise ValueError
 
         def residual(
             par_values: ArrayLike, data: ArrayLike, time_points: ArrayLike
         ) -> float:
             self.clear_results()
-            self.update_parameters(dict(zip(par_names, par_values)))
-            _, y = self.simulate(time_points=time_points)
-            if y is None:
+            self.update_parameters(dict(zip(par_names, par_values, strict=False)))
+            if (y := self.simulate(time_points=time_points)) is None:
                 return cast(float, np.inf)
-            return cast(float, np.sqrt(np.mean(np.square(data - y))))
+            return cast(float, np.sqrt(np.mean(np.square(data - y.to_numpy()))))
 
         res = dict(
             zip(
@@ -137,6 +135,7 @@ class _Simulate(_BaseRateSimulator[Model]):
                     bounds=[(1e-12, 1e6) for _ in range(len(p0))],
                     method="L-BFGS-B",
                 ).x,
+                strict=False,
             )
         )
         self.model.update_parameters(p_orig)
@@ -144,6 +143,7 @@ class _Simulate(_BaseRateSimulator[Model]):
 
     def plot(
         self,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -187,6 +187,7 @@ class _Simulate(_BaseRateSimulator[Model]):
     def plot_producing_and_consuming(
         self,
         compound: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -205,25 +206,26 @@ class _Simulate(_BaseRateSimulator[Model]):
         consuming: list[Array] = []
         producing_names: list[str] = []
         consuming_names: list[str] = []
-        time = self.get_time()
-        fluxes = self.get_fluxes()
-        title = compound if title is None else title
-        if fluxes is None or time is None:
+
+        if (v := self.get_fluxes()) is None:
             return None, None
+
+        title = compound if title is None else title
+
         for rate_name, factor in self.model.stoichiometries_by_compounds[
             compound
         ].items():
             if factor > 0:
-                producing.append(fluxes[rate_name].values * factor)  # type: ignore
+                producing.append(v[rate_name].to_numpy() * factor)  # type: ignore
                 producing_names.append(rate_name)
             else:
-                consuming.append(fluxes[rate_name].values * -factor)  # type: ignore
+                consuming.append(v[rate_name].to_numpy() * -factor)  # type: ignore
                 consuming_names.append(rate_name)
 
         return plot_grid(
             plot_groups=[
-                (time, np.array(producing).T),
-                (time, np.array(consuming).T),
+                (v.index.to_numpy(), np.array(producing).T),
+                (v.index.to_numpy(), np.array(consuming).T),
             ],
             legend_groups=[producing_names, consuming_names],
             xlabels=xlabel,
@@ -241,53 +243,3 @@ class _Simulate(_BaseRateSimulator[Model]):
             label_kwargs=label_kwargs,
             title_kwargs=title_kwargs,
         )
-
-    def store_results_to_file(self, filename: str, filetype: str | None = None) -> None:
-        time = self.get_time(concatenated=False)
-        if time is None or self.results is None:
-            msg = "Cannot save results, since none are stored in the simulator"
-            raise ValueError(msg)
-
-        path = Path(filename)
-        file_type = _get_file_type_from_path(path, filetype)
-        path = _add_suffix(path, file_type)
-
-        results = [i.tolist() for i in self.results]
-        parameters = cast(List[Dict[str, float]], self.simulation_parameters)
-
-        to_export = {
-            "results": results,
-            "time": [i.tolist() for i in time],
-            "parameters": parameters,
-        }
-
-        if file_type == "json":
-            with open(path, "w") as f:
-                json.dump(obj=to_export, fp=f)
-        elif file_type in ("pickle", "p"):
-            with open(path, "wb") as fb:
-                pickle.dump(obj=to_export, file=fb)
-        else:
-            msg = f"Can only save to json or pickle, got {file_type}"
-            raise ValueError(msg)
-
-    def load_results_from_file(
-        self, filename: str, filetype: str | None = None
-    ) -> None:
-        path = Path(filename)
-        file_type = _get_file_type_from_path(path, filetype)
-        path = _add_suffix(path, file_type)
-
-        if file_type == "json":
-            with open(filename) as f:
-                to_import = json.load(fp=f)
-        elif file_type in ("pickle", "p"):
-            with open(filename, "rb") as fb:
-                to_import = pickle.load(file=fb)
-        else:
-            msg = f"Can only load from to json or pickle, got {file_type}"
-            raise ValueError(msg)
-
-        self.time = [np.array(i) for i in to_import["time"]]
-        self.results = [np.array(i) for i in to_import["results"]]
-        self.simulation_parameters = to_import["parameters"]

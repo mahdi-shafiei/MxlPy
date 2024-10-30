@@ -29,7 +29,6 @@ from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterable,
     cast,
 )
 
@@ -47,6 +46,8 @@ from modelbase2.utils.plotting import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from matplotlib.collections import QuadMesh
     from matplotlib.figure import Figure
 
@@ -675,7 +676,7 @@ def plot_multiple(
 
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize, squeeze=False)
     axs = cast(Axes, axs)
-    for ax, df, title in zip(axs.ravel(), dfs, titles):
+    for ax, df, title in zip(axs.ravel(), dfs, titles, strict=False):
         plot_coefficient_heatmap(
             df=df,
             title=title,

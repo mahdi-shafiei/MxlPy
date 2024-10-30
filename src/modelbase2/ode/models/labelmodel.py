@@ -9,9 +9,7 @@ from collections import defaultdict
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Iterable,
-    Set,
+    Self,
     cast,
 )
 
@@ -26,22 +24,26 @@ from modelbase2.core import (
     RateMixin,
     StoichiometricMixin,
 )
-from modelbase2.core.compoundmixin import Compound
-from modelbase2.core.ratemixin import Rate, RateMeta
 from modelbase2.core.utils import convert_id_to_sbml, warning_on_one_line
 from modelbase2.typing import Array, ArrayLike
 
 from . import _AbstractRateModel
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
+
     import libsbml
+
+    from modelbase2.core.ratemixin import Rate
 
     from . import Model
 
 warnings.formatwarning = warning_on_one_line  # type: ignore
 
 
-def total_concentration(*args: float) -> list[Array]:
+def total_concentration(
+    *args: float,
+) -> list[Array]:
     """Return concentration of all isotopomers.
 
     Algebraic module function to keep track of the total
@@ -60,21 +62,21 @@ class LabelModel(_AbstractRateModel, BaseModel):
         algebraic_modules: dict[str, dict[str, Any]] | None = None,
         rate_stoichiometries: dict[str, dict[str, float]] | None = None,
         rates: dict[str, Rate] | None = None,
-        functions: dict | None = None,
-        meta_info: dict | None = None,
     ) -> None:
-        BaseModel.__init__(self, meta_info=meta_info)
+        BaseModel.__init__(self)
         CompoundMixin.__init__(self, compounds=compounds)
         ParameterMixin.__init__(self, parameters=parameters)
         AlgebraicMixin.__init__(self, algebraic_modules=algebraic_modules)
         StoichiometricMixin.__init__(self, rate_stoichiometries=rate_stoichiometries)
-        RateMixin.__init__(self, rates=rates, functions=functions)
+        RateMixin.__init__(self, rates=rates)
         self.meta_info["model"].sbo = "SBO:0000062"  # continuous framework
         self.label_compounds: dict[str, dict[str, Any]] = {}
         self.nonlabel_compounds: list[str] = []
         self.base_reactions: dict[str, dict[str, Any]] = {}
 
-    def __enter__(self) -> LabelModel:
+    def __enter__(
+        self,
+    ) -> Self:
         """Enter the context manager.
 
         Returns
@@ -83,9 +85,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
 
         """
         self._copy = self.copy()
-        return self.copy()
+        return cast(Self, self.copy())
 
-    def copy(self) -> LabelModel:
+    def copy(
+        self,
+    ) -> LabelModel:
         """Create a deepcopy of the model.
 
         Returns
@@ -97,7 +101,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
         return copy.deepcopy(self)  # type: ignore
 
     @staticmethod
-    def _generate_binary_labels(*, base_name: str, num_labels: int) -> list[str]:
+    def _generate_binary_labels(
+        *,
+        base_name: str,
+        num_labels: int,
+    ) -> list[str]:
         """Create binary label string.
 
         Returns
@@ -127,8 +135,8 @@ class LabelModel(_AbstractRateModel, BaseModel):
     def add_compound(  # type: ignore
         self,
         compound: str,
+        *,
         is_isotopomer: bool = False,
-        **meta_info: dict[str, Any],
     ) -> None:
         """Add a single compound to the model.
 
@@ -139,12 +147,9 @@ class LabelModel(_AbstractRateModel, BaseModel):
         is_isotopomer
             Whether the compound is an isotopomer of a base compound
             or a non-label compound
-        meta_info
-            Meta info of the compound. Available keys are
-            {common_name, compartment, formula, charge, gibbs0, smiles, database_links, notes}
 
         """
-        super().add_compound(compound=compound, **meta_info)
+        super().add_compound(compound=compound)
         if not is_isotopomer:
             self.nonlabel_compounds.append(compound)
 
@@ -154,7 +159,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
         base_compound: str,
         num_labels: int,
         label_names: list[str],
-        **meta_info: dict[str, Any],
     ) -> None:
         """Add a base compound of label isotopomer."""
         self.label_compounds[base_compound] = {
@@ -162,16 +166,16 @@ class LabelModel(_AbstractRateModel, BaseModel):
             "isotopomers": label_names,
         }
         self._check_and_insert_ids([base_compound], context="base_compound")
-        self.meta_info.setdefault("compounds", {}).setdefault(
-            base_compound,
-            Compound(**meta_info),  # type: ignore
-        )
 
-    def _add_isotopomers(self, *, base_compound: str, label_names: list[str]) -> None:
+    def _add_isotopomers(
+        self,
+        *,
+        base_compound: str,
+        label_names: list[str],
+    ) -> None:
         # Add all labelled compounds
         for compound in label_names:
             self.add_compound(compound=compound, is_isotopomer=True)
-            del self.meta_info["compounds"][compound]
 
         # Create moiety for total compound concentration
         self.add_algebraic_module(
@@ -184,7 +188,9 @@ class LabelModel(_AbstractRateModel, BaseModel):
         )
 
     def add_label_compound(
-        self, compound: str, num_labels: int, **meta_info: dict[str, Any]
+        self,
+        compound: str,
+        num_labels: int,
     ) -> None:
         """Create all label isotopomers and add them as compounds.
 
@@ -205,13 +211,15 @@ class LabelModel(_AbstractRateModel, BaseModel):
 
         """
         if compound in self.label_compounds:
-            warnings.warn(f"Overwriting compound {compound}")
+            warnings.warn(
+                f"Overwriting compound {compound}",
+                stacklevel=1,
+            )
             self.remove_label_compound(compound=compound)
         if num_labels == 0:
             self.add_compound(
                 compound=compound,
                 is_isotopomer=False,
-                **meta_info,  # type: ignore
             )
         else:
             label_names = self._generate_binary_labels(
@@ -221,14 +229,12 @@ class LabelModel(_AbstractRateModel, BaseModel):
                 base_compound=compound,
                 num_labels=num_labels,
                 label_names=label_names,
-                **meta_info,  # type: ignore
             )
             self._add_isotopomers(base_compound=compound, label_names=label_names)
 
     def add_label_compounds(
         self,
         compounds: dict[str, int],
-        meta_info: dict[str, Any] | None = None,
     ) -> None:
         """Add multiple label-containing compounds to the model.
 
@@ -246,13 +252,16 @@ class LabelModel(_AbstractRateModel, BaseModel):
         add_label_compound
 
         """
-        meta_info = {} if meta_info is None else meta_info
 
         for compound, num_labels in compounds.items():
-            info = meta_info.get(compound, {})
-            self.add_label_compound(compound=compound, num_labels=num_labels, **info)
+            self.add_label_compound(compound=compound, num_labels=num_labels)
 
-    def remove_compound(self, compound: str, is_isotopomer: bool = False) -> None:
+    def remove_compound(  # type: ignore
+        self,
+        compound: str,
+        *,
+        is_isotopomer: bool = False,
+    ) -> None:
         """Remove a compound from the model.
 
         Parameters
@@ -267,27 +276,41 @@ class LabelModel(_AbstractRateModel, BaseModel):
         if not is_isotopomer:
             self.nonlabel_compounds.remove(compound)
 
-    def remove_label_compound(self, compound: str) -> None:
+    def remove_label_compound(
+        self,
+        compound: str,
+    ) -> None:
         """Remove a label compound from the model."""
         label_compound = self.label_compounds.pop(compound)
         self._remove_ids([compound])
         for key in label_compound["isotopomers"]:
             self.remove_compound(compound=key, is_isotopomer=True)
 
-    def remove_label_compounds(self, compounds: list[str]) -> None:
+    def remove_label_compounds(
+        self,
+        compounds: list[str],
+    ) -> None:
         """Remove label compounds."""
         for compound in compounds:
             self.remove_label_compound(compound=compound)
 
-    def get_base_compounds(self) -> list[str]:
+    def get_base_compounds(
+        self,
+    ) -> list[str]:
         """Get all base compounds and non-label compounds."""
         return sorted(list(self.label_compounds) + self.nonlabel_compounds)
 
-    def get_compound_number_of_label_positions(self, compound: str) -> int:
+    def get_compound_number_of_label_positions(
+        self,
+        compound: str,
+    ) -> int:
         """Get the number of possible labels positions of a compound."""
         return int(self.label_compounds[compound]["num_labels"])
 
-    def get_compound_isotopomers(self, compound: str) -> list[str]:
+    def get_compound_isotopomers(
+        self,
+        compound: str,
+    ) -> list[str]:
         """Get all isotopomers of a compound."""
         return list(self.label_compounds[compound]["isotopomers"])
 
@@ -310,9 +333,9 @@ class LabelModel(_AbstractRateModel, BaseModel):
         Examples
         --------
         >>> add_label_compounds({"x": 2})
-        >>> get_compound_isotopomer_with_label_position(x, 0) -> x__10
-        >>> get_compound_isotopomer_with_label_position(x, [0]) -> x__10
-        >>> get_compound_isotopomer_with_label_position(x, [0, 1]) -> x__11
+        >>> get_compound_isotopomer_with_label_position(x, 0) => x__10
+        >>> get_compound_isotopomer_with_label_position(x, [0]) => x__10
+        >>> get_compound_isotopomer_with_label_position(x, [0, 1]) => x__11
 
         """
         if isinstance(label_position, int):
@@ -323,7 +346,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
         )
 
     @staticmethod
-    def _split_label_string(label: str, *, labels_per_compound: list[int]) -> list[str]:
+    def _split_label_string(
+        label: str,
+        *,
+        labels_per_compound: list[int],
+    ) -> list[str]:
         """Split label string according to labels given in label list.
 
         The labels in the label list correspond to the number of
@@ -358,7 +385,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
         return split_labels
 
     @staticmethod
-    def _map_substrates_to_products(*, rate_suffix: str, labelmap: list[int]) -> str:
+    def _map_substrates_to_products(
+        *,
+        rate_suffix: str,
+        labelmap: list[int],
+    ) -> str:
         """Map the rate_suffix to products using the labelmap."""
         return "".join([rate_suffix[i] for i in labelmap])
 
@@ -387,7 +418,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
                 products.extend([k] * v)
         return substrates, products
 
-    def _get_labels_per_compound(self, *, compounds: list[str]) -> list[int]:
+    def _get_labels_per_compound(
+        self,
+        *,
+        compounds: list[str],
+    ) -> list[int]:
         """Get labels per compound.
 
         This is used for _split_label string. Adds 0 for non-label compounds,
@@ -439,10 +474,10 @@ class LabelModel(_AbstractRateModel, BaseModel):
         parameters: list[str] | None = None,
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         check_consistency: bool = True,
         sort_modules: bool = True,
-        **meta_info: dict[str, Any],
-    ) -> None:
+    ) -> Self:
         """Add an algebraic module to the model.
 
         CAUTION: The Python function of the module has to return an iterable.
@@ -517,8 +552,8 @@ class LabelModel(_AbstractRateModel, BaseModel):
             args=args,
             check_consistency=check_consistency,
             sort_modules=sort_modules,
-            **meta_info,
         )
+        return self
 
     def _get_external_labels(
         self,
@@ -531,7 +566,10 @@ class LabelModel(_AbstractRateModel, BaseModel):
         n_external_labels = total_product_labels - total_substrate_labels
         if n_external_labels > 0:
             if external_labels is None:
-                warnings.warn(f"Added external labels for reaction {rate_name}")
+                warnings.warn(
+                    f"Added external labels for reaction {rate_name}",
+                    stacklevel=1,
+                )
                 external_label_string = ["1"] * n_external_labels
             else:
                 external_label_string = ["0"] * n_external_labels
@@ -549,10 +587,10 @@ class LabelModel(_AbstractRateModel, BaseModel):
         parameters: list[str] | None = None,
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         reversible: bool = False,
         check_consistency: bool = True,
-        **meta_info: dict[str, Any],
-    ) -> None:
+    ) -> Self:
         """Add a reaction to the model.
 
         Shortcut for add_rate and add stoichiometry functions.
@@ -594,9 +632,9 @@ class LabelModel(_AbstractRateModel, BaseModel):
             reversible=reversible,
             args=args,
             check_consistency=check_consistency,
-            **meta_info,
         )
         self.add_stoichiometry(rate_name=rate_name, stoichiometry=stoichiometry)
+        return self
 
     def _add_base_reaction(
         self,
@@ -604,34 +642,13 @@ class LabelModel(_AbstractRateModel, BaseModel):
         rate_name: str,
         function: Callable,
         stoichiometry: dict[str, int],
-        # base_substrates: List[str],
-        # base_products: List[str],
         labelmap: list[int],
         external_labels: str | None,
         modifiers: list[str] | None,
         parameters: list[str] | None,
         reversible: bool,
-        # dynamic_variables: List[str] = None,
-        # args: List[str] = None,
         variants: list[str],
-        **meta_info: dict[str, Any],
     ) -> None:
-        # The check isn't as easy.
-        # Don't compare to the compounds, probably against base compounds, non-isotopomers and derived compounds?
-        # if parameters is None:
-        #     parameters = []
-        # if modifiers is None:
-        #     modifiers = []
-        # if reversible:
-        #     dynamic_variables = base_substrates + base_products + modifiers
-        # else:
-        #     dynamic_variables = base_substrates + modifiers
-        # self._check_for_existence(
-        #     name=rate_name, check_against=self.get_all_compounds(), candidates=dynamic_variables
-        # )
-        # self._check_for_existence(
-        #     name=rate_name, check_against=self.get_parameter_names(), candidates=parameters
-        # )
         self.base_reactions[rate_name] = {
             "function": function,
             "stoichiometry": stoichiometry,
@@ -642,12 +659,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
             "reversible": reversible,
             "variants": variants,
         }
-        self.meta_info.setdefault("rates", {}).setdefault(
-            rate_name,
-            RateMeta(
-                **meta_info,  # type: ignore
-            ),
-        )
 
     def _create_isotopomer_reactions(
         self,
@@ -658,8 +669,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
         modifiers: list[str] | None,
         parameters: list[str] | None,
         reversible: bool,
-        # dynamic_variables: List[str],
-        # args: List[str],
         external_labels: str,
         total_substrate_labels: int,
         base_substrates: list[str],
@@ -671,7 +680,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
         for rate_suffix in (
             "".join(i) for i in it.product(("0", "1"), repeat=total_substrate_labels)
         ):
-            rate_suffix += external_labels
+            rate_suffix += external_labels  # noqa: PLW2901
             # This is the magic
             product_suffix = self._map_substrates_to_products(
                 rate_suffix=rate_suffix, labelmap=labelmap
@@ -700,11 +709,8 @@ class LabelModel(_AbstractRateModel, BaseModel):
                 modifiers=modifiers,
                 parameters=parameters,
                 reversible=reversible,
-                # dynamic_variables=dynamic_variables,
-                # args=args,
                 check_consistency=False,
             )
-            del self.meta_info["rates"][new_rate_name]
             variants.append(new_rate_name)
         return variants
 
@@ -717,10 +723,8 @@ class LabelModel(_AbstractRateModel, BaseModel):
         external_labels: list[int] | None = None,
         modifiers: list[str] | None = None,
         parameters: list[str] | None = None,
+        *,
         reversible: bool = False,
-        # dynamic_variables: List[str] = None,
-        # args: List[str] = None,
-        **meta_info: dict[str, Any],
     ) -> None:
         """Add a labelmap reaction.
 
@@ -742,9 +746,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
             Names of the parameters
         reversible
             Whether the reaction is reversible.
-        meta_info
-            Meta info of the rate. Allowed keys are
-            {common_name, gibbs0, ec, database_links, notes, sbml_function}
 
         Examples
         --------
@@ -797,8 +798,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
             modifiers=modifiers,
             parameters=parameters,
             reversible=reversible,
-            # dynamic_variables=dynamic_variables,
-            # args=args,
             external_labels=external_label_str,
             total_substrate_labels=total_substrate_labels,
             base_substrates=base_substrates,
@@ -810,18 +809,13 @@ class LabelModel(_AbstractRateModel, BaseModel):
         self._add_base_reaction(
             rate_name=rate_name,
             function=function,
-            # base_substrates=base_substrates,
-            # base_products=base_products,
             stoichiometry=stoichiometry,
             labelmap=labelmap,
             external_labels=external_label_str,
             modifiers=modifiers,
             parameters=parameters,
             reversible=reversible,
-            # dynamic_variables=dynamic_variables,
-            # args=args,
             variants=variants,
-            **meta_info,
         )
 
     def update_labelmap_reaction(
@@ -833,8 +827,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
         modifiers: list[str] | None = None,
         parameters: list[str] | None = None,
         reversible: bool | None = None,
-        # dynamic_variables: List[str] = None,
-        # args: List[str] = None,
     ) -> None:
         """Update an existing labelmap reaction.
 
@@ -880,11 +872,12 @@ class LabelModel(_AbstractRateModel, BaseModel):
             modifiers=modifiers,
             parameters=parameters,
             reversible=reversible,  # type: ignore
-            # dynamic_variables=dynamic_variables,
-            # args=args,
         )
 
-    def remove_reaction(self, rate_name: str) -> None:
+    def remove_reaction(
+        self,
+        rate_name: str,
+    ) -> None:
         """Remove a reaction from the model.
 
         Parameters
@@ -895,7 +888,10 @@ class LabelModel(_AbstractRateModel, BaseModel):
         self.remove_rate(rate_name=rate_name)
         self.remove_rate_stoichiometry(rate_name=rate_name)
 
-    def remove_labelmap_reaction(self, rate_name: str) -> None:
+    def remove_labelmap_reaction(
+        self,
+        rate_name: str,
+    ) -> None:
         """Remove all variants of a base reaction.
 
         Parameters
@@ -904,13 +900,15 @@ class LabelModel(_AbstractRateModel, BaseModel):
             Name of the rate
 
         """
-        self.meta_info["rates"].pop(rate_name)
         base_reaction = self.base_reactions.pop(rate_name)
         for rate in base_reaction["variants"]:
             if rate.startswith(rate_name):
                 self.remove_reaction(rate_name=rate)
 
-    def remove_labelmap_reactions(self, rate_names: list[str]) -> None:
+    def remove_labelmap_reactions(
+        self,
+        rate_names: list[str],
+    ) -> None:
         """Remove all variants of a multiple labelmap reactions.
 
         Parameters
@@ -942,9 +940,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
         if label_positions is None:
             label_positions = {}
         if not isinstance(base_y0, dict):
-            base_y0 = dict(zip(self.label_compounds, base_y0))
+            base_y0 = dict(zip(self.label_compounds, base_y0, strict=False))
 
-        y0 = dict(zip(self.get_compounds(), np.zeros(len(self.get_compounds()))))
+        y0 = dict(
+            zip(self.get_compounds(), np.zeros(len(self.get_compounds())), strict=False)
+        )
         for base_compound, concentration in base_y0.items():
             label_position = label_positions.get(base_compound, None)
             if label_position is None:
@@ -968,6 +968,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
         self,
         y: dict[str, float] | dict[str, Array] | ArrayLike | Array,
         t: float | ArrayLike | Array = 0.0,
+        *,
         include_readouts: bool = False,
     ) -> dict[str, Array]:
         """Calculate the derived variables (at time(s) t).
@@ -980,13 +981,15 @@ class LabelModel(_AbstractRateModel, BaseModel):
         """
         if include_readouts:
             raise NotImplementedError
-        if isinstance(t, (int, float)):
+        if isinstance(t, int | float):
             t = [t]
         t = np.array(t)
         if isinstance(y, dict):
             y = {k: np.ones(len(t)) * v for k, v in y.items()}
         else:
-            y = dict(zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T))
+            y = dict(
+                zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T, strict=False)
+            )
         return {k: np.ones(len(t)) * v for k, v in self._get_fcd(t=t, y=y).items()}  # type: ignore
 
     def get_fluxes(
@@ -1112,7 +1115,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
             s2 = pd.Series(new_cpds)
             s2 = cast(pd.Series, s2[s2 == 1])
             # Find new labels
-            new_labels = cast(Set[str], set(s2.index).difference(set(s1.index)))
+            new_labels = cast(set[str], set(s2.index).difference(set(s1.index)))
             # Break the loop once no new labels can be found
             if new_labels == set():
                 break
@@ -1121,7 +1124,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
             loop_count += 1
         return result
 
-    def _get_rhs(self, t: float | ArrayLike | Array, y: list[Array]) -> Array:
+    def _get_rhs(
+        self,
+        t: float | ArrayLike | Array,
+        y: list[Array],
+    ) -> Array:
         """Calculate the right hand side of the ODE system.
 
         This is the more performant version of get_right_hand_side()
@@ -1129,7 +1136,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
 
         Watch out that this function swaps t and y!
         """
-        y = dict(zip(self.get_compounds(), np.array(y).reshape(-1, 1)))  # type: ignore
+        y = dict(zip(self.get_compounds(), np.array(y).reshape(-1, 1), strict=False))  # type: ignore
         fcd = self._get_fcd(t=t, y=y)  # type: ignore
         fluxes = self._get_fluxes(fcd=fcd)  # type: ignore
         compounds_local = self.get_compounds()
@@ -1143,12 +1150,18 @@ class LabelModel(_AbstractRateModel, BaseModel):
     # Model conversion functions
     ##########################################################################
 
-    def _map_label_compound_to_compound(self, *, compound: str) -> str:
+    def _map_label_compound_to_compound(
+        self,
+        *,
+        compound: str,
+    ) -> str:
         if compound in self.nonlabel_compounds:
             return compound
         return compound.rsplit("__")[0]
 
-    def to_model(self) -> Model:
+    def to_model(
+        self,
+    ) -> Model:
         """Convert LabelModel to Model."""
         from . import Model
 
@@ -1175,7 +1188,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
                 m.add_algebraic_module(module_name=module_name, **module_)
 
         for rate_name, reaction in self.base_reactions.items():
-            reaction = reaction.copy()
+            reaction = reaction.copy()  # noqa: PLW2901
             reaction["stoichiometry"] = {
                 self._map_label_compound_to_compound(compound=k): v
                 for k, v in reaction["stoichiometry"].items()
@@ -1219,7 +1232,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
         if formula is not None:
             cpd_fbc.setChemicalFormula(formula)
 
-    def _create_sbml_compounds(self, *, sbml_model: libsbml.Model) -> None:
+    def _create_sbml_compounds(
+        self,
+        *,
+        sbml_model: libsbml.Model,
+    ) -> None:
         """Create the compounds for the sbml model.
 
         Parameters
@@ -1227,21 +1244,15 @@ class LabelModel(_AbstractRateModel, BaseModel):
         sbml_model : libsbml.Model
 
         """
-        for base_compound_id, base_compound in self.label_compounds.items():
-            compound = self.meta_info["compounds"][base_compound_id]
-            common_name = compound.common_name
-            charge = compound.charge
-            formula = compound.formula
-            compartment = compound.compartment
-
+        for base_compound in self.label_compounds.values():
             for compound_id in base_compound["isotopomers"]:
                 self._add_sbml_compound(
                     sbml_model=sbml_model,
                     compound_id=compound_id,
-                    common_name=common_name,
-                    compartment=compartment,
-                    charge=charge,
-                    formula=formula,
+                    common_name="",
+                    compartment="",
+                    charge=0,
+                    formula="",
                 )
 
         for compound_id in self.nonlabel_compounds:
@@ -1259,7 +1270,11 @@ class LabelModel(_AbstractRateModel, BaseModel):
                 formula=formula,
             )
 
-    def _create_sbml_reactions(self, *, sbml_model: libsbml.Model) -> None:
+    def _create_sbml_reactions(
+        self,
+        *,
+        sbml_model: libsbml.Model,
+    ) -> None:
         """Create the reactions for the sbml model.
 
         Parameters
@@ -1270,7 +1285,6 @@ class LabelModel(_AbstractRateModel, BaseModel):
         for base_rate_id, base_rate in self.base_reactions.items():
             rate = self.meta_info["rates"][base_rate_id]
             name = rate.common_name
-            # function = rate.sbml_function
             reversible = base_rate["reversible"]
 
             for rate_id in base_rate["variants"]:
@@ -1283,10 +1297,7 @@ class LabelModel(_AbstractRateModel, BaseModel):
                 rxn.setReversible(reversible)
 
                 for compound_id, factor in stoichiometry.items():
-                    if factor < 0:
-                        sref = rxn.createReactant()
-                    else:
-                        sref = rxn.createProduct()
+                    sref = rxn.createReactant() if factor < 0 else rxn.createProduct()
                     sref.setSpecies(convert_id_to_sbml(id_=compound_id, prefix="CPD"))
                     sref.setStoichiometry(abs(factor))
                     sref.setConstant(False)
@@ -1295,11 +1306,9 @@ class LabelModel(_AbstractRateModel, BaseModel):
                     sref = rxn.createModifier()
                     sref.setSpecies(convert_id_to_sbml(id_=compound, prefix="CPD"))
 
-                # if function is not None:
-                #     kinetic_law = rxn.createKineticLaw()
-                #     kinetic_law.setMath(libsbml.parseL3Formula(function))
-
-    def _model_to_sbml(self) -> libsbml.SBMLDocument:
+    def _model_to_sbml(  # type: ignore
+        self,
+    ) -> libsbml.SBMLDocument:
         """Export model to sbml."""
         doc = self._create_sbml_document()
         sbml_model = self._create_sbml_model(doc=doc)

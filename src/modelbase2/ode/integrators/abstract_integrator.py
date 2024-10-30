@@ -5,9 +5,11 @@ __all__ = [
 ]
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from modelbase2.typing import Array, ArrayLike
 
 
@@ -25,7 +27,7 @@ class AbstractIntegrator(ABC):
         ...
 
     @abstractmethod
-    def _simulate(
+    def integrate(
         self,
         *,
         t_end: float | None = None,
@@ -35,7 +37,7 @@ class AbstractIntegrator(ABC):
     ) -> tuple[ArrayLike | None, ArrayLike | None]: ...
 
     @abstractmethod
-    def _simulate_to_steady_state(
+    def integrate_to_steady_state(
         self,
         *,
         tolerance: float,

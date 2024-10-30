@@ -8,11 +8,9 @@ import copy
 from typing import (
     TYPE_CHECKING,
     Any,
-    Iterable,
+    Self,
     cast,
 )
-
-from typing_extensions import Self
 
 from modelbase2.ode.models import LinearLabelModel as _LinearLabelModel
 from modelbase2.typing import Array, ArrayLike, Axis
@@ -21,6 +19,8 @@ from modelbase2.utils.plotting import plot, plot_grid
 from . import _BaseSimulator
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from matplotlib.figure import Figure
 
     from modelbase2.ode.integrators import (

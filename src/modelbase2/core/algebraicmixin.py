@@ -2,17 +2,15 @@ from __future__ import annotations
 
 __all__ = [
     "AlgebraicModule",
-    "Module",
 ]
 
 import copy
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from queue import Empty, SimpleQueue
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator
+from typing import TYPE_CHECKING, Any, Self
 
 import numpy as np
-from typing_extensions import Self
 
 from .basemodel import BaseModel
 from .compoundmixin import CompoundMixin
@@ -25,20 +23,13 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable, Iterator
+
     import libsbml
 
-    from modelbase2.typing import Array
+    from modelbase2.typing import ArrayLike
 
 warnings.formatwarning = warning_on_one_line  # type: ignore
-
-
-@dataclass
-class Module:
-    """Meta-info container for an algebraic module."""
-
-    common_name: str | None = None
-    notes: dict = field(default_factory=dict)
-    database_links: dict = field(default_factory=dict)
 
 
 class AlgebraicModule:
@@ -70,7 +61,10 @@ class AlgebraicModule:
         self._check_module_args()
 
         if not check_function_arity(function=self.function, arity=len(self.args)):
-            warnings.warn(f"Function arity does not match args of {self.name}")
+            warnings.warn(
+                f"Function arity does not match args of {self.name}",
+                stacklevel=1,
+            )
 
     def _check_dynamic_variables(self) -> None:
         difference = set(self.dynamic_variables).difference(
@@ -78,14 +72,16 @@ class AlgebraicModule:
         )
         if difference:
             warnings.warn(
-                f"Supplied args {difference} for module {self.name} that aren't in compounds or modifiers"
+                f"Supplied args {difference} for module {self.name} that aren't in compounds or modifiers",
+                stacklevel=1,
             )
 
     def _check_module_args(self) -> None:
         difference = set(self.args).difference(self.dynamic_variables + self.parameters)
         if difference:
             warnings.warn(
-                f"Supplied args {difference} for module {self.name} that aren't in compounds, modifiers or parameters"
+                f"Supplied args {difference} for module {self.name} that aren't in compounds, modifiers or parameters",
+                stacklevel=1,
             )
 
     def __repr__(self) -> str:
@@ -213,7 +209,10 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         self._algebraic_module_order = module_order
 
     def _check_module_consistency(
-        self, module: AlgebraicModule, check_ids: bool = True
+        self,
+        module: AlgebraicModule,
+        *,
+        check_ids: bool = True,
     ) -> None:
         self._check_for_existence(
             name=module.name,
@@ -243,9 +242,9 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         parameters: list[str] | None = None,
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         check_consistency: bool = True,
         sort_modules: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Add an algebraic module to the model.
 
@@ -276,7 +275,10 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         """
         if module_name in self.algebraic_modules:
             self.remove_algebraic_module(module_name=module_name)
-            warnings.warn(f"Overwriting algebraic module {module_name}")
+            warnings.warn(
+                f"Overwriting algebraic module {module_name}",
+                stacklevel=1,
+            )
 
         patch_lambda_function_name(function=function, name=module_name)
 
@@ -305,11 +307,6 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         )
         self.algebraic_modules[module_name] = module
 
-        self.meta_info.setdefault("modules", {}).setdefault(
-            module_name,
-            Module(**meta_info),  # type: ignore
-        )
-
         if check_consistency:
             self._check_module_consistency(module)
         if sort_modules:
@@ -322,9 +319,9 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         function: Callable[..., float] | Callable[..., Iterable[float]],
         derived_compounds: list[str],
         args: list[str],
+        *,
         check_consistency: bool = True,
         sort_modules: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         compounds = []
         modifiers = []
@@ -350,7 +347,6 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
             args=args,
             check_consistency=check_consistency,
             sort_modules=sort_modules,
-            **meta_info,
         )
         return self
 
@@ -359,6 +355,7 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         name: str,
         function: Callable[..., float],
         args: list[str],
+        *,
         check_consistency: bool = True,
         sort_modules: bool = True,
     ) -> Self:
@@ -374,7 +371,8 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         return self
 
     def add_algebraic_modules(
-        self, algebraic_modules: dict, meta_info: dict | None = None
+        self,
+        algebraic_modules: dict,
     ) -> Self:
         """Add multiple algebraic modules to the model.
 
@@ -383,10 +381,8 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         add_algebraic_module
 
         """
-        meta_info = {} if meta_info is None else meta_info
         for module_name, module in algebraic_modules.items():
-            info = meta_info.get(module_name, {})
-            self.add_algebraic_module(module_name=module_name, **module, **info)
+            self.add_algebraic_module(module_name=module_name, **module)
         return self
 
     def update_algebraic_module(
@@ -399,9 +395,9 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         parameters: list[str] | None = None,
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         check_consistency: bool = True,
         sort_modules: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Update an existing reaction."""
         module = self.algebraic_modules[module_name]
@@ -458,7 +454,6 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
             self._check_module_consistency(module, check_ids=derived_have_changed)
         if sort_modules:
             self._sort_algebraic_modules()
-        self.update_meta_info("modules", meta_info)
         return self
 
     def update_algebraic_module_from_args(
@@ -467,9 +462,9 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         function: Callable[..., float] | Callable[..., Iterable[float]] | None = None,
         derived_compounds: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         check_consistency: bool = True,
         sort_modules: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         if args is None:
             compounds = self.algebraic_modules[module_name].compounds
@@ -500,13 +495,10 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
             args=args,
             check_consistency=check_consistency,
             sort_modules=sort_modules,
-            **meta_info,
         )
         return self
 
-    def update_algebraic_modules(
-        self, modules: dict, meta_info: dict | None = None
-    ) -> Self:
+    def update_algebraic_modules(self, modules: dict) -> Self:
         """Update multiple algebraic modules
 
         See Also
@@ -514,29 +506,15 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         update_algebraic_module
 
         """
-        meta_info = {} if meta_info is None else meta_info
         for name, module in modules.items():
-            info = meta_info.get(name, {})
-            self.update_algebraic_module(name, **module, **info)
-        return self
-
-    def update_module_meta_info(self, module: str, meta_info: dict) -> Self:
-        """Update meta info of an algebraic module.
-
-        Parameters
-        ----------
-        module : str
-            Name of the algebraic module
-        meta_info : dict
-            Meta info of the algebraic module. Allowed keys are
-            {common_name, notes, database_links}
-
-        """
-        self.update_meta_info(component="modules", meta_info={module: meta_info})
+            self.update_algebraic_module(name, **module)
         return self
 
     def remove_algebraic_module(
-        self, module_name: str, sort_modules: bool = True
+        self,
+        module_name: str,
+        *,
+        sort_modules: bool = True,
     ) -> Self:
         """Remove an algebraic module.
 
@@ -613,9 +591,9 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
     def _get_fcd(
         self,
         *,
-        t: Array,
-        y: dict[str, Array],
-    ) -> dict[str, Array]:
+        t: ArrayLike,
+        y: dict[str, ArrayLike],
+    ) -> dict[str, ArrayLike]:
         """Calculate the derived variables of all algebraic modules.
 
         fdc = full_concentration_dict
@@ -638,6 +616,7 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
                     np.array(derived_values).reshape(
                         (len(module.derived_compounds), -1)
                     ),
+                    strict=False,
                 )
             )
             y.update(derived_compounds)
@@ -648,17 +627,11 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
     # Source code functions
     ##########################################################################
 
-    def _generate_algebraic_modules_source_code(
-        self, *, include_meta_info: bool = True
-    ) -> tuple[str, str]:
+    def _generate_algebraic_modules_source_code(self) -> tuple[str, str]:
         """Generate modelbase source code for algebraic modules.
 
         This is mainly used for the generate_model_source_code function.
 
-        Parameters
-        ----------
-        include_meta_info : bool
-            Whether to include meta info in the source code.
 
         Returns
         -------
@@ -696,13 +669,6 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
                 f"    parameters={parameters},\n"
                 f"    args={args},\n"
             )
-            if include_meta_info:
-                meta_info = self._get_nonzero_meta_info(component="modules")
-                try:
-                    info = meta_info[name]
-                    module_definition += f"**{info}"
-                except KeyError:
-                    pass
             module_definition += ")"
             modules.append(module_definition)
         return "\n".join(sorted(module_functions)), "\n".join(modules)
@@ -726,4 +692,7 @@ class AlgebraicMixin(ParameterMixin, CompoundMixin, BaseModel):
         this.
 
         """
-        warnings.warn("SBML does support algebraic modules, skipping.")
+        warnings.warn(
+            "SBML does support algebraic modules, skipping.",
+            stacklevel=1,
+        )

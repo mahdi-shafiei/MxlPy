@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Type, Union, overload
+from typing import TYPE_CHECKING, overload
 
 from modelbase2.ode.integrators import AbstractIntegrator, Scipy
 from modelbase2.ode.models import (
@@ -33,36 +33,48 @@ from .linearlabelsimulator import _LinearLabelSimulate
 from .simulator import _Simulate
 
 if TYPE_CHECKING:
-    from modelbase2.typing import Array, ArrayLike
+    from modelbase2.typing import ArrayLike
 
 try:
     from modelbase2.ode.integrators import Assimulo
 
     default_integrator: type[AbstractIntegrator] = Assimulo
 except ImportError:  # pragma: no cover
-    warnings.warn("Assimulo not found, disabling sundials support.")
+    warnings.warn(
+        "Assimulo not found, disabling sundials support.",
+        stacklevel=1,
+    )
     default_integrator = Scipy
 
 
 @overload
-def Simulator(model: _Model) -> _Simulate: ...
-
-
-@overload
-def Simulator(model: _LabelModel) -> _LabelSimulate: ...
-
-
-@overload
-def Simulator(model: _LinearLabelModel) -> _LinearLabelSimulate: ...
-
-
 def Simulator(
+    model: _Model,
+    integrator: type[AbstractIntegrator] = default_integrator,
+    y0: ArrayLike | None = None,
+) -> _Simulate: ...
+
+
+@overload
+def Simulator(
+    model: _LabelModel,
+    integrator: type[AbstractIntegrator] = default_integrator,
+    y0: ArrayLike | None = None,
+) -> _LabelSimulate: ...
+
+
+@overload
+def Simulator(
+    model: _LinearLabelModel,
+    integrator: type[AbstractIntegrator] = default_integrator,
+    y0: ArrayLike | None = None,
+) -> _LinearLabelSimulate: ...
+
+
+def Simulator(  # noqa: N802
     model: _LabelModel | _LinearLabelModel | _Model,
     integrator: type[AbstractIntegrator] = default_integrator,
     y0: ArrayLike | None = None,
-    time: list[Array] | None = None,
-    results: list[Array] | None = None,
-    parameters: list[dict[str, float]] | None = None,
 ) -> _LabelSimulate | _LinearLabelSimulate | _Simulate:
     """Choose the simulator class according to the model type.
 
@@ -85,22 +97,17 @@ def Simulator(
             model=model,
             integrator=integrator,
             y0=y0,
-            results=results,
-            parameters=parameters,
         )
     if isinstance(model, _LinearLabelModel):
         return _LinearLabelSimulate(
             model=model,
             integrator=integrator,
             y0=y0,
-            results=results,
         )
     if isinstance(model, _Model):
         return _Simulate(
             model=model,
             integrator=integrator,
             y0=y0,
-            results=results,
-            parameters=parameters,
         )
     raise NotImplementedError

@@ -4,7 +4,7 @@ __all__ = [
     "_IntegratorAssimulo",
 ]
 
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from assimulo.problem import Explicit_Problem  # type: ignore
@@ -14,6 +14,8 @@ from assimulo.solvers.sundials import CVodeError  # type: ignore
 from .abstract_integrator import AbstractIntegrator
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from modelbase2.typing import ArrayLike
 
 
@@ -71,7 +73,7 @@ class _IntegratorAssimulo(AbstractIntegrator):
     def get_integrator_kwargs(self) -> dict[str, Any]:
         return {k: getattr(self.integrator, k) for k in self._integrator_kwargs}
 
-    def _simulate(
+    def integrate(
         self,
         *,
         t_end: float | None = None,
@@ -88,7 +90,7 @@ class _IntegratorAssimulo(AbstractIntegrator):
         except CVodeError:
             return None, None
 
-    def _simulate_to_steady_state(
+    def integrate_to_steady_state(
         self,
         *,
         tolerance: float,
@@ -108,7 +110,7 @@ class _IntegratorAssimulo(AbstractIntegrator):
                 if np.linalg.norm(diff, ord=2) < tolerance:
                     return t[-1], y[-1]
                 t_end *= 1000
-            except CVodeError:  # noqa: PERF203
+            except CVodeError:
                 return None, None
         return None, None
 

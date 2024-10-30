@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from torch import full
-
 __all__ = [
     "_BaseRateSimulator",
     "_BaseSimulator",
@@ -13,13 +11,20 @@ import warnings
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
-from typing import TYPE_CHECKING, Any, Dict, Generic, Iterable, List, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Literal,
+    Self,
+    cast,
+    overload,
+)
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
-from typing_extensions import Literal, Self
 
 from modelbase2.typing import Array, ArrayLike, Axes, Axis, Figure
 from modelbase2.utils.plotting import _get_plot_kwargs, _style_subplot, plot, plot_grid
@@ -32,6 +37,8 @@ from . import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from modelbase2.ode.integrators import AbstractIntegrator
 
 
@@ -138,17 +145,17 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         results: list[pd.DataFrame],
         normalise: float | ArrayLike,
     ) -> list[pd.DataFrame]:
-        if isinstance(normalise, (int, float)):
+        if isinstance(normalise, int | float):
             return [i / normalise for i in results]
         if len(normalise) == len(results):
-            return [(i.T / j).T for i, j in zip(results, normalise)]
+            return [(i.T / j).T for i, j in zip(results, normalise, strict=False)]
 
         results = []
         start = 0
         end = 0
         for i in results:
             end += len(i)
-            results.append(i / np.reshape(normalise[start:end], (len(i), 1)))
+            results.append(i / np.reshape(normalise[start:end], (len(i), 1)))  # type: ignore
             start += end
         return results
 
@@ -190,13 +197,13 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
             )
             if t_end is None:
                 t_end = time_points[-1]
-            time, results = self.integrator._simulate(
+            time, results = self.integrator.integrate(
                 t_end=t_end,
                 time_points=time_points,
                 **integrator_kwargs,  # type: ignore
             )
         elif time_points is not None:
-            time, results = self.integrator._simulate(
+            time, results = self.integrator.integrate(
                 t_end=time_points[-1],
                 time_points=time_points,
                 **integrator_kwargs,  # type: ignore
@@ -205,13 +212,13 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
             if t_end is None:
                 msg = "t_end must no be None"
                 raise ValueError(msg)
-            time, results = self.integrator._simulate(
+            time, results = self.integrator.integrate(
                 t_end=t_end,
                 steps=steps,
                 **integrator_kwargs,  # type: ignore
             )
         else:
-            time, results = self.integrator._simulate(
+            time, results = self.integrator.integrate(
                 t_end=t_end,
                 **integrator_kwargs,  # type: ignore
             )
@@ -261,7 +268,7 @@ class _BaseSimulator(Generic[BASE_MODEL_TYPE], ABC):
         if simulation_kwargs is None:
             simulation_kwargs = {}
 
-        time, results = self.integrator._simulate_to_steady_state(
+        time, results = self.integrator.integrate_to_steady_state(
             tolerance=tolerance,
             simulation_kwargs=simulation_kwargs,
             integrator_kwargs=integrator_kwargs,
@@ -392,7 +399,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         if self.full_results is not None:
             new.full_results = self.full_results.copy()
         if new.results is not None:
-            new._initialise_integrator(y0=new.results[-1].to_numpy())
+            new._initialise_integrator(y0=new.results[-1].to_numpy())  # noqa: SLF001
         elif new.y0 is not None:
             new.initialise(y0=new.y0, test_run=False)
         return new
@@ -406,7 +413,6 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def _test_run(self) -> None:
         """Test run of a single integration step to get proper error handling."""
-
         if self.y0 is not None:
             y = self.model.get_full_concentration_dict(y=self.y0, t=0)
             self.model.get_fluxes(y=y, t=0)
@@ -515,7 +521,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         *,
         rel_norm: bool = False,
         **integrator_kwargs: dict[str, Any],
-    ) -> pd.DataFrame | None:
+    ) -> pd.Series | None:
         """Simulate the model to steady state."""
         results = super().simulate_to_steady_state(
             tolerance=tolerance,
@@ -534,7 +540,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             return
 
         fluxes: list[pd.DataFrame] = []
-        for y, p in zip(fcd, pars):
+        for y, p in zip(fcd, pars, strict=False):
             self.update_parameters(parameters=p)
             fluxes.append(self.model._get_fluxes_from_df(fcd=y))  # noqa: SLF001
         self.fluxes = fluxes
@@ -595,7 +601,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         if (params := self.simulation_parameters) is None:
             raise ValueError
 
-        for res, p in zip(results, params):
+        for res, p in zip(results, params, strict=False):
             self.update_parameters(parameters=p)
             full_results = self.model.get_full_concentration_dict(
                 y=res.to_numpy(),
@@ -641,7 +647,6 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         include_readouts: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
         """Get simulation results and derived compounds."""
-
         if self.full_results is None:
             self._calculate_full_results(include_readouts=include_readouts)
 
@@ -686,7 +691,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         if (pars := self.simulation_parameters) is None:
             return None
 
-        for y, p in zip(res, pars):
+        for y, p in zip(res, pars, strict=False):
             self.update_parameters(p)
             rhs = pd.concat(
                 (
@@ -714,7 +719,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         sim: type[_BaseRateSimulator],
         integrator: type[AbstractIntegrator],
         tolerance: float,
-        y0: list[float],
+        y0: ArrayLike,
         integrator_kwargs: dict[str, Any],
         include_fluxes: bool,
         rel_norm: bool,
@@ -903,11 +908,11 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def plot_log(
         self,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
-        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -951,12 +956,12 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def plot_semilog(
         self,
+        *,
         log_axis: str = "y",
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
-        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1005,11 +1010,11 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def plot_derived(
         self,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
-        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1050,11 +1055,11 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def plot_all(
         self,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
-        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1095,12 +1100,12 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
 
     def plot_selection(
         self,
+        *,
         compounds: list[str],
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
         normalise: float | ArrayLike | None = None,
-        *,
         grid: bool = True,
         tight_layout: bool = True,
         ax: Axis | None = None,
@@ -1141,6 +1146,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_grid(
         self,
         compound_groups: list[list[str]],
+        *,
         ncols: int | None = None,
         sharex: bool = True,
         sharey: bool = True,
@@ -1199,6 +1205,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_derivatives(
         self,
         compounds: list[str],
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1240,6 +1247,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_against_variable(
         self,
         variable: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1260,7 +1268,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
-        compounds = cast(List[str], self.model.get_compounds())
+        compounds = cast(list[str], self.model.get_compounds())
         x = results.loc[:, variable].values  # type: ignore
         y = results.loc[:, compounds].values
         return plot(
@@ -1285,6 +1293,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_derived_against_variable(
         self,
         variable: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1305,7 +1314,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
-        compounds = cast(List[str], self.model.get_derived_compounds())
+        compounds = cast(list[str], self.model.get_derived_compounds())
         x = results.loc[:, variable].values  # type: ignore
         y = results.loc[:, compounds].values
         return plot(
@@ -1330,6 +1339,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_all_against_variable(
         self,
         variable: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1350,7 +1360,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         results = cast(pd.DataFrame, self.get_full_results(concatenated=True))
         if results is None:
             return None, None
-        compounds = cast(List[str], self.model.get_all_compounds())
+        compounds = cast(list[str], self.model.get_all_compounds())
         x = results.loc[:, variable].values  # type: ignore
         y = results.loc[:, compounds].values
         return plot(
@@ -1376,6 +1386,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         self,
         compounds: Iterable[str],
         variable: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1461,6 +1472,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_flux_selection(
         self,
         rate_names: list[str],
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1503,6 +1515,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_fluxes_grid(
         self,
         rate_groups: list[list[str]],
+        *,
         ncols: int | None = None,
         sharex: bool = True,
         sharey: bool = True,
@@ -1559,6 +1572,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
     def plot_fluxes_against_variable(
         self,
         variable: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1574,18 +1588,17 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         label_kwargs: dict[str, Any] | None = None,
         title_kwargs: dict[str, Any] | None = None,
     ) -> tuple[Figure | None, Axis | None]:
-        if xlabel is None:
-            xlabel = variable
-        rate_names = cast(List[str], self.model.get_rate_names())
-        x = self.get_variable(variable=variable)
-        y = self.get_fluxes(concatenated=True)
-        if x is None or y is None:
+        if (c := self.get_results()) is None:
             return None, None
-        y = cast(pd.DataFrame, y).loc[:, rate_names].values
+        if (v := self.get_fluxes(concatenated=True)) is None:
+            return None, None
+        rate_names = self.model.get_rate_names()
+        x = c.loc[:, variable]
+        y = v.loc[:, rate_names].to_numpy()
         return plot(
             plot_args=(x, y),
             legend=rate_names,
-            xlabel=xlabel,
+            xlabel=variable if xlabel is None else xlabel,
             ylabel=ylabel,
             title=title,
             grid=grid,
@@ -1605,6 +1618,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         self,
         rate_names: list[str],
         variable: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1620,17 +1634,16 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         label_kwargs: dict[str, Any] | None = None,
         title_kwargs: dict[str, Any] | None = None,
     ) -> tuple[Figure | None, Axis | None]:
-        if xlabel is None:
-            xlabel = variable
-        x = self.get_variable(variable=variable)
-        y = self.get_fluxes(concatenated=True)
-        if x is None or y is None:
+        if (c := self.get_results()) is None:
             return None, None
-        y = cast(pd.DataFrame, y).loc[:, rate_names].values
+        if (v := self.get_fluxes()) is None:
+            return None, None
+        x = c.loc[:, variable]
+        y = v.loc[:, rate_names].to_numpy()
         return plot(
             plot_args=(x, y),
             legend=rate_names,
-            xlabel=xlabel,
+            xlabel=variable if xlabel is None else xlabel,
             ylabel=ylabel,
             title=title,
             grid=grid,
@@ -1650,6 +1663,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         self,
         cpd1: str,
         cpd2: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         title: str | None = None,
@@ -1665,19 +1679,14 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         label_kwargs: dict[str, Any] | None = None,
         title_kwargs: dict[str, Any] | None = None,
     ) -> tuple[Figure | None, Axis | None]:
-        if xlabel is None:
-            xlabel = cpd1
-        if ylabel is None:
-            ylabel = cpd2
-        x = self.get_variable(variable=cpd1)
-        y = self.get_variable(variable=cpd2)
-        if x is None or y is None:
+        if (c := self.get_results()) is None:
             return None, None
+
         return plot(
-            plot_args=(x, y),
+            plot_args=(c.loc[:, cpd1], c.loc[:, cpd2]),
             legend=None,
-            xlabel=xlabel,
-            ylabel=ylabel,
+            xlabel=cpd1 if xlabel is None else xlabel,
+            ylabel=cpd2 if ylabel is None else ylabel,
             title=title,
             grid=grid,
             tight_layout=tight_layout,
@@ -1697,6 +1706,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         cpd1: str,
         cpd2: str,
         cpd3: str,
+        *,
         xlabel: str | None = None,
         ylabel: str | None = None,
         zlabel: str | None = None,
@@ -1725,9 +1735,12 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         )
         kwargs["subplot"].update({"projection": "3d"})
 
-        x = self.get_variable(variable=cpd1)
-        y = self.get_variable(variable=cpd2)
-        z = self.get_variable(variable=cpd3)
+        if (c := self.get_results()) is None:
+            return None, None
+
+        x = c.loc[:, cpd1]
+        y = c.loc[:, cpd2]
+        z = c.loc[:, cpd3]
 
         if x is None or y is None or z is None:
             return None, None
@@ -1742,8 +1755,15 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             )
         else:
             fig = ax.get_figure()
+        fig = cast(Figure, fig)
+        ax = cast(Axis, ax)
 
-        ax.plot(x, y, z, **kwargs["plot"])
+        ax.plot(
+            x,
+            y,
+            z,
+            **kwargs["plot"],
+        )
         _style_subplot(
             ax=ax,
             xlabel=xlabel,
@@ -1761,6 +1781,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         self,
         cpd1: str,
         cpd2: str,
+        *,
         cpd1_bounds: tuple[float, float],
         cpd2_bounds: tuple[float, float],
         n: int,
@@ -1815,6 +1836,9 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             )
         else:
             fig = ax.get_figure()
+        fig = cast(Figure, fig)
+        ax = cast(Axis, ax)
+
         ax.quiver(x, y, u.T, v.T)
         _style_subplot(
             ax=ax,
@@ -1833,6 +1857,7 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         cpd1: str,
         cpd2: str,
         cpd3: str,
+        *,
         cpd1_bounds: tuple[float, float],
         cpd2_bounds: tuple[float, float],
         cpd3_bounds: tuple[float, float],
@@ -1890,6 +1915,9 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
             )
         else:
             fig = ax.get_figure()
+        fig = cast(Figure, fig)
+        ax = cast(Axis, ax)
+
         X, Y, Z = np.meshgrid(x, y, z)
         ax.quiver(
             X,
@@ -1917,25 +1945,3 @@ class _BaseRateSimulator(Generic[RATE_MODEL_TYPE], _BaseSimulator[RATE_MODEL_TYP
         if tight_layout:
             fig.tight_layout()
         return fig, ax
-
-    # def plot_production_and_consumption(
-    #     self, cpd: str
-    # ) -> tuple[Optional[Figure], Optional[tuple[Axis, Axis]]]:
-    #     if (fluxes := self.get_fluxes_df()) is None:
-    #         return None, None
-
-    #     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
-    #     for k, v in self.model.stoichiometries_by_compounds[cpd].items():
-    #         if v < 0:
-    #             ax = ax2
-    #         else:
-    #             ax = ax1
-    #         (fluxes[k] * abs(v)).plot(ax=ax, label=k)
-
-    #     fig.suptitle(cpd)
-    #     ax1.set_title("Production")
-    #     ax2.set_title("Consumption")
-    #     ax1.legend(loc="upper left")
-    #     ax2.legend(loc="upper left")
-
-    #     return fig, (ax1, ax2)

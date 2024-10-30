@@ -7,12 +7,15 @@ from concurrent.futures import TimeoutError
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Any, Callable, Collection, Hashable, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pebble
 from tqdm import tqdm
 
 from modelbase2.typing import K, Tin, Tout, default_if_none
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Collection, Hashable
 
 
 def _pickle_name(k: Hashable) -> str:
@@ -87,11 +90,14 @@ def parallelise(
         results = {}
         max_workers = default_if_none(max_workers, multiprocessing.cpu_count())
 
-        with tqdm(
-            total=len(inputs),
-            disable=disable_tqdm,
-            desc=tqdm_desc,
-        ) as pbar, pebble.ProcessPool(max_workers=max_workers) as pool:
+        with (
+            tqdm(
+                total=len(inputs),
+                disable=disable_tqdm,
+                desc=tqdm_desc,
+            ) as pbar,
+            pebble.ProcessPool(max_workers=max_workers) as pool,
+        ):
             future = pool.map(worker, inputs, timeout=timeout)
             it = future.result()
             while True:
@@ -99,7 +105,7 @@ def parallelise(
                     key, value = next(it)
                     pbar.update(1)
                     results[key] = value
-                except StopIteration:  # noqa: PERF203
+                except StopIteration:
                     break
                 except TimeoutError:
                     pbar.update(1)

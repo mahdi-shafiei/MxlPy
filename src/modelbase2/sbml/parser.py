@@ -12,9 +12,8 @@ import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Callable,
-    List,
     cast,
 )
 
@@ -39,6 +38,9 @@ from .data import (
 )
 from .mathml import handle_ast_node
 from .unit_conversion import get_operator_mappings, get_unit_conversion
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 UNIT_CONVERSION = get_unit_conversion()
 OPERATOR_MAPPINGS = get_operator_mappings()
@@ -205,10 +207,7 @@ class Parser:
             initial_amount = compound.getInitialAmount()
             if str(initial_amount) == "nan":
                 initial_amount = compound.getInitialConcentration()
-                if str(initial_amount) == "nan":
-                    is_concentration = False
-                else:
-                    is_concentration = True
+                is_concentration = str(initial_amount) != "nan"
             else:
                 is_concentration = False
 
@@ -539,7 +538,7 @@ class Parser:
                 func_body = function.function_body
                 func_args = function.function_args
                 parts = match[len(f"{func_id}(") : -1].split(", ")
-                for arg, repl in zip(func_args, parts):
+                for arg, repl in zip(func_args, parts, strict=False):
                     func_body = re.sub(arg, f"({repl})", func_body)
                 rule_body = re.sub(func_pattern, func_body, rule_body)
 
@@ -761,7 +760,7 @@ class Parser:
         modifiers = set(module.modifiers).difference(parameters)
 
         unexplained_args = set(parsed_args).difference(compounds).difference(parameters)
-        modifiers_ = cast(List[str], sorted(set(modifiers).union(unexplained_args)))
+        modifiers_ = cast(list[str], sorted(set(modifiers).union(unexplained_args)))
 
         module.function_args = compounds + modifiers_ + parameters
         module.compounds = compounds
@@ -929,19 +928,7 @@ class Parser:
         self._collect_and_convert()
         self._handle()
 
-        model = Model(
-            meta_info={
-                "id": self.sbml_model.getId(),
-                "name": self.sbml_model.getName(),
-                # "compartments": self.compartments,
-                # "units": self.units,
-            }
-        )
-        for func_name, func in self.converted_functions.items():
-            model.add_function(
-                function_name=func_name,
-                function=self.create_python_function(func=func),
-            )
+        model = Model()
 
         # Parameters
         constants = {k: v.value for k, v in self.converted_constants.items()}
@@ -997,14 +984,13 @@ class Parser:
         y0 = []
         for i in self.converted_variables.values():
             initial_amount = i.initial_amount
-            if i.has_only_substance_units:
-                if i.is_concentration:
-                    if i.compartment is not None:
-                        initial_amount *= self.parsed_compartments[i.compartment].size
+            if i.has_only_substance_units and i.is_concentration:
+                if i.compartment is not None:
+                    initial_amount *= self.parsed_compartments[i.compartment].size
             y0.append(initial_amount)
         y0_arr = np.array(y0)
         y0_arr[np.isnan(y0)] = 0
-        y0_dict = dict(zip(self.converted_variables, y0))
+        y0_dict = dict(zip(self.converted_variables, y0, strict=False))
 
         # Initial assignments
         possible_sources: dict[str, Any] = {
@@ -1014,7 +1000,7 @@ class Parser:
         for par_name, assignment in self.converted_initial_assignments.items():
             py_func = self.create_python_function(func=assignment)
             res = py_func(*[possible_sources[k] for k in assignment.function_args])
-            if isinstance(res, (list, np.ndarray)):
+            if isinstance(res, list | np.ndarray):
                 res = res[0]
             if (
                 par_name not in model.compounds

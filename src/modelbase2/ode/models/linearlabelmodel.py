@@ -7,19 +7,21 @@ __all__ = [
 
 import copy
 import warnings
-from typing import Any, Iterable, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
-import libsbml
 import numpy as np
 import pandas as pd
-from typing_extensions import Self
 
 from modelbase2.core import BaseModel, CompoundMixin, StoichiometricMixin
-from modelbase2.core.ratemixin import RateMeta
 from modelbase2.core.utils import convert_id_to_sbml
 from modelbase2.typing import Array, ArrayLike
 
 from . import _AbstractStoichiometricModel
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    import libsbml
 
 
 def relative_label_flux(substrate: float, v_ss: float) -> float:
@@ -63,13 +65,13 @@ class LinearLabelModel(_AbstractStoichiometricModel):
         compounds: list[str] | None = None,
         rate_stoichiometries: dict[str, dict[str, float]] | None = None,
         rates: dict | None = None,
-        meta_info: dict | None = None,
+        *,
         _warn: bool = True,
     ) -> None:
         self.isotopomers: dict[str, list[str]] = {}
         self.base_rates: dict[str, set[str]] = {}
         self.rates: dict[str, LinearRate] = {}
-        BaseModel.__init__(self, meta_info=meta_info)
+        BaseModel.__init__(self)
         CompoundMixin.__init__(self, compounds=compounds)
         StoichiometricMixin.__init__(self, rate_stoichiometries=rate_stoichiometries)
         self.meta_info["model"].sbo = "SBO:0000062"  # continuous framework
@@ -81,9 +83,13 @@ class LinearLabelModel(_AbstractStoichiometricModel):
 
     def _warning(self, message: str, category: type[Warning] = UserWarning) -> None:
         if self._warn:
-            warnings.warn(message, category=category)
+            warnings.warn(
+                message,
+                category=category,
+                stacklevel=1,
+            )
 
-    def __enter__(self) -> LinearLabelModel:
+    def __enter__(self) -> Self:
         """Enter the context manager.
 
         Returns
@@ -92,7 +98,7 @@ class LinearLabelModel(_AbstractStoichiometricModel):
 
         """
         self._copy = self.copy()
-        return self.copy()
+        return cast(Self, self.copy())
 
     def copy(self) -> LinearLabelModel:
         """Create a deepcopy of the model.
@@ -150,7 +156,10 @@ class LinearLabelModel(_AbstractStoichiometricModel):
         return self
 
     def add_rate(
-        self, rate_name: str, base_name: str, substrate: str, **meta_info: dict
+        self,
+        rate_name: str,
+        base_name: str,
+        substrate: str,
     ) -> Self:  # type: ignore
         """Add a rate function to the model.
 
@@ -162,9 +171,6 @@ class LinearLabelModel(_AbstractStoichiometricModel):
             Name of the rate function
         substrate
             Name of the substrate
-        meta_info : dict, optional
-            Meta info of the rate. Allowed keys are
-            {common_name, gibbs0, ec, database_links, notes, sbml_function}
 
         Warns
         -----
@@ -181,10 +187,6 @@ class LinearLabelModel(_AbstractStoichiometricModel):
             substrate=substrate,
         )
         self.base_rates.setdefault(base_name, set()).add(rate_name)
-        self.meta_info.setdefault("rates", {}).setdefault(
-            rate_name,
-            RateMeta(**meta_info),  # type: ignore
-        )
         return self
 
     def remove_rate(self, rate_name: str) -> None:
@@ -227,16 +229,14 @@ class LinearLabelModel(_AbstractStoichiometricModel):
             self._warning(
                 f"Added {diff} external label outflux(es) for reaction {rate_name}"
             )
-            for _ in range(diff):
-                products.append("EXT")
+            products.extend(["EXT"] * diff)
 
         # Label influxes
         if (diff := len(products) - len(substrates)) > 0:
             self._warning(
                 f"Added {diff} external label influx(es) for reaction {rate_name}"
             )
-            for _ in range(diff):
-                substrates.append("EXT")
+            substrates.extend(["EXT"] * diff)
 
         # Broken labelmap
         if (diff := len(labelmap) - len(substrates)) < 0:
@@ -291,7 +291,7 @@ class LinearLabelModel(_AbstractStoichiometricModel):
         )
         subs = self._map_substrates_to_labelmap(substrates=subs, labelmap=labelmap)
 
-        for i, (substrate, product) in enumerate(zip(subs, prods)):
+        for i, (substrate, product) in enumerate(zip(subs, prods, strict=False)):
             if substrate == product:
                 self._warning(
                     f"Ignoring rate {rate_name}__{i}, as substrate == product"
@@ -336,7 +336,7 @@ class LinearLabelModel(_AbstractStoichiometricModel):
         if initial_labels is not None:
             for base_compound, label_positions in initial_labels.items():
                 if isinstance(label_positions, int):
-                    label_positions = [label_positions]
+                    label_positions = [label_positions]  # noqa: PLW2901
                 for pos in label_positions:
                     y0[f"{base_compound}__{pos}"] = 1 / len(label_positions)
         return y0
@@ -364,7 +364,7 @@ class LinearLabelModel(_AbstractStoichiometricModel):
     ) -> dict[str, float]:
         """Calculate the fluxes at time point(s) t."""
         if not isinstance(y, dict):
-            y = dict(zip(self.compounds, y))
+            y = dict(zip(self.compounds, y, strict=False))
         return self._get_fluxes(
             fcd=y,  # type: ignore
             v_ss=v_ss,
@@ -407,7 +407,7 @@ class LinearLabelModel(_AbstractStoichiometricModel):
         fluxes : pandas.DataFrame
 
         """
-        t_array = [t] if isinstance(t, (int, float)) else t
+        t_array = [t] if isinstance(t, int | float) else t
         return pd.DataFrame(
             data=self.get_fluxes_dict(y=y, v_ss=v_ss, external_label=external_label),
             index=t_array,
@@ -417,7 +417,7 @@ class LinearLabelModel(_AbstractStoichiometricModel):
     # This can't get keyword-only arguments, as the integrators are calling it with
     # positional arguments
     def _get_rhs(self, _t: float, y_labels: ArrayLike) -> ArrayLike:  # type: ignore[override]
-        fcd = dict(zip(self.compounds, y_labels))
+        fcd = dict(zip(self.compounds, y_labels, strict=False))
         dxdt: dict[str, float] = {i: 0.0 for i in self.compounds}
 
         fluxes = self._get_fluxes(
@@ -462,7 +462,9 @@ class LinearLabelModel(_AbstractStoichiometricModel):
         self._external_label = external_label
         if isinstance(y_labels, dict):
             y_labels = cast(ArrayLike, [y_labels[i] for i in self.compounds])
-        return dict(zip(self.compounds, self._get_rhs(_t=t, y_labels=y_labels)))
+        return dict(
+            zip(self.compounds, self._get_rhs(_t=t, y_labels=y_labels), strict=False)
+        )
 
     ##########################################################################
     # SBML functions
@@ -477,7 +479,6 @@ class LinearLabelModel(_AbstractStoichiometricModel):
 
         """
         for rate_id, stoichiometry in self.stoichiometries.items():
-            rate = self.meta_info["rates"][rate_id]
             rxn = sbml_model.createReaction()
             rxn.setId(convert_id_to_sbml(id_=rate_id, prefix="RXN"))
 
@@ -485,16 +486,10 @@ class LinearLabelModel(_AbstractStoichiometricModel):
             rxn.setReversible(False)
 
             for compound_id, factor in stoichiometry.items():
-                if factor < 0:
-                    sref = rxn.createReactant()
-                else:
-                    sref = rxn.createProduct()
+                sref = rxn.createReactant() if factor < 0 else rxn.createProduct()
                 sref.setSpecies(convert_id_to_sbml(id_=compound_id, prefix="CPD"))
                 sref.setStoichiometry(abs(factor))
                 sref.setConstant(False)
-
-            kinetic_law = rxn.createKineticLaw()
-            kinetic_law.setMath(libsbml.parseL3Formula(rate.sbml_function))
 
     def _model_to_sbml(self) -> libsbml.SBMLDocument:
         """Export model to sbml."""

@@ -5,23 +5,23 @@ __all__ = [
     "Axis",
 ]
 
-from typing import Hashable, Iterable, List, TypeVar, Union
+from collections.abc import Hashable, Iterable
+from typing import TypeVar, Union
 
 import numpy as np
 from matplotlib.axes import Axes as Axis
 from matplotlib.figure import Figure
 from numpy.typing import NDArray
-from typing_extensions import TypeAlias
 
-Array: TypeAlias = NDArray[np.float64]
+type Array = NDArray[np.float64]
 Number = Union[
     float,
-    List[float],
+    list[float],
     Array,
 ]
 
 Axes = NDArray[Axis]  # type: ignore
-ArrayLike = Union[NDArray[np.float64], List[float]]
+ArrayLike = Union[NDArray[np.float64], list[float]]
 
 T = TypeVar("T")
 V = TypeVar("V")

@@ -12,9 +12,12 @@ __all__ = [
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import Callable
+from typing import TYPE_CHECKING
 
 from . import ratefunctions
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def _pack_stoichiometries(substrates: list[str], products: list[str]) -> dict[str, int]:

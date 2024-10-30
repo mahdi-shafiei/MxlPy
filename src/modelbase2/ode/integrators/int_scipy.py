@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 import copy
-from typing import Any, Callable, List, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import numpy as np
 import scipy.integrate as spi
@@ -14,11 +14,14 @@ from modelbase2.typing import ArrayLike
 
 from .abstract_integrator import AbstractIntegrator
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 class _IntegratorScipy(AbstractIntegrator):
     """Wrapper around scipy.odeint and scipy.ode."""
 
-    default_integrator_kwargs = {
+    default_integrator_kwargs: ClassVar = {
         "atol": 1e-8,
         "rtol": 1e-8,
     }
@@ -64,7 +67,7 @@ class _IntegratorScipy(AbstractIntegrator):
         }
         return {"simulate": odeint_kwargs, "simulate_to_steady_state": ode_kwargs}
 
-    def _simulate(
+    def integrate(
         self,
         *,
         t_end: float | None = None,
@@ -77,7 +80,7 @@ class _IntegratorScipy(AbstractIntegrator):
                 t = [self.t0]
                 t.extend(time_points)
             else:
-                t = cast(List, time_points)
+                t = cast(list, time_points)
             t_array = np.array(t)
 
         elif steps is not None and t_end is not None:
@@ -101,14 +104,14 @@ class _IntegratorScipy(AbstractIntegrator):
         self.y0 = y[-1, :]
         return list(t_array), y
 
-    def _simulate_to_steady_state(
+    def integrate_to_steady_state(
         self,
         *,
         tolerance: float,
         integrator_kwargs: dict[str, Any],
         simulation_kwargs: dict[str, Any],
         rel_norm: bool,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[float | None, ArrayLike | None]:
         self.reset()
         step_size = simulation_kwargs.get("step_size", 100)
         max_steps = simulation_kwargs.get("max_steps", 1000)
@@ -122,7 +125,7 @@ class _IntegratorScipy(AbstractIntegrator):
             y2 = integ.integrate(t)
             diff = (y2 - y1) / y1 if rel_norm else y2 - y1
             if np.linalg.norm(diff, ord=2) < tolerance:
-                return cast(ArrayLike, t), cast(ArrayLike, y2)
+                return t, cast(ArrayLike, y2)
             y1 = y2
             t += step_size
         return None, None

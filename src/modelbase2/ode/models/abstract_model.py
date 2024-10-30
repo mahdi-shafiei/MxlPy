@@ -73,6 +73,7 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
         self,
         y: dict[str, float] | dict[str, Array] | ArrayLike | Array,
         t: float | ArrayLike | Array = 0.0,
+        *,
         include_readouts: bool = False,
     ) -> dict[str, Array]: ...
 
@@ -109,7 +110,7 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
         t: float | ArrayLike | Array = 0.0,
     ) -> pd.DataFrame:
         """Calculate the fluxes at time point(s) t."""
-        if isinstance(t, (int, float)):
+        if isinstance(t, int | float):
             t = [t]  # type: ignore
         return pd.DataFrame(
             data=self.get_fluxes(y=y, t=t), index=t, columns=self.get_rate_names()
@@ -123,6 +124,7 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
         | Array
         | ArrayLike,
         t: float | ArrayLike | Array = 0.0,
+        *,
         annotate_names: bool = True,
     ) -> dict[str, float]:
         """Calculate the right hand side of the ODE system."""
@@ -133,4 +135,4 @@ class _AbstractRateModel(RateMixin, AlgebraicMixin, _AbstractStoichiometricModel
             eqs = [f"d{cpd}dt" for cpd in self.get_compounds()]
         else:
             eqs = self.get_compounds()
-        return dict(zip(eqs, rhs))
+        return dict(zip(eqs, rhs, strict=False))

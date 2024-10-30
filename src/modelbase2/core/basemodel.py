@@ -9,11 +9,10 @@ import copy
 import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any, Self
 
 import libsbml
-from typing_extensions import Self
 
 from .utils import convert_id_to_sbml, warning_on_one_line
 
@@ -38,10 +37,10 @@ class Model:
 class BaseModel(ABC):
     """Abstract model class."""
 
-    def __init__(self, meta_info: dict[str, Any] | None = None) -> None:
+    def __init__(self) -> None:
         default_meta_info: dict[str, Any] = {
             "sbo": "SBO:0000004",  # modelling framework
-            "id": f"modelbase-model-{datetime.now().date().strftime('%Y-%m-%d')}",
+            "id": f"modelbase-model-{datetime.now(UTC).date().strftime('%Y-%m-%d')}",
             "name": "modelbase-model",
             "units": {
                 "per_second": {
@@ -61,8 +60,6 @@ class BaseModel(ABC):
                 }
             },
         }
-        if meta_info is not None:
-            default_meta_info.update(meta_info)
         self.meta_info: dict[str, Any] = {"model": Model(**default_meta_info)}
         self._ids: set[str] = set()
         self._copy: BaseModel | None = None
@@ -80,7 +77,7 @@ class BaseModel(ABC):
 
     def __exit__(
         self,
-        exception_type: BaseException | None,
+        exception_type: type[BaseException] | None,
         exception_value: BaseException | None,
         exception_traceback: TracebackType | None,
     ) -> None:
@@ -117,13 +114,17 @@ class BaseModel(ABC):
             if raise_on_missing:
                 msg = f"Could not find {element_type} {i} for {name}"
                 raise KeyError(msg)
-            warnings.warn(f"Could not find {element_type} {i} for {name}")
+            warnings.warn(
+                f"Could not find {element_type} {i} for {name}",
+                stacklevel=1,
+            )
 
     def _check_and_insert_ids(self, ids: list[str], context: str) -> None:
         for id_ in ids:
             if id_ in self._ids:
                 warnings.warn(
-                    f"{context}: Id {id_} already exists in the model. This might lead to variable shading!"
+                    f"{context}: Id {id_} already exists in the model. This might lead to variable shading!",
+                    stacklevel=1,
                 )
             self._ids.add(id_)
 
@@ -138,29 +139,9 @@ class BaseModel(ABC):
                 self._ids.remove(id_)
             except KeyError:
                 warnings.warn(
-                    f"Could not find id '{id_}'. Do you have duplicate ids in the model?"
+                    f"Could not find id '{id_}'. Do you have duplicate ids in the model?",
+                    stacklevel=1,
                 )
-
-    def update_meta_info(self, component: str, meta_info: dict) -> Self:
-        """Add meta info for any given model component.
-
-        Parameters
-        ----------
-        component : str
-            Name of the component. Available components depend of the model type
-            One of "modules", "compounds",
-        meta_info : dict
-            Meta info for the component. Available keys depend on the
-            component
-
-        """
-        for k1, d in meta_info.items():
-            if isinstance(d, dict):
-                for k2, v in d.items():
-                    setattr(self.meta_info[component][k1], k2, v)
-            else:
-                setattr(self.meta_info[component], k1, d)
-        return self
 
     def _get_nonzero_meta_info(self, *, component: str) -> dict[str, Any]:
         """Get meta info of a component for all entries that are not None.
@@ -195,7 +176,7 @@ class BaseModel(ABC):
         sbml_ns.addPackageNamespace("fbc", 2)
         # SBML document
         doc = libsbml.SBMLDocument(sbml_ns)
-        doc.setPackageRequired("fbc", False)
+        doc.setPackageRequired("fbc", flag=False)
         doc.setSBOTerm(self.meta_info["model"].sbo)
         return doc
 
@@ -263,7 +244,7 @@ class BaseModel(ABC):
             sbml_compartment.setUnits(compartment["units"])
 
     @abstractmethod
-    def _model_to_sbml(self) -> None:
+    def _model_to_sbml(self) -> libsbml.SBML_DOCUMENT:  # type: ignore
         """Define which methods shall be used for sbml export."""
 
     def write_sbml_model(self, filename: str | None = None) -> str | None:

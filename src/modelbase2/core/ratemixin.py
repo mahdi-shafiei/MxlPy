@@ -2,25 +2,20 @@ from __future__ import annotations
 
 __all__ = [
     "Rate",
-    "RateMeta",
     "RateMixin",
 ]
 
 import copy
 import warnings
 from collections import defaultdict
-from dataclasses import dataclass, field
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
-    Iterator,
+    Self,
 )
 
-import libsbml
 import numpy as np
 import pandas as pd
-from typing_extensions import Self
 
 from . import BaseModel, CompoundMixin, ParameterMixin
 from .utils import (
@@ -32,6 +27,10 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator
+
+    import libsbml
+
     from modelbase2.typing import Array
 
 warnings.formatwarning = warning_on_one_line  # type: ignore
@@ -49,6 +48,7 @@ class Rate:
         modifiers: list[str],
         dynamic_variables: list[str],
         parameters: list[str],
+        *,
         reversible: bool,
         args: list[str],
     ) -> None:
@@ -75,7 +75,8 @@ class Rate:
             targets = "substrates or modifiers"
         if difference:
             warnings.warn(
-                f"Supplied dynamic variables {difference} for rate {self.name} that aren't in {targets}"
+                f"Supplied dynamic variables {difference} for rate {self.name} that aren't in {targets}",
+                stacklevel=1,
             )
 
     def _check_rate_args(self) -> None:
@@ -86,7 +87,8 @@ class Rate:
             targets = "substrates, modifiers or parameters"
         if difference:
             warnings.warn(
-                f"Supplied args {difference} for rate {self.name} that aren't in {targets}"
+                f"Supplied args {difference} for rate {self.name} that aren't in {targets}",
+                stacklevel=1,
             )
 
     def check_consistency(self) -> None:
@@ -94,7 +96,10 @@ class Rate:
         self._check_rate_dynamic_variables()
         self._check_rate_args()
         if not check_function_arity(function=self.function, arity=len(self.args)):
-            warnings.warn(f"Function arity does not match args of {self.name}")
+            warnings.warn(
+                f"Function arity does not match args of {self.name}",
+                stacklevel=1,
+            )
 
     def __repr__(self) -> str:
         return repr(self.__dict__)
@@ -133,97 +138,21 @@ class Rate:
         return copy.deepcopy(self)
 
 
-@dataclass
-class RateMeta:
-    """Meta-info container for rates."""
-
-    common_name: str | None = None
-    unit: str | None = None
-    gibbs0: float | None = None
-    ec: str | None = None
-    database_links: dict = field(default_factory=dict)
-    notes: dict = field(default_factory=dict)
-    sbml_function: str | None = None
-    python_function: str | None = None
-
-
 class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
     """Mixin adding rate functions."""
 
     def __init__(
         self,
         rates: dict[str, Rate] | None = None,
-        functions: dict[str, Callable[..., float]] | None = None,
     ) -> None:
         self.rates: dict[str, Rate] = {}
         self.functions: dict[str, Callable[..., float]] = {}
         if rates is not None:
             self.add_rates(rates=rates)
-        if functions is not None:
-            self.add_functions(functions=functions)
-
-    ##########################################################################
-    # Meta Info
-    ##########################################################################
-
-    def update_rate_meta_info(self, rate: str, meta_info: dict) -> Self:
-        """Update meta info of a rate.
-
-        Parameters
-        ----------
-        rate : str
-            Name of the rate
-        meta_info : dict
-            Meta info of the rate. Allowed keys are
-            {common_name, gibbs0, ec, database_links, notes, sbml_function}
-
-        """
-        self.update_meta_info(component="rates", meta_info={rate: meta_info})
-        return self
 
     ##########################################################################
     # Basic rate functions
     ##########################################################################
-
-    def add_function(self, function_name: str, function: Callable[..., float]) -> Self:
-        """Add a function to the model"""
-        if function.__name__ == "<lambda>":
-            patch_lambda_function_name(function=function, name=function_name)
-
-        self.functions[function_name] = function
-        return self
-
-    def add_functions(self, functions: dict[str, Callable[..., float]]) -> Self:
-        """Add multiple functions to the model"""
-        for function_name, function in functions.items():
-            self.add_function(function_name=function_name, function=function)
-        return self
-
-    def update_function(
-        self, function_name: str, function: Callable[..., float]
-    ) -> Self:
-        """Update a function"""
-        if function.__name__ == "<lambda>":
-            patch_lambda_function_name(function=function, name=function_name)
-        self.functions[function_name] = function
-        return self
-
-    def update_functions(self, functions: dict[str, Callable[..., float]]) -> Self:
-        """Update multiple functions"""
-        for function_name, function in functions.items():
-            self.update_function(function_name, function)
-        return self
-
-    def remove_function(self, function_name: str) -> Self:
-        """Remove a function from the model"""
-        del self.functions[function_name]
-        return self
-
-    def remove_functions(self, function_names: list[str]) -> Self:
-        """Remove multiple functions from the model"""
-        for function_name in function_names:
-            self.remove_function(function_name)
-        return self
 
     def _check_rate_consistency(self, rate: Rate) -> None:
         self._check_for_existence(
@@ -250,10 +179,10 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
         modifiers: list[str] | None = None,
         dynamic_variables: list[str] | None = None,
         parameters: list[str] | None = None,
+        *,
         reversible: bool = False,
         args: list[str] | None = None,
         check_consistency: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Add a rate function to the model.
 
@@ -276,9 +205,6 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
             Names of the parameters
         reversible
             Whether the reaction is reversible.
-        meta_info
-            Meta info of the rate. Allowed keys are
-            {common_name, gibbs0, ec, database_links, notes, sbml_function}
 
         Warns
         -----
@@ -310,7 +236,10 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
 
         """
         if rate_name in self.rates:
-            warnings.warn(f"Overwriting rate {rate_name}")
+            warnings.warn(
+                f"Overwriting rate {rate_name}",
+                stacklevel=1,
+            )
             self.remove_rate(rate_name=rate_name)
 
         patch_lambda_function_name(function=function, name=rate_name)
@@ -344,11 +273,6 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
         )
         self.rates[rate_name] = rate
 
-        self.meta_info.setdefault("rates", {}).setdefault(
-            rate_name,
-            RateMeta(**meta_info),  # type: ignore
-        )
-
         if check_consistency:
             self._check_rate_consistency(rate)
         return self
@@ -356,7 +280,6 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
     def add_rates(
         self,
         rates: dict[str, Any],
-        meta_info: dict[str, Any] | None = None,
     ) -> Self:
         """Add multiple rates to the model.
 
@@ -365,10 +288,8 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
         add_rate
 
         """
-        meta_info = {} if meta_info is None else meta_info
         for rate_name, rate in rates.items():
-            info = meta_info.get(rate_name, {})
-            self.add_rate(rate_name=rate_name, **rate, **info)
+            self.add_rate(rate_name=rate_name, **rate)
         return self
 
     def update_rate(
@@ -382,8 +303,8 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
         reversible: bool | None = None,
         dynamic_variables: list[str] | None = None,
         args: list[str] | None = None,
+        *,
         check_consistency: bool = True,
-        **meta_info: dict[str, Any],
     ) -> Self:
         """Update an existing rate.
 
@@ -403,9 +324,6 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
             Names of the parameters
         reversible
             Whether the reaction is reversible.
-        meta_info
-            Meta info of the rate. Allowed keys are
-            {common_name, gibbs0, ec, database_links, notes, sbml_function}
 
         See Also
         --------
@@ -474,19 +392,15 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
 
         if check_consistency:
             self._check_rate_consistency(rate)
-        self.update_rate_meta_info(rate_name, meta_info)
         return self
 
     def update_rates(
         self,
         rates: dict,
-        meta_info: dict[str, Any] | None = None,
     ) -> Self:
         """Update multiple rates."""
-        meta_info = {} if meta_info is None else meta_info
         for rate_name, rate in rates.items():
-            info = meta_info.get(rate_name, {})
-            self.update_rate(rate_name, **rate, **info)
+            self.update_rate(rate_name, **rate)
         return self
 
     def remove_rate(self, rate_name: str) -> Self:
@@ -563,7 +477,7 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
         for name, rate in self.rates.items():
             try:
                 fluxes[name] = float(rate.function(*(args[arg] for arg in rate.args)))
-            except KeyError as e:  # noqa: PERF203
+            except KeyError as e:
                 msg = f"Could not find argument {e} for rate {name}"
                 raise KeyError(msg) from e
         return fluxes
@@ -571,19 +485,29 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
     def _get_fluxes_from_df(
         self,
         *,
-        fcd: dict[str, float],
-    ) -> dict[str, Array]:
-        args = self.parameters | fcd
-        fluxes = {}
+        fcd: pd.DataFrame,
+    ) -> pd.DataFrame:
+        _p = self.parameters
+        pars_df = pd.DataFrame(
+            np.full(
+                (len(fcd), len(_p)),
+                np.fromiter(_p.values(), dtype=float),
+            ),
+            index=fcd.index,
+            columns=list(_p.keys()),
+        )
+        args = pd.concat((fcd, pars_df), axis=1)
+
+        fluxes: dict[str, Array] = {}
         for name, rate in self.rates.items():
             try:
-                fluxes[name] = np.atleast_1d(
-                    rate.function(*(args[arg] for arg in rate.args))
-                )
-            except KeyError as e:  # noqa: PERF203
+                fluxes[name] = rate.function(*args.loc[:, rate.args].to_numpy().T)  # type: ignore
+
+            except KeyError as e:
                 msg = f"Could not find argument {e} for rate {name}"
                 raise KeyError(msg) from e
-        return fluxes
+
+        return pd.DataFrame(fluxes, index=args.index)
 
     ##########################################################################
     # Source code functions
@@ -598,9 +522,7 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
             function_strings.append(function_code)
         return "\n".join(sorted(function_strings))
 
-    def _generate_rates_source_code(
-        self, *, include_meta_info: bool = True
-    ) -> tuple[str, str]:
+    def _generate_rates_source_code(self) -> tuple[str, str]:
         """Generate modelbase source code for rates.
 
         See Also
@@ -635,13 +557,6 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
                 f"    reversible={reversible},\n"
                 f"    args={args},\n"
             )
-            if include_meta_info:
-                meta_info = self._get_nonzero_meta_info(component="rates")
-                try:
-                    info = meta_info[name]
-                    rate_definition += f"    **{info}\n"
-                except KeyError:
-                    pass
             rate_definition += ")"
             rates.append(rate_definition)
         return "\n".join(sorted(rate_functions)), "\n".join(rates)
@@ -659,13 +574,8 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
 
         """
         for rate_id, rate in self.rates.items():
-            meta_info = self.meta_info["rates"][rate_id]
-
             rxn = sbml_model.createReaction()
             rxn.setId(convert_id_to_sbml(id_=rate_id, prefix="RXN"))
-            name = meta_info.common_name
-            if name:
-                rxn.setName(name)
             rxn.setFast(False)
             rxn.setReversible(rate.reversible)
 
@@ -691,8 +601,3 @@ class RateMixin(ParameterMixin, CompoundMixin, BaseModel):
             for compound in rate.modifiers:
                 sref = rxn.createModifier()
                 sref.setSpecies(convert_id_to_sbml(id_=compound, prefix="CPD"))
-
-            function = meta_info.sbml_function
-            if function is not None:
-                kinetic_law = rxn.createKineticLaw()
-                kinetic_law.setMath(libsbml.parseL3Formula(function))

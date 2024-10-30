@@ -5,11 +5,10 @@ __all__ = [
 ]
 
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 import numpy as np
 import pandas as pd
-from typing_extensions import Self
 
 from .basemodel import BaseModel
 from .compoundmixin import CompoundMixin
@@ -49,7 +48,10 @@ class StoichiometricMixin(CompoundMixin, BaseModel):
 
         """
         if rate_name in self.stoichiometries:
-            warnings.warn(f"Overwriting stoichiometry for rate {rate_name}")
+            warnings.warn(
+                f"Overwriting stoichiometry for rate {rate_name}",
+                stacklevel=1,
+            )
             self.remove_rate_stoichiometry(rate_name=rate_name)
 
         # Stoichiometries
@@ -73,7 +75,10 @@ class StoichiometricMixin(CompoundMixin, BaseModel):
 
         """
         if compound in self.stoichiometries_by_compounds:
-            warnings.warn(f"Overwriting stoichiometry for compound {compound}")
+            warnings.warn(
+                f"Overwriting stoichiometry for compound {compound}",
+                stacklevel=1,
+            )
             self.remove_compound_stoichiometry(compound=compound)
 
         self.stoichiometries_by_compounds[compound] = stoichiometry
@@ -106,7 +111,10 @@ class StoichiometricMixin(CompoundMixin, BaseModel):
     ) -> Self:
         """Update stoichiometry of a rate"""
         if rate_name not in self.stoichiometries:
-            warnings.warn("Rate not in stoichiometries!")
+            warnings.warn(
+                "Rate not in stoichiometries!",
+                stacklevel=1,
+            )
         else:
             self.remove_rate_stoichiometry(rate_name)
         self.add_stoichiometry(rate_name, stoichiometry)
@@ -238,10 +246,7 @@ class StoichiometricMixin(CompoundMixin, BaseModel):
             rxn.setId(convert_id_to_sbml(id_=rate_id, prefix="RXN"))
 
             for compound_id, factor in stoichiometry.items():
-                if factor < 0:
-                    sref = rxn.createReactant()
-                else:
-                    sref = rxn.createProduct()
+                sref = rxn.createReactant() if factor < 0 else rxn.createProduct()
                 sref.setSpecies(convert_id_to_sbml(id_=compound_id, prefix="CPD"))
                 sref.setStoichiometry(abs(factor))
                 sref.setConstant(True)
