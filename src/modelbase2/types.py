@@ -20,9 +20,9 @@ from matplotlib.axes import Axes as Axis
 from matplotlib.figure import Figure
 from numpy.typing import NDArray
 
-DerivedFn = Callable[..., float]
-Array = NDArray[np.float64]
-Number = float | list[float] | Array
+type DerivedFn = Callable[..., float]
+type Array = NDArray[np.float64]
+type Number = float | list[float] | Array
 
 Param = ParamSpec("Param")
 RetType = TypeVar("RetType")

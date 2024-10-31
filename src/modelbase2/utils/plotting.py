@@ -16,8 +16,12 @@ from typing import TYPE_CHECKING, Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import colorConverter  # type: ignore
-from matplotlib.colors import LogNorm, Normalize, SymLogNorm
+from matplotlib.colors import (
+    LogNorm,
+    Normalize,
+    SymLogNorm,
+    colorConverter,  # type: ignore
+)
 
 from modelbase2.types import Array, ArrayLike, Axes, Axis
 
@@ -266,7 +270,7 @@ def plot_grid(
     )
     axs = cast(Axes, axs)
     for ax, plot_args, legend_args, title in zip(
-        axs.ravel(), plot_groups, legend_groups, plot_titles, strict=False
+        axs.ravel(), plot_groups, legend_groups, plot_titles, strict=True
     ):
         ax.plot(*plot_args, **kwargs["plot"])
         ax.set_title(title, **kwargs["title"])
@@ -277,16 +281,16 @@ def plot_grid(
             ax.grid(True, which="major", axis="both", **kwargs["grid"])
 
     if sharey:
-        for ax, ylabel in zip(axs[:, 0], ylabels, strict=False):
+        for ax, ylabel in zip(axs[:, 0], ylabels, strict=True):
             ax.set_ylabel(ylabel, **kwargs["label"])
     else:
-        for ax, ylabel in zip(axs.ravel(), ylabels, strict=False):
+        for ax, ylabel in zip(axs.ravel(), ylabels, strict=True):
             ax.set_ylabel(ylabel, **kwargs["label"])
     if sharex:
-        for ax, xlabel in zip(axs[-1], xlabels, strict=False):
+        for ax, xlabel in zip(axs[-1], xlabels, strict=True):
             ax.set_xlabel(xlabel, **kwargs["label"])
     else:
-        for ax, xlabel in zip(axs.ravel(), xlabels, strict=False):
+        for ax, xlabel in zip(axs.ravel(), xlabels, strict=True):
             ax.set_xlabel(xlabel, **kwargs["label"])
     fig.suptitle(figure_title, y=1.025, **kwargs["title"])
     if tight_layout:
@@ -378,7 +382,7 @@ def heatmap_from_dataframe(
         hm.update_scalarmappable()  # So that get_facecolor is an array
         xpos, ypos = np.meshgrid(np.arange(len(columns)), np.arange(len(rows)))
         for x, y, val, color in zip(
-            xpos.flat, ypos.flat, hm.get_array().flat, hm.get_facecolor(), strict=False
+            xpos.flat, ypos.flat, hm.get_array().flat, hm.get_facecolor(), strict=True
         ):
             text_kwargs["color"] = (
                 "black" if relative_luminance(color) > 0.45 else "white"

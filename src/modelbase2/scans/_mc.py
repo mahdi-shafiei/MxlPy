@@ -2,17 +2,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import partial
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from modelbase2.mc._parallel import Cache, parallelise
-from modelbase2.mc._plot import _fig_ax_if_neccessary, _plot_line_mean_std
-from modelbase2.ode import Model, Simulator
+from modelbase2.parallel import Cache, parallelise
+from modelbase2.scans._helpers import empty_time_course
+from modelbase2.scans._plot import _fig_ax_if_neccessary, _plot_line_mean_std
+from modelbase2.simulator import Simulator
 from modelbase2.types import Array, Axis, default_if_none
 from modelbase2.utils.plotting import grid
+
+if TYPE_CHECKING:
+    from modelbase2.models.model_protocol import ModelProtocol
 
 
 @dataclass
@@ -120,64 +124,16 @@ class McSteadyState:
         return ax
 
 
-def _empty_conc_series(model: Model) -> pd.Series:
-    return pd.Series(
-        data=np.full(shape=len(model.compounds), fill_value=np.nan),
-        index=model.compounds,
-    )
-
-
-def _empty_flux_series(model: Model) -> pd.Series:
-    return pd.Series(
-        data=np.full(shape=len(model.rates), fill_value=np.nan),
-        index=model.rates,
-    )
-
-
-def _empty_conc_df(model: Model, time_points: Array) -> pd.DataFrame:
-    return pd.DataFrame(
-        data=np.full(
-            shape=(len(time_points), len(model.compounds)),
-            fill_value=np.nan,
-        ),
-        index=time_points,
-        columns=model.compounds,
-    )
-
-
-def _empty_flux_df(model: Model, time_points: Array) -> pd.DataFrame:
-    return pd.DataFrame(
-        data=np.full(
-            shape=(len(time_points), len(model.rates)),
-            fill_value=np.nan,
-        ),
-        index=time_points,
-        columns=model.rates,
-    )
-
-
-def empty_time_point(model: Model) -> tuple[pd.Series, pd.Series]:
-    return _empty_conc_series(model), _empty_flux_series(model)
-
-
-def empty_time_course(
-    model: Model, time_points: Array
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    return _empty_conc_df(model, time_points), _empty_flux_df(model, time_points)
-
-
 def _time_course_worker(
     pars: pd.Series,
-    model: Model,
-    y0: dict[str, float],
+    model: ModelProtocol,
     time_points: Array,
+    y0: dict[str, float] | None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     c, v = (
-        Simulator(model)
-        .initialise(y0)
-        .update_parameters(pars.to_dict())
+        Simulator(model.update_parameters(pars.to_dict()), y0=y0)
         .simulate_and(time_points=time_points)
-        .get_full_results_and_fluxes()
+        .get_full_concs_and_fluxes()
     )
     if c is None or v is None:
         return empty_time_course(model, time_points)
@@ -185,10 +141,10 @@ def _time_course_worker(
 
 
 def time_course(
-    model: Model,
-    y0: dict[str, float],
+    model: ModelProtocol,
     time_points: Array,
     mc_parameters: pd.DataFrame,
+    y0: dict[str, float] | None = None,
     max_workers: int | None = None,
     cache: Cache | None = None,
 ) -> McTimeCourse:
@@ -233,7 +189,7 @@ def time_course(
 
 def _time_course_over_protocol_worker(
     pars: pd.Series,
-    model: Model,
+    model: ModelProtocol,
     y0: dict[str, float],
     protocol: pd.DataFrame,
     time_points_per_step: int = 10,
@@ -243,19 +199,19 @@ def _time_course_over_protocol_worker(
         protocol.index[-1].total_seconds(),
         len(protocol) * time_points_per_step,
     )
-    s = Simulator(model).initialise(y0).update_parameters(pars.to_dict())
+    s = Simulator(model.update_parameters(pars.to_dict()), y0)
     for t_end, ser in protocol.iterrows():
         t_end = cast(pd.Timedelta, t_end)
-        s.update_parameters(ser.to_dict())
+        model.update_parameters(ser.to_dict())
         s.simulate(t_end.total_seconds(), steps=time_points_per_step)
-    c, v = s.get_full_results_and_fluxes()
+    c, v = s.get_full_concs_and_fluxes()
     if c is None or v is None:
         return empty_time_course(model, time_points)
     return c, v
 
 
 def time_course_over_protocol(
-    model: Model,
+    model: ModelProtocol,
     y0: dict[str, float],
     protocol: pd.DataFrame,
     mc_parameters: pd.DataFrame,
@@ -286,26 +242,23 @@ def time_course_over_protocol(
 
 def _steady_state_scan_worker(
     pars: pd.Series,
-    model: Model,
+    model: ModelProtocol,
     y0: dict[str, float],
     parameter: str,
     parameter_values: Array,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    return (
-        Simulator(model)
-        .initialise(y0)
-        .update_parameters(pars.to_dict())
-        .parameter_scan_with_fluxes(
-            parameter,
-            parameter_values,
-            multiprocessing=False,
-            disable_tqdm=True,
-        )
+    return Simulator(
+        model.update_parameters(pars.to_dict()), y0=y0
+    ).parameter_scan_with_fluxes(
+        parameter,
+        parameter_values,
+        multiprocessing=False,
+        disable_tqdm=True,
     )
 
 
 def steady_state_scan(
-    model: Model,
+    model: ModelProtocol,
     y0: dict[str, float],
     parameter: str,
     parameter_values: Array,

@@ -670,7 +670,7 @@ def plot_multiple(
 
     fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=figsize, squeeze=False)
     axs = cast(Axes, axs)
-    for ax, df, title in zip(axs.ravel(), dfs, titles, strict=False):
+    for ax, df, title in zip(axs.ravel(), dfs, titles, strict=True):
         plot_coefficient_heatmap(
             df=df,
             title=title,

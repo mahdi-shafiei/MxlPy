@@ -43,7 +43,7 @@ dependencies = [
     "tqdm>=4.66.6",
     "typing-extensions>=4.12.2",
 ]
-optional-dependencies = { dev  = [
+optional-dependencies = { dev = [
   "toml-sort>=0.23.1,<0.24",
   "qtbmodels>=0.1.0,<0.2",
   "ruff>=0.7.1",
@@ -57,6 +57,7 @@ optional-dependencies = { dev  = [
   "mkdocs-jupyter>=0.25.1",
   "mkdocs-material>=9.5.42",
   "pre-commit>=4.0.1",
+  "pyright>=1.1.387",
 ] }
 
 [tool.bandit]
@@ -66,7 +67,7 @@ skips = ["B101", "B301", "B403", "B404", "B603", "B607"]
 disallow_untyped_defs = true
 exclude = "tests/*.py"
 ignore_missing_imports = true
-python_version = "3.11"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 
@@ -111,6 +112,7 @@ ignore = [
   # "D403",    # first line capitalised first word
   # "D415",    # furst line punctuation
   "E501",    # line-too-long
+  "ERA001",  # commented-out code
   "FIX001",  # line contains FIXME
   "ISC001",  # single line implicit string concat
   "N806",    # non-lowercase variable

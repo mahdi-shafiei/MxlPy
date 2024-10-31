@@ -1234,7 +1234,7 @@ dependencies = [
     { name = "typing-extensions" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "coverage" },
     { name = "jupyter" },
@@ -1243,6 +1243,7 @@ dev = [
     { name = "mkdocs-material" },
     { name = "mypy" },
     { name = "pre-commit" },
+    { name = "pyright" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "qtbmodels" },
@@ -1253,34 +1254,31 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.6.4" },
+    { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.1.1" },
     { name = "matplotlib", specifier = ">=3.9.2" },
+    { name = "mkdocs", marker = "extra == 'dev'", specifier = ">=1.6.1" },
+    { name = "mkdocs-jupyter", marker = "extra == 'dev'", specifier = ">=0.25.1" },
+    { name = "mkdocs-material", marker = "extra == 'dev'", specifier = ">=9.5.42" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13.0" },
     { name = "numpy", specifier = ">=2.1.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pebble", specifier = ">=5.0.7" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.0.1" },
+    { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.387" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.3" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0.0" },
     { name = "python-libsbml", specifier = ">=5.20.4" },
+    { name = "qtbmodels", marker = "extra == 'dev'", specifier = ">=0.1.0,<0.2" },
+    { name = "requests", marker = "extra == 'dev'", specifier = ">=2.32.3" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.7.1" },
     { name = "scipy", specifier = ">=1.14.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "sympy", specifier = ">=1.13.3" },
+    { name = "toml-sort", marker = "extra == 'dev'", specifier = ">=0.23.1,<0.24" },
     { name = "torch", specifier = ">=2.4.1" },
     { name = "tqdm", specifier = ">=4.66.6" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "coverage", specifier = ">=7.6.4" },
-    { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "mkdocs", specifier = ">=1.6.1" },
-    { name = "mkdocs-jupyter", specifier = ">=0.25.1" },
-    { name = "mkdocs-material", specifier = ">=9.5.42" },
-    { name = "mypy", specifier = ">=1.13.0" },
-    { name = "pre-commit", specifier = ">=4.0.1" },
-    { name = "pytest", specifier = ">=8.3.3" },
-    { name = "pytest-cov", specifier = ">=5.0.0" },
-    { name = "qtbmodels", specifier = ">=0.1.0,<0.2" },
-    { name = "requests", specifier = ">=2.32.3" },
-    { name = "ruff", specifier = ">=0.7.1" },
-    { name = "toml-sort", specifier = ">=0.23.1,<0.24" },
 ]
 
 [[package]]
@@ -1853,6 +1851,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/8c/d5/e5aeee5387091148a19e1145f63606619cb5f20b83fccb63efae6474e7b2/pyparsing-3.2.0.tar.gz", hash = "sha256:cbf74e27246d595d9a74b186b810f6fbb86726dbf3b9532efb343f6d7294fe9c", size = 920984 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/be/ec/2eb3cd785efd67806c46c13a17339708ddc346cbb684eade7a6e6f79536a/pyparsing-3.2.0-py3-none-any.whl", hash = "sha256:93d9577b88da0bbea8cc8334ee8b918ed014968fd2ec383e868fb8afb1ccef84", size = 106921 },
+]
+
+[[package]]
+name = "pyright"
+version = "1.1.387"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "nodeenv" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/32/e7187478d3105d6d7edc9b754d56472ee06557c25cc404911288fee1796a/pyright-1.1.387.tar.gz", hash = "sha256:577de60224f7fe36505d5b181231e3a395d427b7873be0bbcaa962a29ea93a60", size = 21939 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a0/18/c497df36641b0572f5bd59ae147b08ccaa6b8086397d50e1af97cc2ddcf6/pyright-1.1.387-py3-none-any.whl", hash = "sha256:6a1f495a261a72e12ad17e20d1ae3df4511223c773b19407cfa006229b1b08a5", size = 18577 },
 ]
 
 [[package]]

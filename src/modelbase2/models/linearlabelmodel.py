@@ -291,7 +291,7 @@
 #         )
 #         subs = self._map_substrates_to_labelmap(substrates=subs, labelmap=labelmap)
 
-#         for i, (substrate, product) in enumerate(zip(subs, prods, strict=False)):
+#         for i, (substrate, product) in enumerate(zip(subs, prods, strict=True)):
 #             if substrate == product:
 #                 self._warning(
 #                     f"Ignoring rate {rate_name}__{i}, as substrate == product"
@@ -364,7 +364,7 @@
 #     ) -> dict[str, float]:
 #         """Calculate the fluxes at time point(s) t."""
 #         if not isinstance(y, dict):
-#             y = dict(zip(self.compounds, y, strict=False))
+#             y = dict(zip(self.compounds, y, strict=True))
 #         return self._get_fluxes(
 #             fcd=y,  # type: ignore
 #             v_ss=v_ss,
@@ -417,7 +417,7 @@
 #     # This can't get keyword-only arguments, as the integrators are calling it with
 #     # positional arguments
 #     def _get_rhs(self, _t: float, y_labels: ArrayLike) -> ArrayLike:  # type: ignore[override]
-#         fcd = dict(zip(self.compounds, y_labels, strict=False))
+#         fcd = dict(zip(self.compounds, y_labels, strict=True))
 #         dxdt: dict[str, float] = {i: 0.0 for i in self.compounds}
 
 #         fluxes = self._get_fluxes(
@@ -463,7 +463,7 @@
 #         if isinstance(y_labels, dict):
 #             y_labels = cast(ArrayLike, [y_labels[i] for i in self.compounds])
 #         return dict(
-#             zip(self.compounds, self._get_rhs(_t=t, y_labels=y_labels), strict=False)
+#             zip(self.compounds, self._get_rhs(_t=t, y_labels=y_labels), strict=True)
 #         )
 
 #     ##########################################################################

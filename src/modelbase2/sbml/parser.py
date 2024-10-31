@@ -534,7 +534,7 @@ class Parser:
                 func_body = function.function_body
                 func_args = function.function_args
                 parts = match[len(f"{func_id}(") : -1].split(", ")
-                for arg, repl in zip(func_args, parts, strict=False):
+                for arg, repl in zip(func_args, parts, strict=True):
                     func_body = re.sub(arg, f"({repl})", func_body)
                 rule_body = re.sub(func_pattern, func_body, rule_body)
 
@@ -986,7 +986,7 @@ class Parser:
             y0.append(initial_amount)
         y0_arr = np.array(y0)
         y0_arr[np.isnan(y0)] = 0
-        y0_dict = dict(zip(self.converted_variables, y0, strict=False))
+        y0_dict = dict(zip(self.converted_variables, y0, strict=True))
 
         # Initial assignments
         possible_sources: dict[str, Any] = {

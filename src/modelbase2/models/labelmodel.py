@@ -935,10 +935,10 @@
 #         if label_positions is None:
 #             label_positions = {}
 #         if not isinstance(base_y0, dict):
-#             base_y0 = dict(zip(self.label_compounds, base_y0, strict=False))
+#             base_y0 = dict(zip(self.label_compounds, base_y0, strict=True))
 
 #         y0 = dict(
-#             zip(self.get_compounds(), np.zeros(len(self.get_compounds())), strict=False)
+#             zip(self.get_compounds(), np.zeros(len(self.get_compounds())), strict=True)
 #         )
 #         for base_compound, concentration in base_y0.items():
 #             label_position = label_positions.get(base_compound, None)
@@ -983,7 +983,7 @@
 #             y = {k: np.ones(len(t)) * v for k, v in y.items()}
 #         else:
 #             y = dict(
-#                 zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T, strict=False)
+#                 zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T, strict=True)
 #             )
 #         return {k: np.ones(len(t)) * v for k, v in self._get_fcd(t=t, y=y).items()}  # type: ignore
 
@@ -1133,7 +1133,7 @@
 
 #         Watch out that this function swaps t and y!
 #         """
-#         y = dict(zip(self.get_compounds(), np.array(y).reshape(-1, 1), strict=False))  # type: ignore
+#         y = dict(zip(self.get_compounds(), np.array(y).reshape(-1, 1), strict=True))  # type: ignore
 #         fcd = self._get_fcd(t=t, y=y)  # type: ignore
 #         fluxes = self._get_fluxes(fcd=fcd)  # type: ignore
 #         compounds_local = self.get_compounds()

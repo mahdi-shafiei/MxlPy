@@ -194,6 +194,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/13/a3/a812df4e2dd5696d1f351d58b8fe16a405b234ad2886a0dab9183fb78109/pycparser-2.22-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/53/32/95a164ddf533bd676cbbe878e36e89b4ade3efde8dd61d0148c90cbbe57e/pymdown_extensions-10.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/be/ec/2eb3cd785efd67806c46c13a17339708ddc346cbb684eade7a6e6f79536a/pyparsing-3.2.0-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a0/18/c497df36641b0572f5bd59ae147b08ccaa6b8086397d50e1af97cc2ddcf6/pyright-1.1.387-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6b/77/7440a06a8ead44c7757a64362dd22df5760f9b12dc5f11b6188cd2fc27a0/pytest-8.3.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/36/3b/48e79f2cd6a61dbbd4807b4ed46cb564b4fd50a76166b1c4ea5c1d9e2371/pytest_cov-6.0.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/35/a6/145655273568ee78a581e734cf35beb9e33a370b29c5d3c8fee3744de29f/python_json_logger-2.0.7-py3-none-any.whl
@@ -2285,7 +2286,7 @@ packages:
   name: modelbase2
   version: 0.1.0
   path: .
-  sha256: f49272e56e329e1c7c7c27f0f35812dd614eca81072f18156ca61b742b58357a
+  sha256: 0ba95bed6799cb87a8e3f455bdf13cf23c612a00f381f6dac943b85449e33dde
   requires_dist:
   - matplotlib>=3.9.2
   - numpy>=2.1.2
@@ -2311,6 +2312,7 @@ packages:
   - mkdocs-jupyter>=0.25.1 ; extra == 'dev'
   - mkdocs-material>=9.5.42 ; extra == 'dev'
   - pre-commit>=4.0.1 ; extra == 'dev'
+  - pyright>=1.1.387 ; extra == 'dev'
   requires_python: '>=3.12'
   editable: true
 - kind: conda
@@ -3110,6 +3112,19 @@ packages:
   - railroad-diagrams ; extra == 'diagrams'
   - jinja2 ; extra == 'diagrams'
   requires_python: '>=3.9'
+- kind: pypi
+  name: pyright
+  version: 1.1.387
+  url: https://files.pythonhosted.org/packages/a0/18/c497df36641b0572f5bd59ae147b08ccaa6b8086397d50e1af97cc2ddcf6/pyright-1.1.387-py3-none-any.whl
+  sha256: 6a1f495a261a72e12ad17e20d1ae3df4511223c773b19407cfa006229b1b08a5
+  requires_dist:
+  - nodeenv>=1.6.0
+  - typing-extensions>=4.1
+  - twine>=3.4.1 ; extra == 'all'
+  - nodejs-wheel-binaries ; extra == 'all'
+  - twine>=3.4.1 ; extra == 'dev'
+  - nodejs-wheel-binaries ; extra == 'nodejs'
+  requires_python: '>=3.7'
 - kind: pypi
   name: pytest
   version: 8.3.3

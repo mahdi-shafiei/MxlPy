@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from modelbase2.surrogates import AbstractSurrogate
     from modelbase2.types import Callable, DerivedFn, Iterable, Param, RetType, T
 
-    from . import LabelModel, LinearLabelModel
+    # from . import LabelModel, LinearLabelModel
 
 
 def invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetType]:
@@ -243,6 +243,9 @@ class Model:
             self.remove_variable(name=variable)
         return self
 
+    def get_initial_conditions(self) -> list[float]:
+        return list(self._variables.values())
+
     ##########################################################################
     # Derived
     ##########################################################################
@@ -265,7 +268,7 @@ class Model:
         )
         # NOTE: this assumes dicts stay sorted by insertion order. Might break
         # in a future python release
-        self._derived_parameters = {k: self._derived_parameters[k] for k in order}
+        self._derived_variables = {k: self._derived_variables[k] for k in order}
 
     @invalidate_cache
     def add_derived(
@@ -425,6 +428,11 @@ class Model:
                 else:
                     d[rxn_name] = factor
 
+        for surrogate in self._surrogates.values():
+            for rxn_name, rxn in surrogate.stoichiometries.items():
+                for cpd_name, factor in rxn.items():
+                    stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = factor
+
         self._cache = ModelCache(
             parameter_values=parameter_values,
             stoich_by_cpds=stoich_by_compounds,
@@ -474,11 +482,11 @@ class Model:
         args["time"] = args.index
 
         for name, dv in self._derived_variables.items():
-            args[name] = dv.fn(*args.loc[:, dv.args])
+            args[name] = dv.fn(*args.loc[:, dv.args].to_numpy().T)
 
         if include_readouts:
             for name, ro in self._readouts.items():
-                args[name] = ro.fn(*args.loc[:, ro.args])
+                args[name] = ro.fn(*args.loc[:, ro.args].to_numpy().T)
         return args
 
     def get_args(
@@ -602,7 +610,7 @@ class Model:
         )
         fluxes: dict[str, float] = self._get_fluxes(args)
 
-        dxdt = pd.Series(np.ones(len(var_names), dtype=float), index=var_names)
+        dxdt = pd.Series(np.zeros(len(var_names), dtype=float), index=var_names)
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
                 dxdt[k] += n * fluxes[flux]
@@ -623,7 +631,7 @@ class Model:
                 include_readouts=False,
             )
         )
-        dxdt = pd.Series(np.ones(len(var_names), dtype=float), index=var_names)
+        dxdt = pd.Series(np.zeros(len(var_names), dtype=float), index=var_names)
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
                 dxdt[k] += n * fluxes[flux]
@@ -1139,7 +1147,7 @@ class Model:
     #         y = {k: np.ones(len(t)) * v for k, v in y.items()}
     #     else:
     #         y = dict(
-    #             zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T, strict=False)
+    #             zip(self.get_compounds(), (np.ones((len(t), 1)) * y).T, strict=True)
     #         )
 
     #     fcd = {

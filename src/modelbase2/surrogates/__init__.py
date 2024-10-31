@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 @dataclass(kw_only=True)
 class AbstractSurrogate:
     inputs: list[str]
-    fluxes: list[str]
     stoichiometries: dict[str, dict[str, float]]
 
     @abstractmethod
@@ -28,10 +27,10 @@ class TorchSurrogate(AbstractSurrogate):
         with torch.no_grad():
             return dict(
                 zip(
-                    self.fluxes,
+                    self.stoichiometries,
                     self.model(
                         torch.tensor(y, dtype=torch.float32),
                     ).numpy(),
-                    strict=False,
+                    strict=True,
                 )
             )

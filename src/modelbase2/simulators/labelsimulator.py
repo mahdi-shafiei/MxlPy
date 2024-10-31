@@ -84,7 +84,7 @@
 #             zip(
 #                 res.columns,
 #                 res.values.T,
-#                 strict=False,  # type: ignore
+#                 strict=True,  # type: ignore
 #             )
 #         )
 
@@ -115,7 +115,7 @@
 #         if isotopomers is None or df is None:
 #             return None
 #         df = df[isotopomers]
-#         return dict(zip(df.columns, df.values.T, strict=False))
+#         return dict(zip(df.columns, df.values.T, strict=True))
 
 #     def get_concentrations_by_reg_exp_df(self, reg_exp: str) -> pd.DataFrame | None:
 #         """Get concentrations of all isotopomers of a compound."""
@@ -162,7 +162,7 @@
 #         )
 #         if df is None:
 #             return None
-#         return dict(zip(df.columns, df.values.T, strict=False))
+#         return dict(zip(df.columns, df.values.T, strict=True))
 
 #     def get_concentrations_of_n_labeled_df(
 #         self, compound: str, n_labels: int

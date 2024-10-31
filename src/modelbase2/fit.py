@@ -23,7 +23,7 @@ def _steady_state_residual(
 ) -> float:
     if (
         y_ss := Simulator(
-            model.update_parameters(dict(zip(par_names, par_values, strict=False))),
+            model.update_parameters(dict(zip(par_names, par_values, strict=True))),
             y0=y0,
             integrator=integrator,
         ).simulate_to_steady_state()
@@ -66,7 +66,7 @@ def steady_state(
                 bounds=[(1e-12, 1e6) for _ in range(len(p0))],
                 method="L-BFGS-B",
             ).x,
-            strict=False,
+            strict=True,
         )
     )
 
@@ -86,7 +86,7 @@ def _time_series_residual(
 ) -> float:
     if (
         y := Simulator(
-            model.update_parameters(dict(zip(par_names, par_values, strict=False))),
+            model.update_parameters(dict(zip(par_names, par_values, strict=True))),
             y0=y0,
             integrator=integrator,
         ).simulate(time_points=time_points)
@@ -131,7 +131,7 @@ def time_series(
                 bounds=[(1e-12, 1e6) for _ in range(len(p0))],
                 method="L-BFGS-B",
             ).x,
-            strict=False,
+            strict=True,
         )
     )
     model.update_parameters(p_orig)

@@ -2,7 +2,7 @@ from typing import Self
 
 import pandas as pd
 
-from modelbase2.types import Array, Protocol
+from modelbase2.types import Array, ArrayLike, Protocol
 
 
 class ModelProtocol(Protocol):
@@ -38,6 +38,7 @@ class ModelProtocol(Protocol):
         concs: dict[str, float],
         time: float,
     ) -> pd.Series: ...
+    def get_initial_conditions(self) -> ArrayLike: ...
 
     # For integration
     def _get_rhs(self, /, time: float, concs: Array) -> Array: ...

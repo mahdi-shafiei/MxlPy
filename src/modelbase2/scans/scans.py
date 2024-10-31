@@ -2,47 +2,31 @@ import numpy as np
 import pandas as pd
 
 from modelbase2 import ModelProtocol
+from modelbase2.scans._helpers import TimeCourse, TimePoint
+from modelbase2.simulator import Simulator
 from modelbase2.types import Array
 
 
-def _empty_conc_series(model: ModelProtocol) -> pd.Series:
-    return pd.Series(
-        data=np.full(shape=len(model.get_variable_names()), fill_value=np.nan),
-        index=model.get_variable_names(),
+def _steady_state_worker(
+    model: ModelProtocol, y0: dict[str, float] | None
+) -> TimePoint:
+    c, v = (
+        Simulator(model, y0=y0)
+        .simulate_to_steady_state_and()
+        .get_full_concs_and_fluxes()
     )
+    return TimePoint(model, c, v)
 
 
-def _empty_flux_series(model: ModelProtocol) -> pd.Series:
-    return pd.Series(
-        data=np.full(shape=len(model.get_reaction_names()), fill_value=np.nan),
-        index=model.get_reaction_names(),
+def _time_course_worker(
+    model: ModelProtocol, time_points: Array, y0: dict[str, float] | None
+) -> TimeCourse:
+    c, v = (
+        Simulator(model, y0=y0)
+        .simulate_and(time_points=time_points)
+        .get_full_concs_and_fluxes()
     )
-
-
-def _empty_conc_df(model: ModelProtocol, time_points: Array) -> pd.DataFrame:
-    return pd.DataFrame(
-        data=np.full(
-            shape=(len(time_points), len(model.get_variable_names())),
-            fill_value=np.nan,
-        ),
-        index=time_points,
-        columns=model.get_variable_names(),
-    )
-
-
-def _empty_flux_df(model: ModelProtocol, time_points: Array) -> pd.DataFrame:
-    return pd.DataFrame(
-        data=np.full(
-            shape=(len(time_points), len(model.get_reaction_names())),
-            fill_value=np.nan,
-        ),
-        index=time_points,
-        columns=model.get_reaction_names(),
-    )
-
-
-def empty_time_point(model: ModelProtocol) -> tuple[pd.Series, pd.Series]:
-    return _empty_conc_series(model), _empty_flux_series(model)
+    return TimeCourse(model, time_points, c, v)
 
 
 @staticmethod
@@ -96,31 +80,7 @@ def _parameter_scan_worker(
 
 
 def parameter_scan(
-    parameter_name: str,
-    parameter_values: ArrayLike,
-    tolerance: float = 1e-8,
-    *,
-    multiprocessing: bool = True,
-    max_workers: int | None = None,
-    disable_tqdm: bool = False,
-    rel_norm: bool = False,
-    **integrator_kwargs: dict[str, Any],
-) -> pd.DataFrame:
-    """Scan the model steady state changes caused by a change to a parameter."""
-    return parameter_scan_with_fluxes(
-        parameter_name=parameter_name,
-        parameter_values=parameter_values,
-        tolerance=tolerance,
-        multiprocessing=multiprocessing,
-        max_workers=max_workers,
-        disable_tqdm=disable_tqdm,
-        rel_norm=rel_norm,
-        **integrator_kwargs,
-    )[0]
-
-
-def parameter_scan_with_fluxes(
-    self,
+    model: ModelProtocol,
     parameter_name: str,
     parameter_values: ArrayLike,
     tolerance: float = 1e-8,
@@ -175,7 +135,6 @@ def parameter_scan_with_fluxes(
 
 
 def parameter_scan_2d(
-    self,
     p1: tuple[str, ArrayLike],
     p2: tuple[str, ArrayLike],
     tolerance: float = 1e-8,
@@ -229,7 +188,7 @@ def parameter_scan_2d_with_fluxes(
         parameter_values2, total=len(parameter_values2), desc=parameter_name2
     ):
         update_parameter(parameter_name2, value)
-        c, v = parameter_scan_with_fluxes(
+        c, v = parameter_scan(
             parameter_name1,
             parameter_values1,
             tolerance=tolerance,

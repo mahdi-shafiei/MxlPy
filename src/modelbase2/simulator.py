@@ -22,7 +22,7 @@ def _normalise_split_results(
     if isinstance(normalise, int | float):
         return [i / normalise for i in results]
     if len(normalise) == len(results):
-        return [(i.T / j).T for i, j in zip(results, normalise, strict=False)]
+        return [(i.T / j).T for i, j in zip(results, normalise, strict=True)]
 
     results = []
     start = 0
@@ -50,13 +50,17 @@ class Simulator:
     def __init__(
         self,
         model: ModelProtocol,
-        y0: dict[str, float],
+        y0: dict[str, float] | None = None,
         integrator: type[IntegratorProtocol] = DefaultIntegrator,
         *,
         test_run: bool = True,
     ) -> None:
         self.model = model
-        self.y0 = [y0[k] for k in model.get_variable_names()]
+        if y0 is None:
+            self.y0 = model.get_initial_conditions()
+        else:
+            self.y0 = [y0[k] for k in model.get_variable_names()]
+
         self.integrator = integrator(
             self.model._get_rhs,  # noqa: SLF001
             y0=self.y0,
@@ -66,6 +70,7 @@ class Simulator:
         self.simulation_parameters = None
 
         if test_run:
+            y0 = dict(zip(model.get_variable_names(), self.y0, strict=True))
             self.model.get_full_concs(y0, 0)
             self.model.get_fluxes(y0, 0)
             self.model.get_right_hand_side(y0, 0)
@@ -312,7 +317,9 @@ class Simulator:
         if (args := self.args) is None:
             args = self._get_args_vectorised(concs, params)
 
-        names = self.model.get_derived_variable_names()
+        names = (
+            self.model.get_variable_names() + self.model.get_derived_variable_names()
+        )
         if include_readouts:
             names.extend(self.model.get_readout_names())
         full_concs = [i.loc[:, names] for i in args]
