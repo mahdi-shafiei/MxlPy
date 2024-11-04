@@ -58,6 +58,7 @@ optional-dependencies = { dev = [
   "mkdocs-material>=9.5.42",
   "pre-commit>=4.0.1",
   "pyright>=1.1.387",
+  "ssort>=0.13.0",
 ] }
 
 [tool.bandit]

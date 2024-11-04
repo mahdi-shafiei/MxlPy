@@ -14,3 +14,9 @@ You have two choices here, using `uv` (pypi-only) or using `pixi` (conda-forge, 
 
 - Install `pixi` as described in [the docs](https://pixi.sh/latest/#installation)
 - Run `pixi install`
+
+
+## Notes
+
+- `uv add $package`
+- `uv add --optional dev $package`
