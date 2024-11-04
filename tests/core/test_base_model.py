@@ -9,8 +9,8 @@ from datetime import datetime
 
 import libsbml
 
-from modelbase2.core.utils import convert_sbml_id
 from modelbase2.ode import Model
+from modelbase2.sbml import convert_sbml_id
 
 
 class BaseModelTests(unittest.TestCase):
