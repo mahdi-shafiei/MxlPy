@@ -1,105 +1,207 @@
-# def plot_log(
-#     self,
-#     *,
-#     xlabel: str | None = None,
-#     ylabel: str | None = None,
-#     title: str | None = None,
-#     normalise: float | ArrayLike | None = None,
-#     grid: bool = True,
-#     tight_layout: bool = True,
-#     ax: Axis | None = None,
-#     figure_kwargs: dict[str, Any] | None = None,
-#     subplot_kwargs: dict[str, Any] | None = None,
-#     plot_kwargs: dict[str, Any] | None = None,
-#     grid_kwargs: dict[str, Any] | None = None,
-#     legend_kwargs: dict[str, Any] | None = None,
-#     tick_kwargs: dict[str, Any] | None = None,
-#     label_kwargs: dict[str, Any] | None = None,
-#     title_kwargs: dict[str, Any] | None = None,
-# ) -> tuple[Figure | None, Axis | None]:
-#     compounds = self.model.get_compounds()
-#     y = cast(
-#         pd.DataFrame,
-#         self.get_full_results(normalise=normalise, concatenated=True),
-#     )
-#     if y is None:
-#         return None, None
-#     fig, ax = plot(
-#         plot_args=(y.loc[:, compounds],),
-#         legend=compounds,
-#         xlabel=xlabel,
-#         ylabel=ylabel,
-#         title=title,
-#         grid=grid,
-#         tight_layout=tight_layout,
-#         ax=ax,
-#         figure_kwargs=figure_kwargs,
-#         subplot_kwargs=subplot_kwargs,
-#         plot_kwargs=plot_kwargs,
-#         grid_kwargs=grid_kwargs,
-#         legend_kwargs=legend_kwargs,
-#         tick_kwargs=tick_kwargs,
-#         label_kwargs=label_kwargs,
-#         title_kwargs=title_kwargs,
-#     )
-#     ax.set_xscale("log")
-#     ax.set_yscale("log")
-#     return fig, ax
+from typing import cast
+
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d import Axes3D
+
+from modelbase2.types import default_if_none
+
+type FigAx = tuple[Figure, Axes]
+type FigAxs = tuple[Figure, list[Axes]]
 
 
-# def plot_semilog(
-#     self,
-#     *,
-#     log_axis: str = "y",
-#     xlabel: str | None = None,
-#     ylabel: str | None = None,
-#     title: str | None = None,
-#     normalise: float | ArrayLike | None = None,
-#     grid: bool = True,
-#     tight_layout: bool = True,
-#     ax: Axis | None = None,
-#     figure_kwargs: dict[str, Any] | None = None,
-#     subplot_kwargs: dict[str, Any] | None = None,
-#     plot_kwargs: dict[str, Any] | None = None,
-#     grid_kwargs: dict[str, Any] | None = None,
-#     legend_kwargs: dict[str, Any] | None = None,
-#     tick_kwargs: dict[str, Any] | None = None,
-#     label_kwargs: dict[str, Any] | None = None,
-#     title_kwargs: dict[str, Any] | None = None,
-# ) -> tuple[Figure | None, Axis | None]:
-#     compounds = self.model.get_compounds()
-#     y = cast(
-#         pd.DataFrame,
-#         self.get_full_results(normalise=normalise, concatenated=True),
-#     )
-#     if y is None:
-#         return None, None
-#     fig, ax = plot(
-#         plot_args=(y.loc[:, compounds],),
-#         legend=compounds,
-#         xlabel=xlabel,
-#         ylabel=ylabel,
-#         title=title,
-#         grid=grid,
-#         tight_layout=tight_layout,
-#         ax=ax,
-#         figure_kwargs=figure_kwargs,
-#         subplot_kwargs=subplot_kwargs,
-#         plot_kwargs=plot_kwargs,
-#         grid_kwargs=grid_kwargs,
-#         legend_kwargs=legend_kwargs,
-#         tick_kwargs=tick_kwargs,
-#         label_kwargs=label_kwargs,
-#         title_kwargs=title_kwargs,
-#     )
-#     if log_axis == "y":
-#         ax.set_yscale("log")
-#     elif log_axis == "x":
-#         ax.set_xscale("log")
-#     else:
-#         msg = "log_axis must be either x or y"
-#         raise ValueError(msg)
-#     return fig, ax
+def _default_fig_ax(ax: Axes | None) -> FigAx:
+    if ax is None:
+        return plt.subplots(nrows=1, ncols=1)
+    return cast(Figure, ax.get_figure()), ax
+
+
+def _default_fig_axs(
+    axs: list[Axes] | None,
+    *,
+    ncols: int,
+    nrows: int,
+    sharex: bool,
+    sharey: bool,
+) -> FigAxs:
+    if axs is None or len(axs) == 0:
+        return plt.subplots(
+            nrows=nrows,
+            ncols=ncols,
+            sharex=sharex,
+            sharey=sharey,
+        )
+    return cast(Figure, axs[0].get_figure()), axs
+
+
+def _default_color(ax: Axes, color: str | None) -> str:
+    return f"C{len(ax.lines)}" if color is None else color
+
+
+def _default_labels(
+    ax: Axes,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
+    zlabel: str | None = None,
+) -> None:
+    ax.set_xlabel("Add a label / unit" if xlabel is None else xlabel)
+    ax.set_ylabel("Add a label / unit" if ylabel is None else ylabel)
+    if isinstance(ax, Axes3D):
+        ax.set_zlabel("Add a label / unit" if zlabel is None else zlabel)
+
+
+def add_grid(ax: Axes) -> Axes:
+    ax.grid(visible=True)
+    ax.set_axisbelow(b=True)
+    return ax
+
+
+def line(x: pd.DataFrame, *, ax: Axes | None = None) -> FigAx:
+    fig, ax = _default_fig_ax(ax=ax)
+    x.plot(ax=ax)
+    return fig, ax
+
+
+def line_mean_std(
+    df: pd.DataFrame,
+    *,
+    label: str | None,
+    ax: Axes | None = None,
+    color: str | None = None,
+    alpha: float = 0.2,
+) -> FigAx:
+    fig, ax = _default_fig_ax(ax=ax)
+    color = _default_color(ax=ax, color=color)
+
+    mean = df.mean(axis=1)
+    std = df.std(axis=1)
+    ax.plot(
+        mean,
+        color=color,
+        label=label,
+    )
+    ax.fill_between(
+        df.index,
+        mean - std,
+        mean + std,
+        color=color,
+        alpha=alpha,
+    )
+    return fig, ax
+
+
+def mc_line_mean_std(
+    df: pd.DataFrame,
+    var: str,
+    label: str | None = None,
+    color: str | None = None,
+    ax: Axes | None = None,
+) -> FigAx:
+    fig, ax = _default_fig_ax(ax=ax)
+    line_mean_std(
+        ax=ax,
+        df=df[var].unstack().T,
+        color=color,
+        label=var if label is None else label,
+    )
+    return fig, ax
+
+
+def _plot_line_median_std(
+    ax: Axes,
+    cpd: pd.DataFrame,
+    color: str | None,
+    label: str | None,
+    alpha: float = 0.2,
+) -> None:
+    mean = cpd.median(axis=1)
+    std = cpd.std(axis=1)
+    ax.plot(mean, color=color, label=label)
+    ax.fill_between(
+        cpd.index,
+        mean - std,
+        mean + std,
+        color=color,
+        alpha=alpha,
+    )
+
+
+def heatmap_from_2d_idx(df: pd.DataFrame, variable: str) -> None:
+    df2d = df[variable].unstack()
+
+    fig, ax = plt.subplots()
+    ax.set_title(variable)
+    # Note: pcolormesh swaps index/columns
+    hm = ax.pcolormesh(df2d.T)
+    ax.set_xlabel(df2d.index.name)
+    ax.set_ylabel(df2d.columns.name)
+    ax.set_xticks(
+        np.arange(0, len(df2d.index), 1) + 0.5,
+        labels=[f"{i:.2f}" for i in df2d.index],
+    )
+    ax.set_yticks(
+        np.arange(0, len(df2d.columns), 1) + 0.5,
+        labels=[f"{i:.2f}" for i in df2d.columns],
+    )
+
+    # Add colorbar
+    fig.colorbar(hm, ax=ax)
+
+
+def shade_protocol(
+    protocol: pd.Series,
+    *,
+    ax: Axes,
+    cmap_name: str = "Greys_r",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    alpha: float = 0.5,
+    add_legend: bool = True,
+) -> None:
+    from matplotlib import colormaps
+    from matplotlib.colors import Normalize
+    from matplotlib.legend import Legend
+    from matplotlib.patches import Patch
+
+    cmap = colormaps[cmap_name]
+    norm = Normalize(
+        vmin=default_if_none(vmin, protocol.min()),
+        vmax=default_if_none(vmax, protocol.max()),
+    )
+
+    t0 = pd.Timedelta(seconds=0)
+    for t_end, val in protocol.items():
+        t_end = cast(pd.Timedelta, t_end)
+        ax.axvspan(
+            t0.total_seconds(),
+            t_end.total_seconds(),
+            facecolor=cmap(norm(val)),
+            edgecolor=None,
+            alpha=alpha,
+        )
+        t0 = t_end  # type: ignore
+
+    if add_legend:
+        ax.add_artist(
+            Legend(
+                ax,
+                handles=[
+                    Patch(
+                        facecolor=cmap(norm(val)),
+                        alpha=alpha,
+                        label=val,
+                    )  # type: ignore
+                    for val in protocol
+                ],
+                labels=protocol,
+                loc="lower right",
+                bbox_to_anchor=(1.0, 0.0),
+                title=default_if_none(cast(str, protocol.name), "protocol"),
+            )
+        )
 
 
 # def plot_derived(
@@ -1583,3 +1685,123 @@
 #         label_kwargs=label_kwargs,
 #         title_kwargs=title_kwargs,
 #     )
+
+# from matplotlib.colors import (
+#     LogNorm,
+#     Normalize,
+#     SymLogNorm,
+#     colorConverter,  # type: ignore
+# )
+
+# from modelbase2.types import Array, ArrayLike, Axes, Axis
+
+# if TYPE_CHECKING:
+#     from collections.abc import Iterable
+
+#     import pandas as pd
+#     from matplotlib.collections import QuadMesh
+#     from matplotlib.figure import Figure
+
+# def relative_luminance(color: ArrayLike) -> float:
+#     """Calculate the relative luminance of a color."""
+#     rgb = colorConverter.to_rgba_array(color)[:, :3]
+
+#     # If RsRGB <= 0.03928 then R = RsRGB/12.92 else R = ((RsRGB+0.055)/1.055) ^ 2.4
+#     rsrgb = np.where(rgb <= 0.03928, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+
+#     # L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+#     rel_luminance: ArrayLike = np.matmul(rsrgb, [0.2126, 0.7152, 0.0722])
+#     return rel_luminance[0]
+
+
+# def get_norm(vmin: float, vmax: float) -> plt.Normalize:
+#     if vmax < 1000 and vmin > -1000:
+#         norm = Normalize(vmin=vmin, vmax=vmax)
+#     elif vmin <= 0:
+#         norm = SymLogNorm(linthresh=1, vmin=vmin, vmax=vmax, base=10)
+#     else:
+#         norm = LogNorm(vmin=vmin, vmax=vmax)
+#     return norm
+
+
+# def heatmap_from_dataframe(
+#     df: pd.DataFrame,
+#     title: str | None = None,
+#     xlabel: str | None = None,
+#     ylabel: str | None = None,
+#     annotate: bool = True,
+#     colorbar: bool = True,
+#     cmap: str = "viridis",
+#     vmax: float | None = None,
+#     vmin: float | None = None,
+#     norm: plt.Normalize | None = None,
+#     ax: Axis | None = None,
+#     cax: Axis | None = None,
+#     sci_annotation_bounds: tuple[float, float] = (0.01, 100),
+#     annotation_style: str = "2g",
+# ) -> tuple[Figure, Axis, QuadMesh]:
+#     data = df.values
+#     rows = df.index
+#     columns = df.columns
+
+#     if ax is None:
+#         fig, ax = plt.subplots()
+#     else:
+#         fig = ax.get_figure()
+
+#     # Create norm
+#     if norm is None:
+#         if vmax is None:
+#             vmax = np.nanmax(data)
+#         if vmin is None:
+#             vmin = np.nanmin(data)
+#         vmax = cast(float, vmax)
+#         vmin = cast(float, vmin)
+#         norm = get_norm(vmin=vmin, vmax=vmax)
+
+#     # Create heatmap
+#     hm = ax.pcolormesh(data, norm=norm, cmap=cmap)
+
+#     # Despine axis
+#     for side in ["top", "right", "left", "bottom"]:
+#         ax.spines[side].set_visible(False)
+
+#     # Set the axis limits
+#     ax.set(xlim=(0, data.shape[1]), ylim=(0, data.shape[0]))
+
+#     # Set ticks and ticklabels
+#     ax.set_xticks(np.arange(len(columns)) + 0.5)
+#     ax.set_xticklabels(columns)
+
+#     ax.set_yticks(np.arange(len(rows)) + 0.5)
+#     ax.set_yticklabels(rows)
+
+#     # Set title and axis labels
+#     ax.set_title(title)
+#     ax.set_xlabel(xlabel)
+#     ax.set_ylabel(ylabel)
+
+#     if annotate:
+#         text_kwargs = {"ha": "center", "va": "center"}
+#         hm.update_scalarmappable()  # So that get_facecolor is an array
+#         xpos, ypos = np.meshgrid(np.arange(len(columns)), np.arange(len(rows)))
+#         for x, y, val, color in zip(
+#             xpos.flat, ypos.flat, hm.get_array().flat, hm.get_facecolor(), strict=True
+#         ):
+#             text_kwargs["color"] = (
+#                 "black" if relative_luminance(color) > 0.45 else "white"
+#             )
+#             if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1]:
+#                 val_text = f"{val:.{annotation_style}}"
+#             else:
+#                 val_text = f"{val:.0e}"
+#             ax.text(x + 0.5, y + 0.5, val_text, **text_kwargs)
+
+#     if colorbar:
+#         # Add a colorbar
+#         cb = ax.figure.colorbar(hm, cax, ax)
+#         cb.outline.set_linewidth(0)
+
+#     # Invert the y axis to show the plot in matrix form
+#     ax.invert_yaxis()
+#     return fig, ax, hm

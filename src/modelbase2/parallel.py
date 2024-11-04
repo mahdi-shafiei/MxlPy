@@ -62,6 +62,7 @@ def parallelise(
     inputs: Collection[tuple[K, Tin]],
     *,
     cache: Cache | None,
+    parallel: bool = True,
     max_workers: int | None = None,
     timeout: float | None = None,
     disable_tqdm: bool = False,
@@ -70,6 +71,9 @@ def parallelise(
     if cache is not None:
         cache.tmp_dir.mkdir(parents=True, exist_ok=True)
 
+    if sys.platform in ["win32", "cygwin"]:
+        parallel = False
+
     worker: Callable[[K, Tin], tuple[K, Tout]] = partial(
         _load_or_run,
         fn=fn,
@@ -77,16 +81,7 @@ def parallelise(
     )  # type: ignore
 
     results: dict[Tin, Tout]
-    if sys.platform in ["win32", "cygwin"]:
-        results = dict(
-            tqdm(
-                map(worker, inputs),  # type: ignore
-                total=len(inputs),
-                disable=disable_tqdm,
-                desc=tqdm_desc,
-            )  # type: ignore
-        )  # type: ignore
-    else:
+    if parallel:
         results = {}
         max_workers = default_if_none(max_workers, multiprocessing.cpu_count())
 
@@ -109,4 +104,13 @@ def parallelise(
                     break
                 except TimeoutError:
                     pbar.update(1)
+    else:
+        results = dict(
+            tqdm(
+                map(worker, inputs),  # type: ignore
+                total=len(inputs),
+                disable=disable_tqdm,
+                desc=tqdm_desc,
+            )  # type: ignore
+        )  # type: ignore
     return results

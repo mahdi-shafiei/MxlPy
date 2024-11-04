@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, Self, overload
+from typing import TYPE_CHECKING, Literal, Self, cast, overload
 
 import numpy as np
 import pandas as pd
@@ -10,9 +10,7 @@ import pandas as pd
 from modelbase2.integrators import DefaultIntegrator
 
 if TYPE_CHECKING:
-    from modelbase2.integrators import IntegratorProtocol
-    from modelbase2.models.model_protocol import ModelProtocol
-    from modelbase2.types import ArrayLike
+    from modelbase2.types import ArrayLike, IntegratorProtocol, ModelProtocol
 
 
 def _normalise_split_results(
@@ -105,7 +103,7 @@ class Simulator:
         t_end: float | None = None,
         steps: int | None = None,
         time_points: ArrayLike | None = None,
-    ) -> pd.DataFrame | None:
+    ) -> Self:
         """Simulate the model.
 
         You can either supply only a terminal time point, or additionally also the
@@ -152,7 +150,7 @@ class Simulator:
             )
 
         if time is None or results is None:
-            return None
+            return self
 
         # NOTE: IMPORTANT!
         # model._get_rhs sorts the return array by model.get_compounds()
@@ -163,19 +161,6 @@ class Simulator:
             columns=self.model.get_variable_names(),
         )
         self._save_simulation_results(results=results_df, skipfirst=True)
-        return results_df
-
-    def simulate_and(
-        self,
-        t_end: float | None = None,
-        steps: int | None = None,
-        time_points: ArrayLike | None = None,
-    ) -> Self:
-        self.simulate(
-            t_end=t_end,
-            steps=steps,
-            time_points=time_points,
-        )
         return self
 
     def simulate_to_steady_state(
@@ -183,13 +168,13 @@ class Simulator:
         tolerance: float = 1e-6,
         *,
         rel_norm: bool = False,
-    ) -> pd.Series | None:
+    ) -> Self:
         time, results = self.integrator.integrate_to_steady_state(
             tolerance=tolerance,
             rel_norm=rel_norm,
         )
         if time is None or results is None:
-            return None
+            return self
 
         # NOTE: IMPORTANT!
         # model._get_rhs sorts the return array by model.get_compounds
@@ -200,18 +185,17 @@ class Simulator:
             columns=self.model.get_variable_names(),
         )
         self._save_simulation_results(results=results_df, skipfirst=False)
-        return results_df.iloc[-1]
+        return self
 
-    def simulate_to_steady_state_and(
+    def simulate_over_protocol(
         self,
-        tolerance: float = 1e-6,
-        *,
-        rel_norm: bool = False,
+        protocol: pd.DataFrame,
+        time_points_per_step: int = 10,
     ) -> Self:
-        self.simulate_to_steady_state(
-            tolerance=tolerance,
-            rel_norm=rel_norm,
-        )
+        for t_end, pars in protocol.iterrows():
+            t_end = cast(pd.Timedelta, t_end)
+            self.model.update_parameters(pars.to_dict())
+            self.simulate(t_end.total_seconds(), steps=time_points_per_step)
         return self
 
     def _get_args_vectorised(

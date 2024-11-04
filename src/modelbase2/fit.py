@@ -1,3 +1,9 @@
+"""Fit model to data
+
+- steady-state concentrations / fluxes
+- time series concentrations / fluxes
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -5,15 +11,15 @@ from typing import TYPE_CHECKING
 import numpy as np
 from scipy.optimize import minimize
 
-from modelbase2.integrators import DefaultIntegrator, IntegratorProtocol
+from modelbase2.integrators import DefaultIntegrator
 from modelbase2.simulator import Simulator
-from modelbase2.types import ArrayLike, Callable, cast
+from modelbase2.types import ArrayLike, Callable, IntegratorProtocol, cast
 
 if TYPE_CHECKING:
-    from modelbase2.models import ModelProtocol
+    from modelbase2.types import ModelProtocol
 
 
-def _steady_state_residual(
+def _steady_state_concs_residual(
     par_values: ArrayLike,
     data: ArrayLike,
     model: ModelProtocol,
@@ -26,13 +32,58 @@ def _steady_state_residual(
             model.update_parameters(dict(zip(par_names, par_values, strict=True))),
             y0=y0,
             integrator=integrator,
-        ).simulate_to_steady_state()
+        )
+        .simulate_to_steady_state()
+        .get_concs()
     ) is None:
         return cast(float, np.inf)
     return cast(float, np.sqrt(np.mean(np.square(data - y_ss.to_numpy()))))
 
 
-def steady_state(
+def _steady_state_fluxes_residual(
+    par_values: ArrayLike,
+    data: ArrayLike,
+    model: ModelProtocol,
+    y0: dict[str, float],
+    par_names: list[str],
+    integrator: type[IntegratorProtocol],
+) -> float:
+    if (
+        y_ss := Simulator(
+            model.update_parameters(dict(zip(par_names, par_values, strict=True))),
+            y0=y0,
+            integrator=integrator,
+        )
+        .simulate_to_steady_state()
+        .get_fluxes()
+    ) is None:
+        return cast(float, np.inf)
+    return cast(float, np.sqrt(np.mean(np.square(data - y_ss.to_numpy()))))
+
+
+def _time_series_concs_residual(
+    par_values: ArrayLike,
+    data: ArrayLike,
+    time_points: ArrayLike,
+    model: ModelProtocol,
+    y0: dict[str, float],
+    par_names: list[str],
+    integrator: type[IntegratorProtocol],
+) -> float:
+    if (
+        y := Simulator(
+            model.update_parameters(dict(zip(par_names, par_values, strict=True))),
+            y0=y0,
+            integrator=integrator,
+        )
+        .simulate(time_points=time_points)
+        .get_concs()
+    ) is None:
+        return cast(float, np.inf)
+    return cast(float, np.sqrt(np.mean(np.square(data - y.to_numpy()))))
+
+
+def steady_state_variables(
     model: ModelProtocol,
     p0: dict[str, float],
     y0: dict[str, float],
@@ -47,7 +98,7 @@ def steady_state(
             type[IntegratorProtocol],
         ],
         float,
-    ] = _steady_state_residual,
+    ] = _steady_state_concs_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
     par_names = list(p0.keys())
@@ -75,27 +126,7 @@ def steady_state(
     return res
 
 
-def _time_series_residual(
-    par_values: ArrayLike,
-    data: ArrayLike,
-    time_points: ArrayLike,
-    model: ModelProtocol,
-    y0: dict[str, float],
-    par_names: list[str],
-    integrator: type[IntegratorProtocol],
-) -> float:
-    if (
-        y := Simulator(
-            model.update_parameters(dict(zip(par_names, par_values, strict=True))),
-            y0=y0,
-            integrator=integrator,
-        ).simulate(time_points=time_points)
-    ) is None:
-        return cast(float, np.inf)
-    return cast(float, np.sqrt(np.mean(np.square(data - y.to_numpy()))))
-
-
-def time_series(
+def time_series_variables(
     model: ModelProtocol,
     p0: dict[str, float],
     y0: dict[str, float],
@@ -112,7 +143,7 @@ def time_series(
             type[IntegratorProtocol],
         ],
         float,
-    ] = _time_series_residual,
+    ] = _time_series_concs_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
     par_names = list(p0.keys())

@@ -2,8 +2,7 @@ import re
 
 import libsbml
 
-from modelbase2 import ModelProtocol
-from modelbase2.types import Any
+from modelbase2.types import Any, ModelProtocol
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
 RE_LAMBDA_RATE_FUNC = re.compile(r".*(lambda)(.+?):(.*?),")

@@ -8,16 +8,23 @@ from typing import TYPE_CHECKING, Self, cast
 import numpy as np
 import pandas as pd
 
-from modelbase2.types import Array
+from modelbase2.types import (
+    Array,
+    DerivedParameter,
+    DerivedStoichiometry,
+    DerivedVariable,
+    Reaction,
+    Readout,
+)
 
 if TYPE_CHECKING:
     from modelbase2.surrogates import AbstractSurrogate
-    from modelbase2.types import Callable, DerivedFn, Iterable, Param, RetType, T
+    from modelbase2.types import Callable, DerivedFn, Iterable, Param, RetType
 
     # from . import LabelModel, LinearLabelModel
 
 
-def invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetType]:
+def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetType]:
     def wrapper(
         *args: Param.args,
         **kwargs: Param.kwargs,
@@ -27,13 +34,6 @@ def invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetTyp
         return method(*args, **kwargs)
 
     return wrapper  # type: ignore
-
-
-def _without(d: dict[str, T], key: str) -> dict[str, T]:
-    new_d = d.copy()
-    if key in d:
-        new_d.pop(key)
-    return new_d
 
 
 def _sort_dependencies(
@@ -84,43 +84,6 @@ def _sort_dependencies(
 
 
 @dataclass(slots=True)
-class Derived:
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
-class DerivedVariable:
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
-class DerivedParameter:
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
-class DerivedStoichiometry:
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
-class Reaction:
-    fn: DerivedFn
-    stoichiometry: dict[str, float | DerivedStoichiometry]
-    args: list[str]
-
-
-@dataclass(slots=True)
-class Readout:
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
 class ModelCache:
     parameter_values: dict[str, float]
     stoich_by_cpds: dict[str, dict[str, float]]
@@ -157,7 +120,7 @@ class Model:
     # Parameters
     ##########################################################################
 
-    @invalidate_cache
+    @_invalidate_cache
     def add_parameter(self, name: str, value: float) -> Self:
         self._insert_id(name=name, ctx="parameter")
         self._parameters[name] = value
@@ -171,7 +134,7 @@ class Model:
     def get_parameters(self) -> dict[str, float]:
         return self._parameters.copy()
 
-    @invalidate_cache
+    @_invalidate_cache
     def remove_parameter(self, name: str) -> Self:
         self._remove_id(name=name)
         self._parameters.pop(name)
@@ -182,7 +145,7 @@ class Model:
             self.remove_parameter(name)
         return self
 
-    @invalidate_cache
+    @_invalidate_cache
     def update_parameter(self, name: str, value: float) -> Self:
         if name not in self._parameters:
             msg = f"'{name}' not found in parameters"
@@ -207,7 +170,7 @@ class Model:
     # Variables
     ##########################################################################
 
-    @invalidate_cache
+    @_invalidate_cache
     def add_variable(
         self,
         name: str,
@@ -232,7 +195,7 @@ class Model:
     def get_variable_names(self) -> list[str]:
         return list(self._variables)
 
-    @invalidate_cache
+    @_invalidate_cache
     def remove_variable(self, name: str) -> Self:
         self._remove_id(name=name)
         del self._variables[name]
@@ -270,7 +233,7 @@ class Model:
         # in a future python release
         self._derived_variables = {k: self._derived_variables[k] for k in order}
 
-    @invalidate_cache
+    @_invalidate_cache
     def add_derived(
         self,
         name: str,
@@ -297,7 +260,7 @@ class Model:
     def get_derived_variable_names(self) -> list[str]:
         return list(self._derived_variables)
 
-    @invalidate_cache
+    @_invalidate_cache
     def update_derived(
         self,
         name: str,
@@ -323,7 +286,7 @@ class Model:
             raise KeyError(msg)
         return self
 
-    @invalidate_cache
+    @_invalidate_cache
     def remove_derived(self, name: str, *, sort_derived: bool = True) -> Self:
         self._remove_id(name=name)
         if name in self._derived_parameters:
@@ -340,7 +303,7 @@ class Model:
     # Reactions
     ###########################################################################
 
-    @invalidate_cache
+    @_invalidate_cache
     def add_reaction(
         self,
         name: str,
@@ -355,7 +318,7 @@ class Model:
     def get_reaction_names(self) -> list[str]:
         return list(self._reactions)
 
-    @invalidate_cache
+    @_invalidate_cache
     def update_reaction(
         self,
         name: str,
@@ -371,7 +334,7 @@ class Model:
         rxn.args = rxn.args if args is None else args
         return self
 
-    @invalidate_cache
+    @_invalidate_cache
     def remove_reaction(self, name: str) -> Self:
         self._remove_id(name=name)
         self._reactions.pop(name)
@@ -400,7 +363,7 @@ class Model:
     # Surrogates
     ##########################################################################
 
-    @invalidate_cache
+    @_invalidate_cache
     def add_surrogate(
         self,
         name: str,
@@ -1200,7 +1163,7 @@ class Model:
     #     >>> m.to_labelmodel(labelcompounds=labelcompounds, labelmaps=labelmaps)
 
     #     """
-    #     from modelbase2.ode import LabelModel
+    #     from modelbase2 import LabelModel
 
     #     lm = LabelModel()
     #     lm.add_parameters(self.get_parameters())

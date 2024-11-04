@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __all__ = [
     "Assimulo",
-    "IntegratorProtocol",
     "Scipy",
 ]
 
@@ -15,6 +14,3 @@ try:
     DefaultIntegrator = Assimulo
 except ImportError:
     DefaultIntegrator = Scipy
-
-
-from .protocol import IntegratorProtocol

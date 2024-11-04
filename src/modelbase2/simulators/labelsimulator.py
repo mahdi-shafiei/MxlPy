@@ -10,7 +10,6 @@
 # import numpy as np
 # import pandas as pd
 
-# from modelbase2.ode.models import LabelModel
 # from modelbase2.types import Array, ArrayLike, Axis
 # from modelbase2.utils.plotting import plot, plot_grid
 
@@ -20,8 +19,6 @@
 #     from collections.abc import Iterable
 
 #     from matplotlib.figure import Figure
-
-#     from modelbase2.ode.integrators import AbstractIntegrator
 
 
 # class _LabelSimulate(_BaseRateSimulator[LabelModel]):

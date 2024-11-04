@@ -7,7 +7,6 @@
 # import copy
 # from typing import TYPE_CHECKING, Any, Self, cast
 
-# from modelbase2.ode.models import LinearLabelModel as _LinearLabelModel
 # from modelbase2.types import Array, ArrayLike, Axis
 # from modelbase2.utils.plotting import plot, plot_grid
 
@@ -17,8 +16,6 @@
 #     from collections.abc import Iterable
 
 #     from matplotlib.figure import Figure
-
-#     from modelbase2.ode.integrators import AbstractIntegrator as _AbstractIntegrator
 
 
 # class _LinearLabelSimulate(_BaseSimulator[_LinearLabelModel]):
