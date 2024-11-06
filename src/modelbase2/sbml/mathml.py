@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 __all__ = [
-    "handle_ast_node",
+    "_handle_ast_node",
 ]
 
 from typing import TYPE_CHECKING
@@ -44,7 +44,7 @@ def handle_ast_constant_pi(
 
 def handle_ast_divide(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     bracketed_children = []
@@ -58,7 +58,7 @@ def handle_ast_divide(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_divide_int(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     bracketed_children = []
@@ -72,7 +72,7 @@ def handle_ast_divide_int(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_function(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     node_name = node.getName()
@@ -81,12 +81,12 @@ def handle_ast_function(node: ASTNode, func_arguments: list[str]) -> str:
 
 
 def handle_ast_function_abs(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.abs({child})"
 
 
 def handle_ast_function_ceiling(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"math.ceil({child})"
 
 
@@ -95,33 +95,33 @@ def handle_ast_function_delay(node: ASTNode, func_arguments: list[str]) -> str:
 
 
 def handle_ast_function_exp(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.exp({child})"
 
 
 def handle_ast_function_factorial(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"math.factorial({child})"
 
 
 def handle_ast_function_floor(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"math.floor({child})"
 
 
 def handle_ast_function_ln(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.log({child})"
 
 
 def handle_ast_function_log(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.log10({child})"
 
 
 def handle_ast_function_max(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     args = ", ".join(children)
@@ -130,7 +130,7 @@ def handle_ast_function_max(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_function_min(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     args = ", ".join(children)
@@ -139,7 +139,7 @@ def handle_ast_function_min(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_function_piecewise(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) == 3:  # noqa: PLR2004
@@ -152,7 +152,7 @@ def handle_ast_function_piecewise(node: ASTNode, func_arguments: list[str]) -> s
 
 def handle_ast_function_power(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     left_subchildren = node.getChild(0).getChild(0) is not None
@@ -169,13 +169,13 @@ def handle_ast_function_rate_of(node: ASTNode, func_arguments: list[str]) -> str
 
 
 def handle_ast_function_root(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.sqrt({child})"
 
 
 def handle_ast_function_rem(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     args = ", ".join(children)
@@ -193,7 +193,7 @@ def handle_ast_lambda(node: ASTNode, func_arguments: list[str]) -> str:
     num_b_vars = node.getNumBvars()
     num_children = node.getNumChildren()
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(num_b_vars, num_children)
     ]
     return ", ".join(children)
@@ -201,7 +201,7 @@ def handle_ast_lambda(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_logical_and(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) == 0:
@@ -221,7 +221,7 @@ def handle_ast_logical_implies(
 
 def handle_ast_logical_not(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) == 0:
@@ -234,7 +234,7 @@ def handle_ast_logical_not(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_logical_or(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) == 0:
@@ -247,7 +247,7 @@ def handle_ast_logical_or(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_logical_xor(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) == 0:
@@ -261,7 +261,7 @@ def handle_ast_logical_xor(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_minus(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if node.getNumChildren() == 1:
@@ -300,7 +300,7 @@ def handle_ast_originates_in_package(node: ASTNode, func_arguments: list[str]) -
 
 def handle_ast_plus(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     return " + ".join(children)
@@ -327,7 +327,7 @@ def handle_ast_real(
 
 def handle_ast_relational_eq(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) > 2:  # noqa: PLR2004
@@ -337,7 +337,7 @@ def handle_ast_relational_eq(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_relational_geq(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) > 2:  # noqa: PLR2004
@@ -347,7 +347,7 @@ def handle_ast_relational_geq(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_relational_gt(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) > 2:  # noqa: PLR2004
@@ -357,7 +357,7 @@ def handle_ast_relational_gt(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_relational_leq(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) > 2:  # noqa: PLR2004
@@ -367,7 +367,7 @@ def handle_ast_relational_leq(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_relational_lt(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) > 2:  # noqa: PLR2004
@@ -377,7 +377,7 @@ def handle_ast_relational_lt(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_relational_neq(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     if len(children) > 2:  # noqa: PLR2004
@@ -387,7 +387,7 @@ def handle_ast_relational_neq(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_times(node: ASTNode, func_arguments: list[str]) -> str:
     children = [
-        handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
+        _handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
     bracketed_children = []
@@ -405,32 +405,32 @@ def handle_ast_times(node: ASTNode, func_arguments: list[str]) -> str:
 
 
 def handle_ast_trigonometric_sin(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.sin({child})"
 
 
 def handle_ast_trigonometric_cos(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.cos({child})"
 
 
 def handle_ast_trigonometric_tan(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.tan({child})"
 
 
 def handle_ast_trigonometric_sec(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"1 / np.cos({child})"
 
 
 def handle_ast_trigonometric_csc(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"1 / np.sin({child})"
 
 
 def handle_ast_trigonometric_cot(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"1 / np.tan({child})"
 
 
@@ -440,32 +440,32 @@ def handle_ast_trigonometric_cot(node: ASTNode, func_arguments: list[str]) -> st
 
 
 def handle_ast_trigonometric_arc_sin(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arcsin({child})"
 
 
 def handle_ast_trigonometric_arc_cos(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arccos({child})"
 
 
 def handle_ast_trigonometric_arc_tan(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arctan({child})"
 
 
 def handle_ast_trigonometric_arc_cot(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arctan(1 / ({child}))"
 
 
 def handle_ast_trigonometric_arc_sec(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arccos(1 / ({child}))"
 
 
 def handle_ast_trigonometric_arc_csc(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arcsin(1 / ({child}))"
 
 
@@ -475,32 +475,32 @@ def handle_ast_trigonometric_arc_csc(node: ASTNode, func_arguments: list[str]) -
 
 
 def handle_ast_trigonometric_sinh(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.sinh({child})"
 
 
 def handle_ast_trigonometric_cosh(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.cosh({child})"
 
 
 def handle_ast_trigonometric_tanh(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.tanh({child})"
 
 
 def handle_ast_trigonometric_sech(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"1 / np.cosh({child})"
 
 
 def handle_ast_trigonometric_csch(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"1 / np.sinh({child})"
 
 
 def handle_ast_trigonometric_coth(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"1 / np.tanh({child})"
 
 
@@ -510,36 +510,36 @@ def handle_ast_trigonometric_coth(node: ASTNode, func_arguments: list[str]) -> s
 
 
 def handle_ast_trigonometric_arc_sinh(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arcsinh({child})"
 
 
 def handle_ast_trigonometric_arc_cosh(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arccosh({child})"
 
 
 def handle_ast_trigonometric_arc_tanh(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arctanh({child})"
 
 
 def handle_ast_trigonometric_arc_csch(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arcsinh(1 / {child})"
 
 
 def handle_ast_trigonometric_arc_sech(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arccosh(1 / {child})"
 
 
 def handle_ast_trigonometric_arc_coth(node: ASTNode, func_arguments: list[str]) -> str:
-    child = handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
+    child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
     return f"np.arctanh(1 / {child})"
 
 
-def handle_ast_node(node: ASTNode, func_arguments: list[str]) -> str:
+def _handle_ast_node(node: ASTNode, func_arguments: list[str]) -> str:
     commands = {
         "AST_CONSTANT_E": handle_ast_constant_e,
         "AST_CONSTANT_FALSE": handle_ast_constant_false,
@@ -613,3 +613,9 @@ def handle_ast_node(node: ASTNode, func_arguments: list[str]) -> str:
         "AST_TIMES": handle_ast_times,
     }
     return commands[AST_TYPES[node.getType()]](node=node, func_arguments=func_arguments)
+
+
+def parse_sbml_math(node: ASTNode) -> tuple[str, list[str]]:
+    func_arguments = []
+    body = _handle_ast_node(node=node, func_arguments=func_arguments)
+    return body, sorted(set(func_arguments))

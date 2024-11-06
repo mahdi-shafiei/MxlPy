@@ -33,24 +33,12 @@ class CompositeUnit:
 
 @dataclass
 class Parameter:
-    sbml_id: str
-    name: str
     value: float
     is_constant: bool
 
 
 @dataclass
-class InitialAssignment:
-    sbml_id: str
-    derived_parameter: str
-    function_args: list[str]
-    function_body: str
-    sbml_math: str
-
-
-@dataclass
 class Compartment:
-    sbml_id: str
     name: str
     dimensions: int
     size: float
@@ -60,8 +48,6 @@ class Compartment:
 
 @dataclass
 class Compound:
-    sbml_id: str
-    name: str
     compartment: str | None
     initial_amount: float
     substance_units: str | None
@@ -72,58 +58,19 @@ class Compound:
 
 
 @dataclass
+class Derived:
+    body: str
+    args: list[str]
+
+
+@dataclass
 class Function:
-    sbml_id: str
-    name: str
-    function_args: list[str]
-    function_body: str
-    sbml_math: str
-
-
-@dataclass
-class AlgebraicRule:
-    sbml_id: str
-    sbml_math: str
-    parsed_args: list[str]
-    derived_compound: str | None
-    function_body: str
-    function_args: list[str]
-
-
-@dataclass
-class AssignmentRule:
-    sbml_id: str
-    sbml_math: str
-    parsed_args: list[str]
-    compounds: list[str]
-    derived_compound: str
-    modifiers: list[str]
-    parameters: list[str]
-    function_body: str
-    function_args: list[str]
-
-
-@dataclass
-class RateRule:
-    sbml_id: str
-    sbml_math: str
-    parsed_args: list[str]
-    derived_compound: str
-    modifiers: list[str]
-    function_args: list[str]
-    function_body: str
+    body: str
+    args: list[str]
 
 
 @dataclass
 class Reaction:
-    sbml_id: str
-    sbml_math: str
-    is_reversible: bool
-    modifiers: list
-    parsed_args: list[str]
-    parsed_reactants: dict
-    parsed_products: dict
-    function_body: str
-    function_args: list[str]
-    parameters: list
+    body: str
     stoichiometry: dict
+    args: list[str]

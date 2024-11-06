@@ -347,7 +347,6 @@ def _default_compartments(
     if compartments is None:
         return {
             "c": Compartment(
-                sbml_id="cytosol",
                 name="cytosol",
                 dimensions=3,
                 size=1,

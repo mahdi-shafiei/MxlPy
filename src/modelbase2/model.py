@@ -243,9 +243,6 @@ class Model:
             self.add_variable(name=name, initial_condition=y0)
         return self
 
-    def get_variable_names(self) -> list[str]:
-        return list(self._variables)
-
     @_invalidate_cache
     def remove_variable(self, name: str) -> Self:
         self._remove_id(name=name)
@@ -256,6 +253,14 @@ class Model:
         for variable in variables:
             self.remove_variable(name=variable)
         return self
+
+    @_invalidate_cache
+    def update_variable(self, name: str, initial_condition: float) -> Self:
+        self._variables[name] = initial_condition
+        return self
+
+    def get_variable_names(self) -> list[str]:
+        return list(self._variables)
 
     def get_initial_conditions(self) -> list[float]:
         return list(self._variables.values())
