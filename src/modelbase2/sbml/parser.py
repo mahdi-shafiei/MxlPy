@@ -17,7 +17,7 @@ import libsbml
 import numpy as np
 import sympy
 
-from modelbase2 import Model
+from modelbase2.model import Model
 
 from .data import (
     AlgebraicRule,

@@ -14,7 +14,7 @@ __all__ = [
 # Re-exporting some types here, because their imports have
 # changed between Python versions and I have no interest in
 # fixing it in every file
-from collections.abc import Callable, Hashable, Iterable
+from collections.abc import Callable, Hashable, Iterable, Mapping
 from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, Self, TypeVar, cast
 
 import numpy as np
@@ -159,7 +159,7 @@ class DerivedStoichiometry:
 @dataclass(slots=True)
 class Reaction:
     fn: DerivedFn
-    stoichiometry: dict[str, float | DerivedStoichiometry]
+    stoichiometry: Mapping[str, float | DerivedStoichiometry]
     args: list[str]
 
 

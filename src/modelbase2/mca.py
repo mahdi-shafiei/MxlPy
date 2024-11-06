@@ -9,7 +9,7 @@ from modelbase2.parallel import parallelise
 from modelbase2.scans import _steady_state_worker
 
 if TYPE_CHECKING:
-    from modelbase2 import ModelProtocol
+    from modelbase2.types import ModelProtocol
 
 
 _DISPLACEMENT = 1e-4

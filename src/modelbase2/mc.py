@@ -15,8 +15,7 @@ from modelbase2.scans import (
 )
 
 if TYPE_CHECKING:
-    from modelbase2 import ModelProtocol
-    from modelbase2.types import Array
+    from modelbase2.types import Array, ModelProtocol
 
 
 @dataclass

@@ -1,3 +1,5 @@
+import itertools as it
+import math
 from typing import cast
 
 import numpy as np
@@ -7,10 +9,42 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 
+from modelbase2.label_map import LabelMapper
+from modelbase2.linear_label_map import LinearLabelMapper
 from modelbase2.types import default_if_none
 
 type FigAx = tuple[Figure, Axes]
 type FigAxs = tuple[Figure, list[Axes]]
+
+
+def _partition_by_order_of_magnitude(s: pd.Series) -> list[list[str]]:
+    return [
+        i.to_list()
+        for i in np.floor(np.log10(s)).to_frame(name=0).groupby(0)[0].groups.values()  # type: ignore
+    ]
+
+
+def _split_large_groups[T](groups: list[list[T]], max_size: int) -> list[list[T]]:
+    return list(
+        it.chain(
+            *(
+                (
+                    [group]
+                    if len(group) < max_size
+                    else [  # type: ignore
+                        list(i)
+                        for i in np.array_split(group, math.ceil(len(group) / max_size))  # type: ignore
+                    ]
+                )
+                for group in groups
+            )
+        )
+    )  # type: ignore
+
+
+##########################################################################
+# General plot layout
+##########################################################################
 
 
 def _default_fig_ax(ax: Axes | None) -> FigAx:
@@ -53,16 +87,109 @@ def _default_labels(
         ax.set_zlabel("Add a label / unit" if zlabel is None else zlabel)
 
 
+def grid_layout(
+    n_groups: int,
+    *,
+    n_cols: int = 2,
+    col_width: float = 3,
+    row_height: float = 4,
+    sharex: bool = True,
+    sharey: bool = False,
+) -> tuple[Figure, list[Axes]]:
+    n_cols = min(n_groups, n_cols)
+    n_rows = math.ceil(n_groups / n_cols)
+    fig, axs = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(n_cols * col_width, n_rows * row_height),
+        sharex=sharex,
+        sharey=sharey,
+        layout="constrained",
+        squeeze=False,
+    )
+    return fig, list(axs.flatten())
+
+
+##########################################################################
+# Small customisation
+##########################################################################
+
+
 def add_grid(ax: Axes) -> Axes:
     ax.grid(visible=True)
     ax.set_axisbelow(b=True)
     return ax
 
 
+##########################################################################
+# Plots
+##########################################################################
+
+
 def line(x: pd.DataFrame, *, ax: Axes | None = None) -> FigAx:
     fig, ax = _default_fig_ax(ax=ax)
     x.plot(ax=ax)
     return fig, ax
+
+
+def line_grouped(
+    groups: list[pd.DataFrame] | list[pd.Series],
+    *,
+    n_cols: int = 2,
+    col_width: float = 3,
+    row_height: float = 4,
+    sharex: bool = True,
+    sharey: bool = False,
+    grid: bool = True,
+) -> FigAxs:
+    fig, axs = grid_layout(
+        len(groups),
+        n_cols=n_cols,
+        col_width=col_width,
+        row_height=row_height,
+        sharex=sharex,
+        sharey=sharey,
+    )
+
+    for group, ax in zip(groups, axs, strict=False):
+        group.plot(ax=ax, grid=grid)
+
+    for i in range(len(groups), len(axs)):
+        axs[i].set_visible(False)
+
+    return fig, axs
+
+
+def line_autogrouped(
+    s: pd.Series | pd.DataFrame,
+    *,
+    n_cols: int = 2,
+    col_width: float = 4,
+    row_height: float = 3,
+    max_group_size: int = 6,
+    grid: bool = True,
+) -> FigAxs:
+    if isinstance(s, pd.Series):
+        group_names = _partition_by_order_of_magnitude(s)
+    else:
+        group_names = _partition_by_order_of_magnitude(s.max())
+
+    group_names = _split_large_groups(group_names, max_size=max_group_size)
+
+    groups: list[pd.Series] | list[pd.DataFrame]
+
+    if isinstance(s, pd.Series):
+        groups = [s.loc[group] for group in group_names]
+    else:
+        groups = [s.loc[:, group] for group in group_names]
+
+    return line_grouped(
+        groups,
+        n_cols=n_cols,
+        col_width=col_width,
+        row_height=row_height,
+        grid=grid,
+    )
 
 
 def line_mean_std(
@@ -108,25 +235,6 @@ def mc_line_mean_std(
         label=var if label is None else label,
     )
     return fig, ax
-
-
-def _plot_line_median_std(
-    ax: Axes,
-    cpd: pd.DataFrame,
-    color: str | None,
-    label: str | None,
-    alpha: float = 0.2,
-) -> None:
-    mean = cpd.median(axis=1)
-    std = cpd.std(axis=1)
-    ax.plot(mean, color=color, label=label)
-    ax.fill_between(
-        cpd.index,
-        mean - std,
-        mean + std,
-        color=color,
-        alpha=alpha,
-    )
 
 
 def heatmap_from_2d_idx(df: pd.DataFrame, variable: str) -> None:
@@ -202,6 +310,49 @@ def shade_protocol(
                 title=default_if_none(cast(str, protocol.name), "protocol"),
             )
         )
+
+
+##########################################################################
+# Label Plots
+##########################################################################
+
+
+def relative_label_distribution(
+    mapper: LabelMapper | LinearLabelMapper,
+    concs: pd.DataFrame,
+    *,
+    subset: list[str] | None = None,
+    n_cols: int = 2,
+    col_width: float = 3,
+    row_height: float = 3,
+    sharey: bool = False,
+) -> FigAxs:
+    variables = list(mapper.label_variables) if subset is None else subset
+    fig, axs = grid_layout(
+        n_groups=len(variables),
+        n_cols=n_cols,
+        col_width=col_width,
+        row_height=row_height,
+        sharey=sharey,
+    )
+    if isinstance(mapper, LabelMapper):
+        for ax, name in zip(axs, variables, strict=False):
+            for i in range(mapper.label_variables[name]):
+                isos = mapper.get_isotopomers_of_at_position(name, i)
+                labels = cast(pd.DataFrame, concs.loc[:, isos])
+                total = concs.loc[:, f"{name}__total"]
+                (labels.sum(axis=1) / total).plot(ax=ax, label=f"C{i+1}")
+            ax.set_title(name)
+            ax.legend()
+    else:
+        for ax, (name, isos) in zip(
+            axs, mapper.get_isotopomers(variables).items(), strict=False
+        ):
+            concs.loc[:, isos].plot(ax=ax)
+            ax.set_title(name)
+            ax.legend([f"C{i+1}" for i in range(len(isos))])
+
+    return fig, axs
 
 
 # def plot_derived(
