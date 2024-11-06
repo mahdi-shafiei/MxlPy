@@ -82,7 +82,7 @@ def GENERATE_RESULTS():
         "d2": 0,
         "rate_time": 1,
     }
-    return Simulator(model=model).initialise(y0=y0).simulate_and(t_end=10, steps=10)
+    return Simulator(model=model).initialise(y0=y0).simulate(t_end=10, steps=10)
 
 
 SIM = GENERATE_RESULTS()

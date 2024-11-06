@@ -88,7 +88,7 @@ class Simulator:
 
         if self.simulation_parameters is None:
             self.simulation_parameters = []
-        self.simulation_parameters.append(self.model.get_parameters())
+        self.simulation_parameters.append(self.model.parameters)
 
     def clear_results(self) -> None:
         """Clear simulation results."""

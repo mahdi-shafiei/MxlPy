@@ -55,12 +55,24 @@ def default_if_none(el: T | None, default: T) -> T:
 
 
 class ModelProtocol(Protocol):
+    # Parameters
+    @property
+    def parameters(self) -> dict[str, float]: ...
+    def update_parameters(self, parameters: dict[str, float]) -> Self: ...
+    @property
+    def derived_parameters(self) -> dict[str, DerivedParameter]: ...
+
+    # Variables
     def get_variable_names(self) -> list[str]: ...
     def get_derived_variable_names(self) -> list[str]: ...
     def get_readout_names(self) -> list[str]: ...
+    @property
+    def derived_variables(self) -> dict[str, DerivedVariable]: ...
+
+    # Reactions
     def get_reaction_names(self) -> list[str]: ...
-    def get_parameters(self) -> dict[str, float]: ...
-    def update_parameters(self, parameters: dict[str, float]) -> Self: ...
+    @property
+    def reactions(self) -> dict[str, Reaction]: ...
 
     # User-facing
     def get_args(
@@ -161,6 +173,15 @@ class Reaction:
     fn: DerivedFn
     stoichiometry: Mapping[str, float | DerivedStoichiometry]
     args: list[str]
+
+    def get_modifiers(self, model: ModelProtocol) -> list[str]:
+        # FIXME: derived parameters?
+        exclude = set(model.parameters) | set(self.stoichiometry)
+
+        return [k for k in self.args if k not in exclude]
+
+    def is_reversible(self, model: ModelProtocol) -> bool:
+        raise NotImplementedError
 
 
 @dataclass(slots=True)

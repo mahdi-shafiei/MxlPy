@@ -87,8 +87,10 @@ def _sort_dependencies(
 
 @dataclass(slots=True)
 class ModelCache:
+    var_names: list[str]
     parameter_values: dict[str, float]
     stoich_by_cpds: dict[str, dict[str, float]]
+    dxdt: pd.Series[float]
 
 
 @dataclass(slots=True)
@@ -102,6 +104,40 @@ class Model:
     _reactions: dict[str, Reaction] = field(default_factory=dict)
     _surrogates: dict[str, AbstractSurrogate] = field(default_factory=dict)
     _cache: ModelCache | None = None
+
+    ###########################################################################
+    # Cache
+    ###########################################################################
+
+    def _create_cache(self) -> ModelCache:
+        parameter_values = self._parameters.copy()
+        for name, dp in self._derived_parameters.items():
+            parameter_values[name] = dp.fn(*(parameter_values[i] for i in dp.args))
+
+        stoich_by_compounds: dict[str, dict[str, float]] = {}
+        for rxn_name, rxn in self._reactions.items():
+            for cpd_name, factor in rxn.stoichiometry.items():
+                d = stoich_by_compounds.setdefault(cpd_name, {})
+                if isinstance(factor, DerivedStoichiometry):
+                    d[rxn_name] = factor.fn(*(parameter_values[i] for i in factor.args))
+                else:
+                    d[rxn_name] = factor
+
+        for surrogate in self._surrogates.values():
+            for rxn_name, rxn in surrogate.stoichiometries.items():
+                for cpd_name, factor in rxn.items():
+                    stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = factor
+
+        var_names = self.get_variable_names()
+        dxdt = pd.Series(np.zeros(len(var_names), dtype=float), index=var_names)
+
+        self._cache = ModelCache(
+            var_names=var_names,
+            parameter_values=parameter_values,
+            stoich_by_cpds=stoich_by_compounds,
+            dxdt=dxdt,
+        )
+        return self._cache
 
     ###########################################################################
     # Ids
@@ -135,8 +171,9 @@ class Model:
             self.add_parameter(k, v)
         return self
 
-    def get_parameters(self) -> dict[str, float]:
-        return self._parameters.copy()
+    @property
+    def parameters(self) -> dict[str, float]:
+        return self._create_cache().parameter_values.copy()
 
     @_invalidate_cache
     def remove_parameter(self, name: str) -> Self:
@@ -437,31 +474,6 @@ class Model:
     # Get args
     ##########################################################################
 
-    def _create_cache(self) -> ModelCache:
-        parameter_values = self._parameters.copy()
-        for name, dp in self._derived_parameters.items():
-            parameter_values[name] = dp.fn(*(parameter_values[i] for i in dp.args))
-
-        stoich_by_compounds: dict[str, dict[str, float]] = {}
-        for rxn_name, rxn in self._reactions.items():
-            for cpd_name, factor in rxn.stoichiometry.items():
-                d = stoich_by_compounds.setdefault(cpd_name, {})
-                if isinstance(factor, DerivedStoichiometry):
-                    d[rxn_name] = factor.fn(*(parameter_values[i] for i in factor.args))
-                else:
-                    d[rxn_name] = factor
-
-        for surrogate in self._surrogates.values():
-            for rxn_name, rxn in surrogate.stoichiometries.items():
-                for cpd_name, factor in rxn.items():
-                    stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = factor
-
-        self._cache = ModelCache(
-            parameter_values=parameter_values,
-            stoich_by_cpds=stoich_by_compounds,
-        )
-        return self._cache
-
     def _get_args(
         self,
         concs: dict[str, float],
@@ -618,10 +630,9 @@ class Model:
         """
         if (cache := self._cache) is None:
             cache = self._create_cache()
-        var_names = self.get_variable_names()
         concsd: dict[str, float] = dict(
             zip(
-                var_names,
+                cache.var_names,
                 concs,
                 strict=True,
             )
@@ -633,7 +644,8 @@ class Model:
         )
         fluxes: dict[str, float] = self._get_fluxes(args)
 
-        dxdt = pd.Series(np.zeros(len(var_names), dtype=float), index=var_names)
+        dxdt = cache.dxdt
+        dxdt[:] = 0
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
                 dxdt[k] += n * fluxes[flux]

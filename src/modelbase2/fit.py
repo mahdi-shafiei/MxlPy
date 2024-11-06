@@ -105,7 +105,7 @@ def steady_state_variables(
     x0 = list(p0.values())
 
     # Copy to restore
-    p_orig = model.get_parameters().copy()
+    p_orig = model.parameters
 
     res = dict(
         zip(
@@ -148,7 +148,7 @@ def time_series_variables(
 ) -> dict[str, float]:
     par_names = list(p0.keys())
     x0 = list(p0.values())
-    p_orig = model.get_parameters().copy()
+    p_orig = model.parameters
     if len(data) != len(time_points):
         raise ValueError
 

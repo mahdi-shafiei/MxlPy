@@ -70,7 +70,7 @@ def parameter_elasticities(
     elasticities = {}
 
     for par in parameters:
-        old = model.get_parameters()[par]
+        old = model.parameters[par]
 
         model.update_parameters({par: old * (1 + displacement)})
         upper = model.get_fluxes(concs=concs, time=time)
@@ -102,7 +102,7 @@ def _response_coefficient_worker(
     rel_norm: bool,
     displacement: float = _DISPLACEMENT,
 ) -> tuple[pd.Series, pd.Series]:
-    old = model.get_parameters()[parameter]
+    old = model.parameters[parameter]
 
     model.update_parameters({parameter: old * (1 + displacement)})
     upper = _steady_state_worker(

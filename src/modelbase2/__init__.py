@@ -25,7 +25,7 @@ __all__ = [
 
 import contextlib
 
-from . import distributions, fit, mc, mca, plot, surrogates
+from . import distributions, fit, mc, mca, plot
 from .integrators import DefaultIntegrator, Scipy
 from .label_map import LabelMapper
 from .linear_label_map import LinearLabelMapper
