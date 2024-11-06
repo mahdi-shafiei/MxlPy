@@ -1,27 +1,14 @@
 repos:
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+  - repo: local
     hooks:
-      - id: isort
-
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
-    hooks:
-      - id: flake8
+      - id: jupyter-nb-clear-output
+        name: jupyter-nb-clear-output
+        files: \.ipynb$
+        stages: [commit]
+        language: system
+        entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace
 
   - repo: https://github.com/aio-libs/sort-all
     rev: v1.2.0
     hooks:
       - id: sort-all
-
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.9
-    hooks:
-      - id: bandit
-        args: ["-c", "pyproject.toml"]
-        additional_dependencies: ["bandit[toml]"]
