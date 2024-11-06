@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Self, cast
 
@@ -286,6 +287,14 @@ class Model:
     # Derived
     ##########################################################################
 
+    @property
+    def derived_variables(self) -> dict[str, DerivedVariable]:
+        return copy.deepcopy(self._derived_variables)
+
+    @property
+    def derived_parameters(self) -> dict[str, DerivedParameter]:
+        return copy.deepcopy(self._derived_parameters)
+
     def _sort_derived_parameters(self) -> None:
         order = _sort_dependencies(
             available=set(self._parameters),
@@ -375,6 +384,10 @@ class Model:
     ###########################################################################
     # Reactions
     ###########################################################################
+
+    @property
+    def reactions(self) -> dict[str, Reaction]:
+        return copy.deepcopy(self._reactions)
 
     @_invalidate_cache
     def add_reaction(

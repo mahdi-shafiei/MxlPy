@@ -66,24 +66,24 @@ def constant(k: float) -> float:
 
 
 ###############################################################################
-# Mass Action
+# Mass action
 ###############################################################################
 
 
-def mass_action_1(S1: float, k_fwd: float) -> float:
-    return k_fwd * S1
+def mass_action_1(s1: float, k_fwd: float) -> float:
+    return k_fwd * s1
 
 
-def mass_action_2(S1: float, S2: float, k_fwd: float) -> float:
-    return k_fwd * S1 * S2
+def mass_action_2(s1: float, s2: float, k_fwd: float) -> float:
+    return k_fwd * s1 * s2
 
 
-def mass_action_3(S1: float, S2: float, S3: float, k_fwd: float) -> float:
-    return k_fwd * S1 * S2 * S3
+def mass_action_3(s1: float, s2: float, s3: float, k_fwd: float) -> float:
+    return k_fwd * s1 * s2 * s3
 
 
-def mass_action_4(S1: float, S2: float, S3: float, S4: float, k_fwd: float) -> float:
-    return k_fwd * S1 * S2 * S3 * S4
+def mass_action_4(s1: float, s2: float, s3: float, s4: float, k_fwd: float) -> float:
+    return k_fwd * s1 * s2 * s3 * s4
 
 
 def mass_action_variable(*args: float) -> float:
@@ -91,200 +91,200 @@ def mass_action_variable(*args: float) -> float:
 
 
 ###############################################################################
-# Reversible Mass Action
+# Reversible Mass action
 ###############################################################################
 
 
 def reversible_mass_action_1_1(
-    S1: float,
-    P1: float,
+    s1: float,
+    p1: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 - k_bwd * P1
+    return k_fwd * s1 - k_bwd * p1
 
 
 def reversible_mass_action_2_1(
-    S1: float,
-    S2: float,
-    P1: float,
+    s1: float,
+    s2: float,
+    p1: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 - k_bwd * P1
+    return k_fwd * s1 * s2 - k_bwd * p1
 
 
 def reversible_mass_action_3_1(
-    S1: float,
-    S2: float,
-    S3: float,
-    P1: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    p1: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 - k_bwd * P1
+    return k_fwd * s1 * s2 * s3 - k_bwd * p1
 
 
 def reversible_mass_action_4_1(
-    S1: float,
-    S2: float,
-    S3: float,
-    S4: float,
-    P1: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    s4: float,
+    p1: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 * S4 - k_bwd * P1
+    return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1
 
 
 def reversible_mass_action_1_2(
-    S1: float,
-    P1: float,
-    P2: float,
+    s1: float,
+    p1: float,
+    p2: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 - k_bwd * P1 * P2
+    return k_fwd * s1 - k_bwd * p1 * p2
 
 
 def reversible_mass_action_2_2(
-    S1: float,
-    S2: float,
-    P1: float,
-    P2: float,
+    s1: float,
+    s2: float,
+    p1: float,
+    p2: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 - k_bwd * P1 * P2
+    return k_fwd * s1 * s2 - k_bwd * p1 * p2
 
 
 def reversible_mass_action_3_2(
-    S1: float,
-    S2: float,
-    S3: float,
-    P1: float,
-    P2: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    p1: float,
+    p2: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 - k_bwd * P1 * P2
+    return k_fwd * s1 * s2 * s3 - k_bwd * p1 * p2
 
 
 def reversible_mass_action_4_2(
-    S1: float,
-    S2: float,
-    S3: float,
-    S4: float,
-    P1: float,
-    P2: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    s4: float,
+    p1: float,
+    p2: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 * S4 - k_bwd * P1 * P2
+    return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1 * p2
 
 
 def reversible_mass_action_1_3(
-    S1: float,
-    P1: float,
-    P2: float,
-    P3: float,
+    s1: float,
+    p1: float,
+    p2: float,
+    p3: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 - k_bwd * P1 * P2 * P3
+    return k_fwd * s1 - k_bwd * p1 * p2 * p3
 
 
 def reversible_mass_action_2_3(
-    S1: float,
-    S2: float,
-    P1: float,
-    P2: float,
-    P3: float,
+    s1: float,
+    s2: float,
+    p1: float,
+    p2: float,
+    p3: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 - k_bwd * P1 * P2 * P3
+    return k_fwd * s1 * s2 - k_bwd * p1 * p2 * p3
 
 
 def reversible_mass_action_3_3(
-    S1: float,
-    S2: float,
-    S3: float,
-    P1: float,
-    P2: float,
-    P3: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    p1: float,
+    p2: float,
+    p3: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 - k_bwd * P1 * P2 * P3
+    return k_fwd * s1 * s2 * s3 - k_bwd * p1 * p2 * p3
 
 
 def reversible_mass_action_4_3(
-    S1: float,
-    S2: float,
-    S3: float,
-    S4: float,
-    P1: float,
-    P2: float,
-    P3: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    s4: float,
+    p1: float,
+    p2: float,
+    p3: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 * S4 - k_bwd * P1 * P2 * P3
+    return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1 * p2 * p3
 
 
 def reversible_mass_action_1_4(
-    S1: float,
-    P1: float,
-    P2: float,
-    P3: float,
-    P4: float,
+    s1: float,
+    p1: float,
+    p2: float,
+    p3: float,
+    p4: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 - k_bwd * P1 * P2 * P3 * P4
+    return k_fwd * s1 - k_bwd * p1 * p2 * p3 * p4
 
 
 def reversible_mass_action_2_4(
-    S1: float,
-    S2: float,
-    P1: float,
-    P2: float,
-    P3: float,
-    P4: float,
+    s1: float,
+    s2: float,
+    p1: float,
+    p2: float,
+    p3: float,
+    p4: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 - k_bwd * P1 * P2 * P3 * P4
+    return k_fwd * s1 * s2 - k_bwd * p1 * p2 * p3 * p4
 
 
 def reversible_mass_action_3_4(
-    S1: float,
-    S2: float,
-    S3: float,
-    P1: float,
-    P2: float,
-    P3: float,
-    P4: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    p1: float,
+    p2: float,
+    p3: float,
+    p4: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 - k_bwd * P1 * P2 * P3 * P4
+    return k_fwd * s1 * s2 * s3 - k_bwd * p1 * p2 * p3 * p4
 
 
 def reversible_mass_action_4_4(
-    S1: float,
-    S2: float,
-    S3: float,
-    S4: float,
-    P1: float,
-    P2: float,
-    P3: float,
-    P4: float,
+    s1: float,
+    s2: float,
+    s3: float,
+    s4: float,
+    p1: float,
+    p2: float,
+    p3: float,
+    p4: float,
     k_fwd: float,
     k_bwd: float,
 ) -> float:
-    return k_fwd * S1 * S2 * S3 * S4 - k_bwd * P1 * P2 * P3 * P4
+    return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1 * p2 * p3 * p4
 
 
 def reversible_mass_action_variable_1(*args: float) -> float:
@@ -348,52 +348,52 @@ def reversible_mass_action_variable_8(*args: float) -> float:
 ###############################################################################
 
 
-def michaelis_menten(S: float, vmax: float, km: float) -> float:
-    return S * vmax / (S + km)
+def michaelis_menten(s: float, vmax: float, km: float) -> float:
+    return s * vmax / (s + km)
 
 
 def competitive_inhibition(
-    S: float, I: float, vmax: float, km: float, ki: float
+    s: float, i: float, vmax: float, km: float, ki: float
 ) -> float:
-    return vmax * S / (S + km * (1 + I / ki))
+    return vmax * s / (s + km * (1 + i / ki))
 
 
 def competitive_activation(
-    S: float, A: float, vmax: float, km: float, ka: float
+    s: float, a: float, vmax: float, km: float, ka: float
 ) -> float:
-    return vmax * S / (S + km * (1 + ka / A))
+    return vmax * s / (s + km * (1 + ka / a))
 
 
 def uncompetitive_inhibition(
-    S: float, I: float, vmax: float, km: float, ki: float
+    s: float, i: float, vmax: float, km: float, ki: float
 ) -> float:
-    return vmax * S / (S * (1 + I / ki) + km)
+    return vmax * s / (s * (1 + i / ki) + km)
 
 
 def uncompetitive_activation(
-    S: float, A: float, vmax: float, km: float, ka: float
+    s: float, a: float, vmax: float, km: float, ka: float
 ) -> float:
-    return vmax * S / (S * (1 + ka / A) + km)
+    return vmax * s / (s * (1 + ka / a) + km)
 
 
 def noncompetitive_inhibition(
-    S: float, I: float, vmax: float, km: float, ki: float
+    s: float, i: float, vmax: float, km: float, ki: float
 ) -> float:
-    return vmax * S / ((S + km) * (1 + I / ki))
+    return vmax * s / ((s + km) * (1 + i / ki))
 
 
 def noncompetitive_activation(
-    S: float, A: float, vmax: float, km: float, ka: float
+    s: float, a: float, vmax: float, km: float, ka: float
 ) -> float:
-    return vmax * S / ((S + km) * (1 + ka / A))
+    return vmax * s / ((s + km) * (1 + ka / a))
 
 
-def mixed_inhibition(S: float, I: float, vmax: float, km: float, ki: float) -> float:
-    return vmax * S / (S * (1 + I / ki) + km * (1 + I / ki))
+def mixed_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+    return vmax * s / (s * (1 + i / ki) + km * (1 + i / ki))
 
 
-def mixed_activation(S: float, A: float, vmax: float, km: float, ka: float) -> float:
-    return vmax * S / (S * (1 + ka / A) + km * (1 + ka / A))
+def mixed_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+    return vmax * s / (s * (1 + ka / a) + km * (1 + ka / a))
 
 
 ###############################################################################
@@ -402,81 +402,81 @@ def mixed_activation(S: float, A: float, vmax: float, km: float, ka: float) -> f
 
 
 def reversible_michaelis_menten(
-    S: float,
-    P: float,
+    s: float,
+    p: float,
     vmax_fwd: float,
     vmax_bwd: float,
     kms: float,
     kmp: float,
 ) -> float:
-    return (vmax_fwd * S / kms - vmax_bwd * P / kmp) / (1 + S / kms + P / kmp)
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (1 + s / kms + p / kmp)
 
 
 def reversible_uncompetitive_inhibition(
-    S: float,
-    P: float,
-    I: float,
+    s: float,
+    p: float,
+    i: float,
     vmax_fwd: float,
     vmax_bwd: float,
     kms: float,
     kmp: float,
     ki: float,
 ) -> float:
-    return (vmax_fwd * S / kms - vmax_bwd * P / kmp) / (
-        1 + (S / kms) + (P / kmp) * (1 + I / ki)
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (
+        1 + (s / kms) + (p / kmp) * (1 + i / ki)
     )
 
 
 def reversible_noncompetitive_inhibition(
-    S: float,
-    P: float,
-    I: float,
+    s: float,
+    p: float,
+    i: float,
     vmax_fwd: float,
     vmax_bwd: float,
     kms: float,
     kmp: float,
     ki: float,
 ) -> float:
-    return (vmax_fwd * S / kms - vmax_bwd * P / kmp) / (
-        (1 + S / kms + P / kmp) * (1 + I / ki)
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (
+        (1 + s / kms + p / kmp) * (1 + i / ki)
     )
 
 
 def reversible_michaelis_menten_keq(
-    S: float,
-    P: float,
+    s: float,
+    p: float,
     vmax_fwd: float,
     kms: float,
     kmp: float,
     keq: float,
 ) -> float:
-    return vmax_fwd / kms * (S - P / keq) / (1 + S / kms + P / kmp)
+    return vmax_fwd / kms * (s - p / keq) / (1 + s / kms + p / kmp)
 
 
 def reversible_uncompetitive_inhibition_keq(
-    S: float,
-    P: float,
-    I: float,
+    s: float,
+    p: float,
+    i: float,
     vmax_fwd: float,
     kms: float,
     kmp: float,
     ki: float,
     keq: float,
 ) -> float:
-    return vmax_fwd / kms * (S - P / keq) / (1 + (S / kms) + (P / kmp) * (1 + I / ki))
+    return vmax_fwd / kms * (s - p / keq) / (1 + (s / kms) + (p / kmp) * (1 + i / ki))
 
 
 def reversible_noncompetitive_inhibition_keq(
-    S: float,
-    P: float,
-    I: float,
+    s: float,
+    p: float,
+    i: float,
     vmax_fwd: float,
     kms: float,
     kmp: float,
     ki: float,
     keq: float,
 ) -> float:
-    return vmax_fwd / kms * (S - P / keq) / ((1 + S / kms + P / kmp) * (1 + I / ki))
+    return vmax_fwd / kms * (s - p / keq) / ((1 + s / kms + p / kmp) * (1 + i / ki))
 
 
 ###############################################################################
@@ -485,138 +485,138 @@ def reversible_noncompetitive_inhibition_keq(
 
 
 def ordered_2(
-    A: float,
-    B: float,
+    a: float,
+    b: float,
     vmax: float,
-    kmA: float,
-    kmB: float,
-    kiA: float,
+    kma: float,
+    kmb: float,
+    kia: float,
 ) -> float:
-    return vmax * A * B / (A * B + kmB * A + kmA * B + kiA * kmB)
+    return vmax * a * b / (a * b + kmb * a + kma * b + kia * kmb)
 
 
 def ordered_2_2(
-    A: float,
-    B: float,
-    P: float,
-    Q: float,
+    a: float,
+    b: float,
+    p: float,
+    q: float,
     vmaxf: float,
     vmaxr: float,
-    kmA: float,
-    kmB: float,
-    kmP: float,
-    kmQ: float,
-    kiA: float,
-    kiB: float,
-    kiP: float,
-    kiQ: float,
+    kma: float,
+    kmb: float,
+    kmp: float,
+    kmq: float,
+    kia: float,
+    kib: float,
+    kip: float,
+    kiq: float,
 ) -> float:
-    nominator = vmaxf * A * B / (kiA * kmB) - vmaxr * P * Q / (kmP * kiQ)
+    nominator = vmaxf * a * b / (kia * kmb) - vmaxr * p * q / (kmp * kiq)
     denominator = (
         1
-        + (A / kiA)
-        + (kmA * B / (kiA * kmB))
-        + (kmQ * P / (kmP * kiQ))
-        + (Q / kiQ)
-        + (A * B / (kiA * kmB))
-        + (kmQ * A * P / (kiA * kmP * kiQ))
-        + (kmA * B * Q / (kiA * kmB * kiQ))
-        + (P * Q / (kmP * kiQ))
-        + (A * B * P / (kiA * kmB * kiP))
-        + (B * P * Q) / (kiB * kmP * kiQ)
+        + (a / kia)
+        + (kma * b / (kia * kmb))
+        + (kmq * p / (kmp * kiq))
+        + (q / kiq)
+        + (a * b / (kia * kmb))
+        + (kmq * a * p / (kia * kmp * kiq))
+        + (kma * b * q / (kia * kmb * kiq))
+        + (p * q / (kmp * kiq))
+        + (a * b * p / (kia * kmb * kip))
+        + (b * p * q) / (kib * kmp * kiq)
     )
     return nominator / denominator
 
 
 def random_order_2(
-    A: float,
-    B: float,
+    a: float,
+    b: float,
     vmax: float,
-    kmA: float,
-    kmB: float,
-    kiA: float,
+    kma: float,
+    kmb: float,
+    kia: float,
 ) -> float:
-    return vmax * A * B / (A * B + kmB * A + kmA * B + kiA * kmB)
+    return vmax * a * b / (a * b + kmb * a + kma * b + kia * kmb)
 
 
 def random_order_2_2(
-    A: float,
-    B: float,
-    P: float,
-    Q: float,
+    a: float,
+    b: float,
+    p: float,
+    q: float,
     vmaxf: float,
     vmaxr: float,
-    kmB: float,
-    kmP: float,
-    kiA: float,
-    kiB: float,
-    kiP: float,
-    kiQ: float,
+    kmb: float,
+    kmp: float,
+    kia: float,
+    kib: float,
+    kip: float,
+    kiq: float,
 ) -> float:
-    nominator = vmaxf * A * B / (kiA * kmB) - vmaxr * P * Q / (kmP * kiQ)
+    nominator = vmaxf * a * b / (kia * kmb) - vmaxr * p * q / (kmp * kiq)
     denominator = (
         1
-        + (A / kiA)
-        + (B / kiB)
-        + (P / kiP)
-        + (Q / kiQ)
-        + (A * B / (kiA * kmB))
-        + (P * Q / (kmP * kiQ))
+        + (a / kia)
+        + (b / kib)
+        + (p / kip)
+        + (q / kiq)
+        + (a * b / (kia * kmb))
+        + (p * q / (kmp * kiq))
     )
     return nominator / denominator
 
 
 def ping_pong_2(
-    A: float,
-    B: float,
+    a: float,
+    b: float,
     vmax: float,
-    kmA: float,
-    kmB: float,
+    kma: float,
+    kmb: float,
 ) -> float:
-    return vmax * A * B / (A * B + kmA * B + kmB * A)
+    return vmax * a * b / (a * b + kma * b + kmb * a)
 
 
 def ping_pong_3(
-    A: float,
-    B: float,
-    C: float,
+    a: float,
+    b: float,
+    c: float,
     vmax: float,
-    kmA: float,
-    kmB: float,
-    kmC: float,
+    kma: float,
+    kmb: float,
+    kmc: float,
 ) -> float:
-    return (vmax * A * B * C) / (
-        A * B * C + (kmA * B * C) + (kmB * A * C) + (kmC * A * B)
+    return (vmax * a * b * c) / (
+        a * b * c + (kma * b * c) + (kmb * a * c) + (kmc * a * b)
     )
 
 
 def ping_pong_4(
-    A: float,
-    B: float,
-    C: float,
-    D: float,
+    a: float,
+    b: float,
+    c: float,
+    d: float,
     vmax: float,
-    kmA: float,
-    kmB: float,
-    kmC: float,
-    kmD: float,
+    kma: float,
+    kmb: float,
+    kmc: float,
+    kmd: float,
 ) -> float:
-    return (vmax * A * B * C * D) / (
-        A * B * C * D
-        + (kmA * B * C * D)
-        + (kmB * A * C * D)
-        + (kmC * A * B * D)
-        + (kmD * A * B * C)
+    return (vmax * a * b * c * d) / (
+        a * b * c * d
+        + (kma * b * c * d)
+        + (kmb * a * c * d)
+        + (kmc * a * b * d)
+        + (kmd * a * b * c)
     )
 
 
 ###############################################################################
-# Cooperativity
+# cooperativity
 ###############################################################################
 
 
-def hill(S: float, vmax: float, kd: float, n: float) -> float:
-    return vmax * S**n / (kd + S**n)  # type: ignore  # for some reason mypy sees this as any oO
+def hill(s: float, vmax: float, kd: float, n: float) -> float:
+    return vmax * s**n / (kd + s**n)  # type: ignore  # for some reason mypy sees this as any oO
 
 
 ###############################################################################

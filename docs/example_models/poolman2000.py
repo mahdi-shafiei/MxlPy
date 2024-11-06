@@ -43,189 +43,188 @@ def v_out(
 
 
 def v1(
-    RUBP: float,
-    PGA: float,
-    FBP: float,
-    SBP: float,
-    P: float,
-    V1: float,
-    Km1: float,
-    Ki11: float,
-    Ki12: float,
-    Ki13: float,
-    Ki14: float,
-    Ki15: float,
-    NADPH_pool: float,
+    rubp: float,
+    pga: float,
+    fbp: float,
+    sbp: float,
+    p: float,
+    vmax: float,
+    km: float,
+    k1_pga: float,
+    ki_fbp: float,
+    ki_sbp: float,
+    ki_pi: float,
+    ki_nadph: float,
+    nadph: float,
 ) -> float:
-    return (V1 * RUBP) / (
-        RUBP
-        + Km1
+    return (vmax * rubp) / (
+        rubp
+        + km
         * (
             1
-            + (PGA / Ki11)
-            + (FBP / Ki12)
-            + (SBP / Ki13)
-            + (P / Ki14)
-            + (NADPH_pool / Ki15)
+            + (pga / k1_pga)
+            + (fbp / ki_fbp)
+            + (sbp / ki_sbp)
+            + (p / ki_pi)
+            + (nadph / ki_nadph)
         )
     )
 
 
 def v3(
-    BPGA: float,
-    GAP: float,
+    bpga: float,
+    gap: float,
     phosphate_pool: float,
     proton_pool_stroma: float,
-    NADPH_pool: float,
-    NADP_pool: float,
-    kRE: float,
+    nadph: float,
+    nadp: float,
+    kre: float,
     q3: float,
 ) -> float:
-    return kRE * (
-        (NADPH_pool * BPGA * proton_pool_stroma)
-        - (1 / q3) * (GAP * NADP_pool * phosphate_pool)
+    return kre * (
+        (nadph * bpga * proton_pool_stroma) - (1 / q3) * (gap * nadp * phosphate_pool)
     )
 
 
 def v6(
-    FBP: float,
-    F6P: float,
-    P: float,
-    V6: float,
-    Km6: float,
-    Ki61: float,
-    Ki62: float,
+    fbp: float,
+    f6p: float,
+    pi: float,
+    vmax: float,
+    km: float,
+    ki_f6p: float,
+    ki_pi: float,
 ) -> float:
-    return (V6 * FBP) / (FBP + Km6 * (1 + (F6P / Ki61) + (P / Ki62)))
+    return (vmax * fbp) / (fbp + km * (1 + (f6p / ki_f6p) + (pi / ki_pi)))
 
 
 def v9(
-    SBP: float,
-    P: float,
-    V9: float,
-    Km9: float,
-    Ki9: float,
+    sbp: float,
+    pi: float,
+    vma: float,
+    km: float,
+    ki_pi: float,
 ) -> float:
-    return (V9 * SBP) / (SBP + Km9 * (1 + (P / Ki9)))
+    return (vma * sbp) / (sbp + km * (1 + (pi / ki_pi)))
 
 
 def v13(
-    RU5P: float,
-    ATP: float,
-    Phosphate_pool: float,
-    PGA: float,
-    RUBP: float,
-    ADP: float,
-    V13: float,
-    Km131: float,
-    Km132: float,
-    Ki131: float,
-    Ki132: float,
-    Ki133: float,
-    Ki134: float,
-    Ki135: float,
+    ru5p: float,
+    atp: float,
+    pi: float,
+    pga: float,
+    rubp: float,
+    adp: float,
+    vmax: float,
+    km_ru5p: float,
+    km_adp: float,
+    ki_pga: float,
+    ki_rubp: float,
+    ki_pi: float,
+    ki_adp_ru5p: float,
+    ki_adp_atp: float,
 ) -> float:
-    return (V13 * RU5P * ATP) / (
-        (RU5P + Km131 * (1 + (PGA / Ki131) + (RUBP / Ki132) + (Phosphate_pool / Ki133)))
-        * (ATP * (1 + (ADP / Ki134)) + Km132 * (1 + (ADP / Ki135)))
+    return (vmax * ru5p * atp) / (
+        (ru5p + km_ru5p * (1 + (pga / ki_pga) + (rubp / ki_rubp) + (pi / ki_pi)))
+        * (atp * (1 + (adp / ki_adp_ru5p)) + km_adp * (1 + (adp / ki_adp_atp)))
     )
 
 
 def v16(
-    ADP: float,
-    Phosphate_i: float,
-    V16: float,
-    Km161: float,
-    Km162: float,
+    adp: float,
+    pi: float,
+    vmax: float,
+    km_adp: float,
+    km_pi: float,
 ) -> float:
-    return (V16 * ADP * Phosphate_i) / ((ADP + Km161) * (Phosphate_i + Km162))
+    return (vmax * adp * pi) / ((adp + km_adp) * (pi + km_pi))
 
 
-def vStarchProduction(
-    G1P: float,
-    ATP: float,
-    ADP: float,
-    Phosphate_pool: float,
-    PGA: float,
-    F6P: float,
-    FBP: float,
-    Vst: float,
-    Kmst1: float,
-    Kmst2: float,
-    Kist: float,
-    Kast1: float,
-    Kast2: float,
-    Kast3: float,
+def starch(
+    g1p: float,
+    atp: float,
+    adp: float,
+    pi: float,
+    pga: float,
+    f6p: float,
+    fbp: float,
+    vmax: float,
+    km_g1p: float,
+    km_atp: float,
+    ki_adp: float,
+    ka_pga: float,
+    ka_f6p: float,
+    ka_fbp: float,
 ) -> float:
-    return (Vst * G1P * ATP) / (
-        (G1P + Kmst1)
+    return (vmax * g1p * atp) / (
+        (g1p + km_g1p)
         * (
-            (1 + (ADP / Kist)) * (ATP + Kmst2)
-            + ((Kmst2 * Phosphate_pool) / (Kast1 * PGA + Kast2 * F6P + Kast3 * FBP))
+            (1 + (adp / ki_adp)) * (atp + km_atp)
+            + ((km_atp * pi) / (ka_pga * pga + ka_f6p * f6p + ka_fbp * fbp))
         )
     )
 
 
-def ADP(
-    ATP: float,
-    AP_total: float,
+def moiety_1(
+    atp: float,
+    ap_total: float,
 ) -> float:
-    return AP_total - ATP
+    return ap_total - atp
 
 
-def P_i(
-    PGA: float,
-    BPGA: float,
-    GAP: float,
-    DHAP: float,
-    FBP: float,
-    F6P: float,
-    G6P: float,
-    G1P: float,
-    SBP: float,
-    S7P: float,
-    E4P: float,
-    X5P: float,
-    R5P: float,
-    RUBP: float,
-    RU5P: float,
-    ATP: float,
+def free_orthophosphate(
+    pga: float,
+    bpga: float,
+    gap: float,
+    dhap: float,
+    fbp: float,
+    f6p: float,
+    g6p: float,
+    g1p: float,
+    sbp: float,
+    s7p: float,
+    e4p: float,
+    x4p: float,
+    r5p: float,
+    rubp: float,
+    ru5p: float,
+    atp: float,
     phosphate_total: float,
 ) -> float:
     return phosphate_total - (
-        PGA
-        + 2 * BPGA
-        + GAP
-        + DHAP
-        + 2 * FBP
-        + F6P
-        + G6P
-        + G1P
-        + 2 * SBP
-        + S7P
-        + E4P
-        + X5P
-        + R5P
-        + 2 * RUBP
-        + RU5P
-        + ATP
+        pga
+        + 2 * bpga
+        + gap
+        + dhap
+        + 2 * fbp
+        + f6p
+        + g6p
+        + g1p
+        + 2 * sbp
+        + s7p
+        + e4p
+        + x4p
+        + r5p
+        + 2 * rubp
+        + ru5p
+        + atp
     )
 
 
-def N(
-    Phosphate_pool: float,
-    PGA: float,
-    GAP: float,
-    DHAP: float,
-    Kpxt: float,
-    Pext: float,
-    Kpi: float,
-    Kpga: float,
-    Kgap: float,
-    Kdhap: float,
+def n_export(
+    pi: float,
+    pga: float,
+    gap: float,
+    dhap: float,
+    kpxt: float,
+    pi_ext: float,
+    kpi: float,
+    kpga: float,
+    kgap: float,
+    kdhap: float,
 ) -> float:
-    return 1 + (1 + (Kpxt / Pext)) * (
-        (Phosphate_pool / Kpi) + (PGA / Kpga) + (GAP / Kgap) + (DHAP / Kdhap)
+    return 1 + (1 + (kpxt / pi_ext)) * (
+        (pi / kpi) + (pga / kpga) + (gap / kgap) + (dhap / kdhap)
     )
 
 
@@ -319,13 +318,13 @@ def get_model() -> Model:
 
     model.add_derived(
         name="ADP",
-        fn=ADP,
+        fn=moiety_1,
         args=["ATP", "AP_total"],
     )
 
     model.add_derived(
         name="Phosphate_pool",
-        fn=P_i,
+        fn=free_orthophosphate,
         args=[
             "PGA",
             "BPGA",
@@ -349,7 +348,7 @@ def get_model() -> Model:
 
     model.add_derived(
         name="N_pool",
-        fn=N,
+        fn=n_export,
         args=[
             "Phosphate_pool",
             "PGA",
@@ -611,7 +610,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="vSt",
-        fn=vStarchProduction,
+        fn=starch,
         stoichiometry={"G1P": -1, "ATP": -1},
         args=[
             "G1P",

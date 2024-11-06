@@ -14,19 +14,31 @@ if TYPE_CHECKING:
 AST_TYPES = get_ast_types()
 
 
-def handle_ast_constant_e(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_constant_e(
+    node: ASTNode,  # noqa: ARG001
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return "math.e"
 
 
-def handle_ast_constant_false(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_constant_false(
+    node: ASTNode,  # noqa: ARG001
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return "False"
 
 
-def handle_ast_constant_true(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_constant_true(
+    node: ASTNode,  # noqa: ARG001
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return "True"
 
 
-def handle_ast_constant_pi(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_constant_pi(
+    node: ASTNode,  # noqa: ARG001
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return "math.pi"
 
 
@@ -130,7 +142,7 @@ def handle_ast_function_piecewise(node: ASTNode, func_arguments: list[str]) -> s
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) == 3:
+    if len(children) == 3:  # noqa: PLR2004
         condition = children[1]
         x = children[0]
         y = children[2]
@@ -170,7 +182,10 @@ def handle_ast_function_rem(node: ASTNode, func_arguments: list[str]) -> str:
     return f"np.remainder({args})"
 
 
-def handle_ast_integer(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_integer(
+    node: ASTNode,
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return str(int(node.getValue()))
 
 
@@ -197,7 +212,10 @@ def handle_ast_logical_and(node: ASTNode, func_arguments: list[str]) -> str:
     return f"({args})"
 
 
-def handle_ast_logical_implies(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_logical_implies(
+    node: ASTNode,
+    func_arguments: list[str],
+) -> str:
     raise NotImplementedError
 
 
@@ -261,11 +279,17 @@ def handle_ast_name(node: ASTNode, func_arguments: list[str]) -> str:
     return name
 
 
-def handle_ast_name_avogadro(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_name_avogadro(
+    node: ASTNode,  # noqa: ARG001
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return "6.02214179e+23"
 
 
-def handle_ast_name_time(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_name_time(
+    node: ASTNode,  # noqa: ARG001
+    func_arguments: list[str],
+) -> str:
     func_arguments.append("time")
     return "time"
 
@@ -282,11 +306,17 @@ def handle_ast_plus(node: ASTNode, func_arguments: list[str]) -> str:
     return " + ".join(children)
 
 
-def handle_ast_rational(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_rational(
+    node: ASTNode,
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     return str(node.getValue())
 
 
-def handle_ast_real(node: ASTNode, func_arguments: list[str]) -> str:
+def handle_ast_real(
+    node: ASTNode,
+    func_arguments: list[str],  # noqa: ARG001
+) -> str:
     value = str(node.getValue())
     if value == "inf":
         return "np.infty"
@@ -300,7 +330,7 @@ def handle_ast_relational_eq(node: ASTNode, func_arguments: list[str]) -> str:
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) > 2:
+    if len(children) > 2:  # noqa: PLR2004
         raise NotImplementedError
     return f"{children[0]} == {children[1]}"
 
@@ -310,7 +340,7 @@ def handle_ast_relational_geq(node: ASTNode, func_arguments: list[str]) -> str:
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) > 2:
+    if len(children) > 2:  # noqa: PLR2004
         raise NotImplementedError
     return f"{children[0]} >= {children[1]}"
 
@@ -320,7 +350,7 @@ def handle_ast_relational_gt(node: ASTNode, func_arguments: list[str]) -> str:
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) > 2:
+    if len(children) > 2:  # noqa: PLR2004
         raise NotImplementedError
     return f"{children[0]} > {children[1]}"
 
@@ -330,7 +360,7 @@ def handle_ast_relational_leq(node: ASTNode, func_arguments: list[str]) -> str:
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) > 2:
+    if len(children) > 2:  # noqa: PLR2004
         raise NotImplementedError
     return f"{children[0]} <= {children[1]}"
 
@@ -340,7 +370,7 @@ def handle_ast_relational_lt(node: ASTNode, func_arguments: list[str]) -> str:
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) > 2:
+    if len(children) > 2:  # noqa: PLR2004
         raise NotImplementedError
     return f"{children[0]} < {children[1]}"
 
@@ -350,7 +380,7 @@ def handle_ast_relational_neq(node: ASTNode, func_arguments: list[str]) -> str:
         handle_ast_node(node=node.getChild(i), func_arguments=func_arguments)
         for i in range(node.getNumChildren())
     ]
-    if len(children) > 2:
+    if len(children) > 2:  # noqa: PLR2004
         raise NotImplementedError
     return f"{children[0]} != {children[1]}"
 

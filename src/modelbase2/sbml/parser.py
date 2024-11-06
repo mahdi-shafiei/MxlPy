@@ -67,15 +67,20 @@ class Parser:
     def _raise_or_warn(self, msg: str, error: type[RuntimeError]) -> None:
         if self.raise_warnings:
             raise error(msg)
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=1)
 
-    def __init__(self, file: str | Path, raise_warnings: bool = True) -> None:
+    def __init__(
+        self,
+        file: str | Path,
+        *,
+        raise_warnings: bool = True,
+    ) -> None:
         self.raise_warnings = raise_warnings
 
         if not Path(file).exists():
             msg = "Model file does not exist"
             raise OSError(msg)
-        doc: libsbml.SBML_DOCUMENT = libsbml.readSBMLFromFile(str(file))
+        doc = libsbml.readSBMLFromFile(str(file))
 
         # Check for unsupported packages
         for i in range(doc.num_plugins):
@@ -123,7 +128,8 @@ class Parser:
         if len(self.sbml_model.getListOfConstraints()) > 0:
             warnings.warn(
                 "modelbase does not support model constraints. "
-                "Check the file for hints of the range of stable solutions."
+                "Check the file for hints of the range of stable solutions.",
+                stacklevel=1,
             )
 
     def parse_events(self) -> None:
