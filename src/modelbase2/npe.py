@@ -11,7 +11,6 @@ import torch
 import tqdm
 from torch import nn
 from torch.optim.adam import Adam
-from torch.optim.optimizer import Optimizer
 
 from modelbase2 import Simulator
 from modelbase2.parallel import Cache, parallelise
@@ -23,32 +22,24 @@ if TYPE_CHECKING:
 
 
 @dataclass(kw_only=True)
-class AbstractSurrogate:
-    inputs: list[str]
-    stoichiometries: dict[str, dict[str, float]]
+class AbstractEstimator:
+    parameter_names: list[str]
 
     @abstractmethod
-    def predict(self, y: np.ndarray) -> dict[str, float]: ...
+    def predict(self, y: np.ndarray) -> pd.DataFrame: ...
 
 
 @dataclass(kw_only=True)
-class TorchSurrogate(AbstractSurrogate):
+class TorchEstimator(AbstractEstimator):
     model: torch.nn.Module
 
-    def predict(self, y: np.ndarray) -> dict[str, float]:
+    def predict(self, y: np.ndarray) -> pd.DataFrame:
         with torch.no_grad():
-            return dict(
-                zip(
-                    self.stoichiometries,
-                    self.model(
-                        torch.tensor(y, dtype=torch.float32),
-                    ).numpy(),
-                    strict=True,
-                )
-            )
+            pred = self.model(torch.tensor(y, dtype=torch.float32))
+            return pd.DataFrame(pred, columns=self.parameter_names)
 
 
-class Approximator(nn.Module):
+class DefaultApproximator(nn.Module):
     def __init__(self, n_inputs: int, n_outputs: int) -> None:
         super().__init__()
 
@@ -151,19 +142,17 @@ def _train_full(
     return pd.Series(losses, dtype=float)
 
 
-def train_torch_surrogate(
+def train_torch_estimator(
     features: pd.DataFrame,
     targets: pd.DataFrame,
     epochs: int,
-    surrogate_inputs: list[str],
-    surrogate_stoichiometries: dict[str, dict[str, float]],
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
     optimimzer_cls: type[Adam] = Adam,
     device: torch.device = torch.device("cpu"),
-) -> tuple[TorchSurrogate, pd.Series]:
+) -> tuple[TorchEstimator, pd.Series]:
     if approximator is None:
-        approximator = Approximator(
+        approximator = DefaultApproximator(
             n_inputs=len(features.columns),
             n_outputs=len(targets.columns),
         ).to(device)
@@ -188,9 +177,8 @@ def train_torch_surrogate(
             device=device,
             batch_size=batch_size,
         )
-    surrogate = TorchSurrogate(
+    surrogate = TorchEstimator(
         model=approximator,
-        inputs=surrogate_inputs,
-        stoichiometries=surrogate_stoichiometries,
+        parameter_names=list(targets.columns),
     )
     return surrogate, losses

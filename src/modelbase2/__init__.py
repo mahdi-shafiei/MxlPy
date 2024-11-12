@@ -29,6 +29,7 @@ from . import distributions, fit, mc, mca, plot
 from .integrators import DefaultIntegrator, Scipy
 from .label_map import LabelMapper
 from .linear_label_map import LinearLabelMapper
+from .mc import Cache
 from .model import Model
 from .scans import parameter_scan_ss, parameter_scan_time_series
 from .simulator import Simulator
