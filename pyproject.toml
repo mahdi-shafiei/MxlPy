@@ -151,3 +151,6 @@ package = true
 
 [tool.uv.sources]
 modelbase2 = { workspace = true }
+
+[tool.pyright]
+reportMissingModuleSource = "none"
