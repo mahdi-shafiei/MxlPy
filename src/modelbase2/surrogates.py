@@ -6,20 +6,22 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+import numpy as np
 import pandas as pd
 import torch
 import tqdm
 from torch import nn
 from torch.optim.adam import Adam
-from torch.optim.optimizer import Optimizer
 
 from modelbase2 import Simulator
 from modelbase2.parallel import Cache, parallelise
 from modelbase2.scans import _empty_flux_series
-from modelbase2.types import ModelProtocol
 
 if TYPE_CHECKING:
-    import numpy as np
+    from modelbase2.types import ModelProtocol
+
+DefaultDevice = torch.device("cpu")
+DefaultCache = Cache(Path(".cache"))
 
 
 @dataclass(kw_only=True)
@@ -86,7 +88,7 @@ def _ss_flux(
 def create_ss_flux_data(
     model: ModelProtocol,
     parameters: pd.DataFrame,
-    cache: Cache | None = Cache(Path(".cache")),
+    cache: Cache | None = DefaultCache,
 ) -> pd.DataFrame:
     return cast(
         pd.DataFrame,
@@ -160,7 +162,7 @@ def train_torch_surrogate(
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
     optimimzer_cls: type[Adam] = Adam,
-    device: torch.device = torch.device("cpu"),
+    device: torch.device = DefaultDevice,
 ) -> tuple[TorchSurrogate, pd.Series]:
     if approximator is None:
         approximator = Approximator(

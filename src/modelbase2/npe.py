@@ -20,6 +20,9 @@ from modelbase2.types import ModelProtocol
 if TYPE_CHECKING:
     import numpy as np
 
+DefaultDevice = torch.device("cpu")
+DefaultCache = Cache(Path(".cache"))
+
 
 @dataclass(kw_only=True)
 class AbstractEstimator:
@@ -77,7 +80,7 @@ def _ss_flux(
 def create_ss_flux_data(
     model: ModelProtocol,
     parameters: pd.DataFrame,
-    cache: Cache | None = Cache(Path(".cache")),
+    cache: Cache | None = DefaultCache,
 ) -> pd.DataFrame:
     return cast(
         pd.DataFrame,
@@ -149,7 +152,7 @@ def train_torch_estimator(
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
     optimimzer_cls: type[Adam] = Adam,
-    device: torch.device = torch.device("cpu"),
+    device: torch.device = DefaultDevice,
 ) -> tuple[TorchEstimator, pd.Series]:
     if approximator is None:
         approximator = DefaultApproximator(
