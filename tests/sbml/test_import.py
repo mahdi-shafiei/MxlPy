@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 from modelbase2.ode import Simulator
-from modelbase2.sbml.parser import Parser
+from modelbase2.sbml._import import Parser
 
 try:
     import assimulo  # type: ignore

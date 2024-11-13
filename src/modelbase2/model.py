@@ -27,6 +27,10 @@ if TYPE_CHECKING:
     # from . import LabelModel, LinearLabelModel
 
 
+class SortError(Exception):
+    pass
+
+
 def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetType]:
     def wrapper(
         *args: Param.args,
@@ -82,7 +86,7 @@ def _sort_dependencies(
                 f"Available: {unsorted}\n"
                 f"Order: {order}"
             )
-            raise ValueError(msg)
+            raise SortError(msg)
     return order
 
 
@@ -151,7 +155,7 @@ class Model:
 
         if name in self._ids:
             msg = f"Model already contains {ctx} called '{name}'"
-            raise ValueError(msg)
+            raise NameError(msg)
         self._ids[name] = ctx
 
     def _remove_id(self, *, name: str) -> None:
@@ -191,7 +195,7 @@ class Model:
     def update_parameter(self, name: str, value: float) -> Self:
         if name not in self._parameters:
             msg = f"'{name}' not found in parameters"
-            raise ValueError(msg)
+            raise NameError(msg)
         self._parameters[name] = value
         return self
 

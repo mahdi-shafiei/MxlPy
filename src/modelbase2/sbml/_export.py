@@ -9,14 +9,14 @@ from typing import cast
 import dill
 import libsbml
 
-from modelbase2.sbml.data import AtomicUnit, Compartment
+from modelbase2.sbml._data import AtomicUnit, Compartment
 from modelbase2.types import Any, ModelProtocol
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
 RE_LAMBDA_RATE_FUNC = re.compile(r".*(lambda)(.+?):(.*?),")
 RE_LAMBDA_ALGEBRAIC_MODULE_FUNC = re.compile(r".*(lambda)(.+?):(.*[\(\[].+[\)\]]),")
 RE_TO_SBML = re.compile(r"([^0-9_a-zA-Z])")
-RE_FROM_SBML = re.compile(r"__(\d+)__")
+
 SBML_DOT = "__SBML_DOT__"
 
 
@@ -105,27 +105,12 @@ def _escape_non_alphanumeric(re_sub: Any) -> str:
     return f"__{ord(re_sub.group(0))}__"
 
 
-def _ascii_to_character(re_sub: Any) -> str:
-    """Convert an escaped non-alphanumeric character."""
-    return chr(int(re_sub.group(1)))
-
-
 def _convert_id_to_sbml(id_: str, prefix: str) -> str:
     """Add prefix if id startswith number."""
     new_id = RE_TO_SBML.sub(_escape_non_alphanumeric, id_).replace(".", SBML_DOT)
     if not new_id[0].isalpha():
         return f"{prefix}_{new_id}"
     return new_id
-
-
-def _convert_sbml_id(sbml_id: str, prefix: str) -> str:
-    """Convert an model object id to sbml-compatible string.
-
-    Adds a prefix if the id starts with a number.
-    """
-    new_id = sbml_id.replace(SBML_DOT, ".")
-    new_id = RE_FROM_SBML.sub(_ascii_to_character, new_id)
-    return new_id.lstrip(f"{prefix}_")
 
 
 def _create_sbml_document() -> libsbml.SBMLDocument:
@@ -370,7 +355,7 @@ def _default_units(units: dict[str, AtomicUnit] | None) -> dict[str, AtomicUnit]
     return units
 
 
-def write_sbml_model(
+def to_sbml(
     model: ModelProtocol,
     filename: str,
     model_name: str,

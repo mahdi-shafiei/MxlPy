@@ -1,3 +1,4 @@
+import math  # noqa: F401  # models might need it
 import re
 import warnings
 from collections import defaultdict
@@ -7,10 +8,10 @@ from pathlib import Path
 from typing import Self
 
 import libsbml
-import sympy
+import numpy as np  # noqa: F401  # models might need it
 
 from modelbase2.model import Model
-from modelbase2.sbml.data import (
+from modelbase2.sbml._data import (
     AtomicUnit,
     Compartment,
     CompositeUnit,
@@ -20,22 +21,13 @@ from modelbase2.sbml.data import (
     Parameter,
     Reaction,
 )
-from modelbase2.sbml.mathml import parse_sbml_math
-from modelbase2.sbml.unit_conversion import get_operator_mappings, get_unit_conversion
+from modelbase2.sbml._mathml import parse_sbml_math
+from modelbase2.sbml._name_conversion import _name_to_py
+from modelbase2.sbml._unit_conversion import get_operator_mappings, get_unit_conversion
 
 UNIT_CONVERSION = get_unit_conversion()
 OPERATOR_MAPPINGS = get_operator_mappings()
 INDENT = "    "
-
-
-def _simplify_function_body(function_body: str) -> str:
-    try:
-        function_body = str(sympy.parse_expr(function_body))
-    except AttributeError:
-        pass
-    except TypeError:
-        pass
-    return function_body
 
 
 @dataclass(slots=True)
@@ -63,12 +55,15 @@ class Parser:
         for i in range(doc.num_plugins):
             if doc.getPlugin(i).getPackageName() == "comp":
                 msg = "No support for comp package"
-                raise NotImplementedError(msg)
+                warnings.warn(msg, stacklevel=1)
 
         sbml_model = doc.getModel()
+        if sbml_model is None:
+            return self
+
         if bool(sbml_model.getConversionFactor()):
             msg = "Conversion factors are currently not supported"
-            raise NotImplementedError(msg)
+            warnings.warn(msg, stacklevel=1)
 
         self.parse_functions(sbml_model)
         self.parse_units(sbml_model)
@@ -96,8 +91,11 @@ class Parser:
 
     def parse_events(self, sbml_model: libsbml.Model) -> None:
         if len(sbml_model.getListOfEvents()) > 0:
-            msg = "modelbase does not currently support events."
-            raise NotImplementedError(msg)
+            warnings.warn(
+                "modelbase does not current support events. "
+                "Check the file for how to integrate properly.",
+                stacklevel=1,
+            )
 
     def parse_units(self, sbml_model: libsbml.Model) -> None:
         for unit_definition in sbml_model.getListOfUnitDefinitions():
@@ -119,7 +117,7 @@ class Parser:
 
     def parse_compartments(self, sbml_model: libsbml.Model) -> None:
         for compartment in sbml_model.getListOfCompartments():
-            sbml_id = compartment.getId()
+            sbml_id = _name_to_py(compartment.getId())
             size = compartment.getSize()
             if str(size) == "nan":
                 size = 0
@@ -133,19 +131,20 @@ class Parser:
 
     def parse_parameters(self, sbml_model: libsbml.Model) -> None:
         for parameter in sbml_model.getListOfParameters():
-            self.parameters[parameter.getId()] = Parameter(
+            self.parameters[_name_to_py(parameter.getId())] = Parameter(
                 value=parameter.getValue(),
                 is_constant=parameter.getConstant(),
             )
 
     def parse_variables(self, sbml_model: libsbml.Model) -> None:
         for compound in sbml_model.getListOfSpecies():
+            compound_id = _name_to_py(compound.getId())
             if bool(compound.getConversionFactor()):
-                msg = "Conversion factors are not supported"
-                raise NotImplementedError(
-                    msg,
+                warnings.warn(
+                    "modelbase does not support conversion factors. "
+                    f"Pleas check {compound_id} manually",
+                    stacklevel=1,
                 )
-            compound_id = compound.getId()
 
             # NOTE: What the shit is this?
             initial_amount = compound.getInitialAmount()
@@ -177,14 +176,15 @@ class Parser:
                 sbml_id = func_name
             elif func_name is None or func_name == "":
                 func_name = sbml_id
+            func_name = _name_to_py(func_name)
 
             if (node := func.getMath()) is None:
                 continue
             body, args = parse_sbml_math(node=node)
 
             self.functions[func_name] = Function(
-                args=args,
                 body=body,
+                args=args,
             )
 
     ###############################################################################
@@ -193,7 +193,7 @@ class Parser:
 
     def parse_initial_assignments(self, sbml_model: libsbml.Model) -> None:
         for assignment in sbml_model.getListOfInitialAssignments():
-            name = assignment.getSymbol()
+            name = _name_to_py(assignment.getSymbol())
             node = assignment.getMath()
             if node is None:
                 warnings.warn(
@@ -204,24 +204,27 @@ class Parser:
 
             body, args = parse_sbml_math(node)
             self.initial_assignment[name] = Derived(
-                args=args,
                 body=body,
+                args=args,
             )
 
     def _parse_algebraic_rule(self, rule: libsbml.AlgebraicRule) -> None:
-        raise NotImplementedError
+        warnings.warn(f"Skipping algebraic rule rule {rule.getId()}", stacklevel=1)
 
     def _parse_assignment_rule(self, rule: libsbml.AssignmentRule) -> None:
         if (node := rule.getMath()) is None:
             return
 
-        name: str = rule.getId()
+        name: str = _name_to_py(rule.getId())
         body, args = parse_sbml_math(node=node)
 
-        self.derived[name] = Derived(body=body, args=args)
+        self.derived[name] = Derived(
+            body=body,
+            args=args,
+        )
 
     def _parse_rate_rule(self, rule: libsbml.RateRule) -> None:
-        raise NotImplementedError
+        warnings.warn(f"Skipping rate rule {rule.getId()}", stacklevel=1)
 
     def parse_rules(self, sbml_model: libsbml.Model) -> None:
         """Parse rules and separate them by type"""
@@ -242,7 +245,7 @@ class Parser:
         """Parse local parameters"""
         parameters_to_update = {}
         for parameter in kinetic_law.getListOfLocalParameters():
-            old_id = parameter.getId()
+            old_id = _name_to_py(parameter.getId())
             if old_id in self.parameters:
                 new_id = f"{reaction_id}__{old_id}"
                 parameters_to_update[old_id] = new_id
@@ -254,7 +257,7 @@ class Parser:
             )
         # Some models apparently also write local parameters in this
         for parameter in kinetic_law.getListOfParameters():
-            old_id = parameter.getId()
+            old_id = _name_to_py(parameter.getId())
             if old_id in self.parameters:
                 new_id = f"{reaction_id}__{old_id}"
                 parameters_to_update[old_id] = new_id
@@ -268,16 +271,16 @@ class Parser:
 
     def parse_reactions(self, sbml_model: libsbml.Model) -> None:
         for reaction in sbml_model.getListOfReactions():
-            sbml_id = reaction.getId()
+            sbml_id = _name_to_py(reaction.getId())
             kinetic_law = reaction.getKineticLaw()
             if kinetic_law is None:
                 continue
             parameters_to_update = self._parse_local_parameters(
-                reaction_id=sbml_id, kinetic_law=kinetic_law
+                reaction_id=sbml_id,
+                kinetic_law=kinetic_law,
             )
 
             node = reaction.getKineticLaw().getMath()
-
             body, args = parse_sbml_math(node=node)
 
             # Update parameter references
@@ -290,21 +293,21 @@ class Parser:
 
             parsed_reactants: defaultdict[str, int] = defaultdict(int)
             for substrate in reaction.getListOfReactants():
-                species = substrate.getSpecies()
+                species = _name_to_py(substrate.getSpecies())
                 if species not in self.boundary_species:
                     stoichiometry = substrate.getStoichiometry()
                     if str(stoichiometry) == "nan":
-                        msg = "Cannot parse stoichiometry"
-                        raise NotImplementedError(msg)
+                        msg = f"Cannot parse stoichiometry: {stoichiometry}"
+                        raise ValueError(msg)
                     parsed_reactants[species] -= stoichiometry
             parsed_products: defaultdict[str, int] = defaultdict(int)
             for product in reaction.getListOfProducts():
-                species = product.getSpecies()
+                species = _name_to_py(product.getSpecies())
                 if species not in self.boundary_species:
                     stoichiometry = product.getStoichiometry()
                     if str(stoichiometry) == "nan":
-                        msg = "Cannot parse stoichiometry"
-                        raise NotImplementedError(msg)
+                        msg = f"Cannot parse stoichiometry: {stoichiometry}"
+                        raise ValueError(msg)
                     parsed_products[species] += stoichiometry
 
             self.reactions[sbml_id] = Reaction(
@@ -363,6 +366,7 @@ def _translate(sbml: Parser) -> Model:
             k,
             fn=_handle_fn(k, body=v.body, args=v.args),
             args=v.args,
+            sort_derived=False,
         )
 
     # Globally create functions. Yes, this sucks
@@ -370,6 +374,7 @@ def _translate(sbml: Parser) -> Model:
         _handle_fn(k, body=v.body, args=v.args)
 
     # Calculate initial assignments
+    # FIXME: probably will need to sort these ...
     for k, v in sbml.initial_assignment.items():
         args = m._get_args(m._variables, include_readouts=False)  # noqa: SLF001
         fn = _handle_fn(k, body=v.body, args=v.args)

@@ -6,7 +6,8 @@ __all__ = [
 
 from typing import TYPE_CHECKING
 
-from .unit_conversion import get_ast_types
+from ._name_conversion import _name_to_py
+from ._unit_conversion import get_ast_types
 
 if TYPE_CHECKING:
     from libsbml import ASTNode
@@ -147,7 +148,7 @@ def handle_ast_function_piecewise(node: ASTNode, func_arguments: list[str]) -> s
         x = children[0]
         y = children[2]
         return f"np.where({condition}, {x}, {y})"
-    return f"({children[0]} if {children[1]})"
+    return f"({children[0]} if {children[1]} else 0.0)"
 
 
 def handle_ast_function_power(node: ASTNode, func_arguments: list[str]) -> str:
@@ -274,7 +275,7 @@ def handle_ast_minus(node: ASTNode, func_arguments: list[str]) -> str:
 
 
 def handle_ast_name(node: ASTNode, func_arguments: list[str]) -> str:
-    name: str = node.getName()
+    name: str = _name_to_py(node.getName())
     func_arguments.append(name)
     return name
 
