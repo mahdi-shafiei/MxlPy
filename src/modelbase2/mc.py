@@ -39,7 +39,7 @@ def _parameter_scan_worker(
     model: ModelProtocol,
     y0: dict[str, float] | None,
     *,
-    parameters: dict[str, Array],
+    parameters: pd.DataFrame,
     rel_norm: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     return scans.parameter_scan_ss(
@@ -136,7 +136,7 @@ def time_course_over_protocol(
 
 def parameter_scan_ss(
     model: ModelProtocol,
-    parameters: dict[str, Array],
+    parameters: pd.DataFrame,
     mc_parameters: pd.DataFrame,
     *,
     y0: dict[str, float] | None = None,

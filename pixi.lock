@@ -234,6 +234,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/f4/24/2a3e3df732393fed8b3ebf2ec078f05546de641fe1b667ee316ec1dcf3b7/webencodings-0.5.1-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5a/84/44687a29792a70e111c5c477230a72c4b957d88d16141199bf9acb7537a3/websocket_client-1.8.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/21/02/88b65cc394961a60c43c70517066b6b679738caf78506a5da7b88ffcb643/widgetsnbextension-4.0.13-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/a9/b7/9830def68e5575a24ca6d6f46b285d35ed27860beaa4f72848cd82870253/xarray-2024.10.0-py3-none-any.whl
       - pypi: .
 packages:
 - kind: conda
@@ -2297,7 +2298,7 @@ packages:
   name: modelbase2
   version: 0.1.0
   path: .
-  sha256: 0565e7ce2eefd385a70592564efb4a84d9b033c8c3ece78d70da0c0b5c0f7238
+  sha256: 0ae02377308ac77dcc39b8399f5b2afbb0056d9637da5fe86681056827f190be
   requires_dist:
   - dill>=0.3.9
   - matplotlib>=3.9.2
@@ -2311,6 +2312,7 @@ packages:
   - torch>=2.4.1
   - tqdm>=4.66.6
   - typing-extensions>=4.12.2
+  - xarray>=2024.10.0
   - toml-sort>=0.23.1,<0.24 ; extra == 'dev'
   - qtbmodels>=0.1.0,<0.2 ; extra == 'dev'
   - ruff>=0.7.1 ; extra == 'dev'
@@ -3939,6 +3941,49 @@ packages:
   url: https://files.pythonhosted.org/packages/21/02/88b65cc394961a60c43c70517066b6b679738caf78506a5da7b88ffcb643/widgetsnbextension-4.0.13-py3-none-any.whl
   sha256: 74b2692e8500525cc38c2b877236ba51d34541e6385eeed5aec15a70f88a6c71
   requires_python: '>=3.7'
+- kind: pypi
+  name: xarray
+  version: 2024.10.0
+  url: https://files.pythonhosted.org/packages/a9/b7/9830def68e5575a24ca6d6f46b285d35ed27860beaa4f72848cd82870253/xarray-2024.10.0-py3-none-any.whl
+  sha256: ae1d38cb44a0324dfb61e492394158ae22389bf7de9f3c174309c17376df63a0
+  requires_dist:
+  - numpy>=1.24
+  - packaging>=23.1
+  - pandas>=2.1
+  - scipy ; extra == 'accel'
+  - bottleneck ; extra == 'accel'
+  - numbagg ; extra == 'accel'
+  - numba>=0.54 ; extra == 'accel'
+  - flox ; extra == 'accel'
+  - opt-einsum ; extra == 'accel'
+  - xarray[accel,etc,io,parallel,viz] ; extra == 'complete'
+  - hypothesis ; extra == 'dev'
+  - mypy ; extra == 'dev'
+  - pre-commit ; extra == 'dev'
+  - pytest ; extra == 'dev'
+  - pytest-cov ; extra == 'dev'
+  - pytest-env ; extra == 'dev'
+  - pytest-xdist ; extra == 'dev'
+  - pytest-timeout ; extra == 'dev'
+  - ruff ; extra == 'dev'
+  - sphinx ; extra == 'dev'
+  - sphinx-autosummary-accessors ; extra == 'dev'
+  - xarray[complete] ; extra == 'dev'
+  - sparse ; extra == 'etc'
+  - netcdf4 ; extra == 'io'
+  - h5netcdf ; extra == 'io'
+  - scipy ; extra == 'io'
+  - zarr ; extra == 'io'
+  - fsspec ; extra == 'io'
+  - cftime ; extra == 'io'
+  - pooch ; extra == 'io'
+  - pydap ; python_full_version < '3.10' and extra == 'io'
+  - dask[complete] ; extra == 'parallel'
+  - cartopy ; extra == 'viz'
+  - matplotlib ; extra == 'viz'
+  - nc-time-axis ; extra == 'viz'
+  - seaborn ; extra == 'viz'
+  requires_python: '>=3.10'
 - kind: conda
   name: xz
   version: 5.2.6

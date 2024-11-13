@@ -4,6 +4,7 @@ from .types import IntegratorProtocol, ModelProtocol
 
 __all__ = [
     "Assimulo",
+    "Cache",
     "DefaultIntegrator",
     "IntegratorProtocol",
     "LabelMapper",
@@ -13,10 +14,12 @@ __all__ = [
     "Scipy",
     "Simulator",
     "TorchSurrogate",
+    "combine_parameters",
     "distributions",
     "fit",
     "mc",
     "mca",
+    "parameter_scan_protocol",
     "parameter_scan_ss",
     "parameter_scan_time_series",
     "plot",
@@ -32,7 +35,12 @@ from .label_map import LabelMapper
 from .linear_label_map import LinearLabelMapper
 from .mc import Cache
 from .model import Model
-from .scans import parameter_scan_ss, parameter_scan_time_series
+from .scans import (
+    combine_parameters,
+    parameter_scan_protocol,
+    parameter_scan_ss,
+    parameter_scan_time_series,
+)
 from .simulator import Simulator
 from .surrogates import TorchSurrogate
 

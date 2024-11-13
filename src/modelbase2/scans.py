@@ -7,7 +7,7 @@ from typing import cast
 import numpy as np
 import pandas as pd
 
-from modelbase2.parallel import parallelise
+from modelbase2.parallel import Cache, parallelise
 from modelbase2.simulator import Simulator
 from modelbase2.types import Array, ModelProtocol, T
 
@@ -148,18 +148,22 @@ def _protocol_worker(
     return TimeCourse(model, time_points, c, v)
 
 
+def combine_parameters(parameters: dict[str, Array]) -> pd.DataFrame:
+    return pd.DataFrame(
+        it.product(*parameters.values()),
+        columns=list(parameters),
+    )
+
+
 def parameter_scan_ss(
     model: ModelProtocol,
-    parameters: dict[str, Array],
+    parameters: pd.DataFrame,
     y0: dict[str, float] | None = None,
     *,
     parallel: bool = True,
     rel_norm: bool = False,
+    cache: Cache | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    inputs = pd.DataFrame(
-        it.product(*parameters.values()),
-        columns=list(parameters),
-    )
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -170,16 +174,16 @@ def parameter_scan_ss(
             ),
             model=model,
         ),
-        inputs=list(inputs.iterrows()),
-        cache=None,
+        inputs=list(parameters.iterrows()),
+        cache=cache,
         parallel=parallel,
     )
     concs = pd.DataFrame({k: v.concs.T for k, v in res.items()}).T
     fluxes = pd.DataFrame({k: v.fluxes.T for k, v in res.items()}).T
-    if inputs.shape[1] == 1:
-        idx = pd.Index(inputs.iloc[:, 0])
+    if parameters.shape[1] == 1:
+        idx = pd.Index(parameters.iloc[:, 0])
     else:
-        idx = pd.MultiIndex.from_frame(inputs)
+        idx = pd.MultiIndex.from_frame(parameters)
     concs.index = idx
     fluxes.index = idx
     return concs, fluxes
@@ -187,16 +191,13 @@ def parameter_scan_ss(
 
 def parameter_scan_time_series(
     model: ModelProtocol,
-    parameters: dict[str, Array],
+    parameters: pd.DataFrame,
     time_points: Array,
     y0: dict[str, float] | None = None,
     *,
     parallel: bool = True,
+    cache: Cache | None = None,
 ) -> tuple[pd.DataFrame, dict[int, pd.DataFrame], dict[int, pd.DataFrame]]:
-    inputs = pd.DataFrame(
-        it.product(*parameters.values()),
-        columns=list(parameters),
-    )
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -207,28 +208,25 @@ def parameter_scan_time_series(
             ),
             model=model,
         ),
-        inputs=list(inputs.iterrows()),
-        cache=None,
+        inputs=list(parameters.iterrows()),
+        cache=cache,
         parallel=parallel,
     )
     concs = cast(dict, {k: v.concs for k, v in res.items()})
     fluxes = cast(dict, {k: v.fluxes for k, v in res.items()})
-    return inputs, concs, fluxes
+    return parameters, concs, fluxes
 
 
 def parameter_scan_protocol(
     model: ModelProtocol,
-    parameters: dict[str, Array],
+    parameters: pd.DataFrame,
     protocol: pd.DataFrame,
     time_points_per_step: int = 10,
     y0: dict[str, float] | None = None,
     *,
     parallel: bool = True,
+    cache: Cache | None = None,
 ) -> tuple[pd.DataFrame, dict[int, pd.DataFrame], dict[int, pd.DataFrame]]:
-    inputs = pd.DataFrame(
-        it.product(*parameters.values()),
-        columns=list(parameters),
-    )
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -240,10 +238,10 @@ def parameter_scan_protocol(
             ),
             model=model,
         ),
-        inputs=list(inputs.iterrows()),
-        cache=None,
+        inputs=list(parameters.iterrows()),
+        cache=cache,
         parallel=parallel,
     )
     concs = cast(dict, {k: v.concs for k, v in res.items()})
     fluxes = cast(dict, {k: v.fluxes for k, v in res.items()})
-    return inputs, concs, fluxes
+    return parameters, concs, fluxes
