@@ -10,6 +10,8 @@ from scipy import stats
 
 from modelbase2.types import Array
 
+RNG = np.random.default_rng(seed=42)
+
 
 @dataclass
 class Distribution(ABC):
@@ -23,8 +25,10 @@ class Beta(Distribution):
     b: float
     seed: int = 42
 
-    def sample(self, num: int) -> Array:
-        return np.random.default_rng(seed=self.seed).beta(self.a, self.b, num)
+    def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
+        if rng is None:
+            rng = RNG
+        return rng.beta(self.a, self.b, num)
 
 
 @dataclass
@@ -33,10 +37,10 @@ class Uniform(Distribution):
     upper_bound: float
     seed: int = 42
 
-    def sample(self, num: int) -> Array:
-        return np.random.default_rng(seed=self.seed).uniform(
-            self.lower_bound, self.upper_bound, num
-        )
+    def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
+        if rng is None:
+            rng = RNG
+        return rng.uniform(self.lower_bound, self.upper_bound, num)
 
 
 @dataclass
@@ -45,8 +49,10 @@ class Normal(Distribution):
     scale: float
     seed: int = 42
 
-    def sample(self, num: int) -> Array:
-        return np.random.default_rng(seed=self.seed).normal(self.loc, self.scale, num)
+    def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
+        if rng is None:
+            rng = RNG
+        return rng.normal(self.loc, self.scale, num)
 
 
 @dataclass
@@ -55,10 +61,10 @@ class LogNormal(Distribution):
     sigma: float
     seed: int = 42
 
-    def sample(self, num: int) -> Array:
-        return np.random.default_rng(seed=self.seed).lognormal(
-            self.mean, self.sigma, num
-        )
+    def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
+        if rng is None:
+            rng = RNG
+        return rng.lognormal(self.mean, self.sigma, num)
 
 
 @dataclass
