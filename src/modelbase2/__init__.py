@@ -6,6 +6,7 @@ __all__ = [
     "Assimulo",
     "Cache",
     "DefaultIntegrator",
+    "Derived",
     "IntegratorProtocol",
     "LabelMapper",
     "LinearLabelMapper",
@@ -43,6 +44,7 @@ from .scans import (
 )
 from .simulator import Simulator
 from .surrogates import TorchSurrogate
+from .types import Derived
 
 with contextlib.suppress(ImportError):
     from .integrators import Assimulo

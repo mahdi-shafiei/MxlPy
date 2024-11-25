@@ -42,11 +42,19 @@ Ti = TypeVar("Ti", bound=Iterable)
 K = TypeVar("K", bound=Hashable)
 
 
-def unwrap(x: T | None) -> T:
-    if x is None:
+def unwrap(el: T | None) -> T:
+    if el is None:
         msg = "Unexpected None"
         raise ValueError(msg)
-    return x
+    return el
+
+
+def unwrap2[T1, T2](tpl: tuple[T1 | None, T2 | None]) -> tuple[T1, T2]:
+    a, b = tpl
+    if a is None or b is None:
+        msg = "Unexpected None"
+        raise ValueError(msg)
+    return a, b
 
 
 def default_if_none(el: T | None, default: T) -> T:
@@ -163,15 +171,9 @@ class DerivedParameter:
 
 
 @dataclass(slots=True)
-class DerivedStoichiometry:
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
 class Reaction:
     fn: DerivedFn
-    stoichiometry: Mapping[str, float | DerivedStoichiometry]
+    stoichiometry: Mapping[str, float | Derived]
     args: list[str]
 
     def get_modifiers(self, model: ModelProtocol) -> list[str]:

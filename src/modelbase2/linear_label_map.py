@@ -3,8 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from modelbase2.model import Model
-from modelbase2.types import DerivedStoichiometry
+from modelbase2.model import Derived, Model
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -21,13 +20,13 @@ def _generate_isotope_labels(base_name: str, num_labels: int) -> list[str]:
 
 
 def _unpack_stoichiometries(
-    stoichiometries: Mapping[str, float | DerivedStoichiometry],
+    stoichiometries: Mapping[str, float | Derived],
 ) -> tuple[dict[str, int], dict[str, int]]:
     """Split stoichiometries into substrates and products."""
     substrates = {}
     products = {}
     for k, v in stoichiometries.items():
-        if isinstance(v, DerivedStoichiometry):
+        if isinstance(v, Derived):
             raise NotImplementedError
 
         if v < 0:
@@ -135,12 +134,8 @@ class LinearLabelMapper:
                     name=f"{rxn_name}__{i}",
                     fn=relative_label_flux,
                     stoichiometry={
-                        substrate: DerivedStoichiometry(
-                            neg_one_div, [substrate.split("__")[0]]
-                        ),
-                        product: DerivedStoichiometry(
-                            one_div, [product.split("__")[0]]
-                        ),
+                        substrate: Derived(neg_one_div, [substrate.split("__")[0]]),
+                        product: Derived(one_div, [product.split("__")[0]]),
                     },
                     args=[substrate, rxn_name],
                 )

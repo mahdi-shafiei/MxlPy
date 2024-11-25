@@ -11,8 +11,8 @@ import pandas as pd
 
 from modelbase2.types import (
     Array,
+    Derived,
     DerivedParameter,
-    DerivedStoichiometry,
     DerivedVariable,
     Reaction,
     Readout,
@@ -90,11 +90,23 @@ def _sort_dependencies(
     return order
 
 
+def _select_derived_type(
+    model: Model, el: Derived
+) -> DerivedParameter | DerivedVariable:
+    all_pars = set(model.get_parameter_names()) ^ set(
+        model.get_derived_parameter_names()
+    )
+    if set(el.args).issubset(all_pars):
+        return DerivedParameter(fn=el.fn, args=el.args)
+    return DerivedVariable(fn=el.fn, args=el.args)
+
+
 @dataclass(slots=True)
 class ModelCache:
     var_names: list[str]
     parameter_values: dict[str, float]
     stoich_by_cpds: dict[str, dict[str, float]]
+    dyn_stoich_by_cpds: dict[str, dict[str, DerivedVariable]]
     dxdt: pd.Series[float]
 
 
@@ -120,13 +132,23 @@ class Model:
             parameter_values[name] = dp.fn(*(parameter_values[i] for i in dp.args))
 
         stoich_by_compounds: dict[str, dict[str, float]] = {}
+        dyn_stoich_by_compounds: dict[str, dict[str, DerivedVariable]] = {}
         for rxn_name, rxn in self._reactions.items():
             for cpd_name, factor in rxn.stoichiometry.items():
-                d = stoich_by_compounds.setdefault(cpd_name, {})
-                if isinstance(factor, DerivedStoichiometry):
-                    d[rxn_name] = factor.fn(*(parameter_values[i] for i in factor.args))
+                d_static = stoich_by_compounds.setdefault(cpd_name, {})
+
+                if isinstance(factor, Derived):
+                    dt = _select_derived_type(self, factor)
+
+                    if isinstance(dt, DerivedParameter):
+                        d_static[rxn_name] = dt.fn(
+                            *(parameter_values[i] for i in factor.args)
+                        )
+                    else:
+                        dyn_stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = dt
+
                 else:
-                    d[rxn_name] = factor
+                    d_static[rxn_name] = factor
 
         for surrogate in self._surrogates.values():
             for rxn_name, rxn in surrogate.stoichiometries.items():
@@ -140,6 +162,7 @@ class Model:
             var_names=var_names,
             parameter_values=parameter_values,
             stoich_by_cpds=stoich_by_compounds,
+            dyn_stoich_by_cpds=dyn_stoich_by_compounds,
             dxdt=dxdt,
         )
         return self._cache
@@ -406,7 +429,7 @@ class Model:
         self,
         name: str,
         fn: DerivedFn,
-        stoichiometry: Mapping[str, float | DerivedStoichiometry],
+        stoichiometry: Mapping[str, float | Derived],
         args: list[str],
     ) -> Self:
         self._insert_id(name=name, ctx="reaction")
@@ -421,7 +444,7 @@ class Model:
         self,
         name: str,
         fn: DerivedFn | None,
-        stoichiometry: dict[str, float | DerivedStoichiometry] | None,
+        stoichiometry: dict[str, float | Derived] | None,
         args: list[str] | None,
     ) -> Self:
         rxn = self._reactions[name]
@@ -674,6 +697,10 @@ class Model:
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
                 dxdt[k] += n * fluxes[flux]
+        for k, sd in cache.dyn_stoich_by_cpds.items():
+            for flux, dv in sd.items():
+                n = dv.fn(*(args[i] for i in dv.args))
+                dxdt[k] += n * fluxes[flux]
         return cast(Array, dxdt.to_numpy())
 
     def get_right_hand_side(
@@ -684,15 +711,19 @@ class Model:
         if (cache := self._cache) is None:
             cache = self._create_cache()
         var_names = self.get_variable_names()
-        fluxes = self._get_fluxes(
-            self._get_args(
-                concs=concs,
-                time=time,
-                include_readouts=False,
-            )
+        args = self._get_args(
+            concs=concs,
+            time=time,
+            include_readouts=False,
         )
+        fluxes = self._get_fluxes(args)
         dxdt = pd.Series(np.zeros(len(var_names), dtype=float), index=var_names)
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
+                dxdt[k] += n * fluxes[flux]
+
+        for k, sd in cache.dyn_stoich_by_cpds.items():
+            for flux, dv in sd.items():
+                n = dv.fn(*(args[i] for i in dv.args))
                 dxdt[k] += n * fluxes[flux]
         return dxdt
