@@ -3,7 +3,6 @@ from __future__ import annotations
 import multiprocessing
 import pickle
 import sys
-from concurrent.futures import TimeoutError
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path

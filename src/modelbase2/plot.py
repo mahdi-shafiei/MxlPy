@@ -6,15 +6,53 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
+from matplotlib.collections import QuadMesh
+from matplotlib.colors import (
+    LogNorm,
+    Normalize,
+    SymLogNorm,
+    colorConverter,  # type: ignore
+)
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 
 from modelbase2.label_map import LabelMapper
 from modelbase2.linear_label_map import LinearLabelMapper
-from modelbase2.types import default_if_none
+from modelbase2.types import Array, default_if_none
 
 type FigAx = tuple[Figure, Axes]
 type FigAxs = tuple[Figure, list[Axes]]
+
+
+def relative_luminance(color: Array) -> float:
+    """Calculate the relative luminance of a color."""
+    rgb = colorConverter.to_rgba_array(color)[:, :3]
+
+    # If RsRGB <= 0.03928 then R = RsRGB/12.92 else R = ((RsRGB+0.055)/1.055) ^ 2.4
+    rsrgb = np.where(
+        rgb <= 0.03928,  # noqa: PLR2004
+        rgb / 12.92,
+        ((rgb + 0.055) / 1.055) ** 2.4,
+    )
+
+    # L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+    rel_luminance: Array = np.matmul(rsrgb, [0.2126, 0.7152, 0.0722])
+    return rel_luminance[0]
+
+
+def _get_norm(vmin: float, vmax: float) -> Normalize:
+    if vmax < 1000 and vmin > -1000:  # noqa: PLR2004
+        norm = Normalize(vmin=vmin, vmax=vmax)
+    elif vmin <= 0:
+        norm = SymLogNorm(linthresh=1, vmin=vmin, vmax=vmax, base=10)
+    else:
+        norm = LogNorm(vmin=vmin, vmax=vmax)
+    return norm
+
+
+def _norm_with_zero_center(df: pd.DataFrame) -> Normalize:
+    v = max(abs(df.min().min()), abs(df.max().max()))
+    return _get_norm(vmin=-v, vmax=v)
 
 
 def _partition_by_order_of_magnitude(s: pd.Series) -> list[list[str]]:
@@ -47,9 +85,12 @@ def _split_large_groups[T](groups: list[list[T]], max_size: int) -> list[list[T]
 ##########################################################################
 
 
-def _default_fig_ax(ax: Axes | None) -> FigAx:
+def _default_fig_ax(
+    ax: Axes | None,
+    figsize: tuple[float, float] | None = None,
+) -> FigAx:
     if ax is None:
-        return plt.subplots(nrows=1, ncols=1)
+        return plt.subplots(nrows=1, ncols=1, figsize=figsize)
     return cast(Figure, ax.get_figure()), ax
 
 
@@ -235,6 +276,85 @@ def mc_line_mean_std(
         label=var if label is None else label,
     )
     return fig, ax
+
+
+def _annotate_colormap(
+    df: pd.DataFrame,
+    ax: Axes,
+    sci_annotation_bounds: tuple[float, float],
+    annotation_style: str,
+    hm: QuadMesh,
+) -> None:
+    hm.update_scalarmappable()  # So that get_facecolor is an array
+    xpos, ypos = np.meshgrid(
+        np.arange(len(df.columns)),
+        np.arange(len(df.index)),
+    )
+    for x, y, val, color in zip(
+        xpos.flat,
+        ypos.flat,
+        hm.get_array().flat,  # type: ignore
+        hm.get_facecolor(),
+        strict=True,
+    ):
+        if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1]:
+            val_text = f"{val:.{annotation_style}}"
+        else:
+            val_text = f"{val:.0e}"
+        ax.text(
+            x + 0.5,
+            y + 0.5,
+            val_text,
+            ha="center",
+            va="center",
+            color="black" if relative_luminance(color) > 0.45 else "white",  # type: ignore  # noqa: PLR2004
+        )
+
+
+def heatmap(
+    df: pd.DataFrame,
+    *,
+    annotate: bool = False,
+    colorbar: bool = True,
+    invert_yaxis: bool = True,
+    cmap: str = "viridis",
+    norm: Normalize | None = None,
+    ax: Axes | None = None,
+    cax: Axes | None = None,
+    sci_annotation_bounds: tuple[float, float] = (0.01, 100),
+    annotation_style: str = "2g",
+) -> tuple[Figure, Axes, QuadMesh]:
+    fig, ax = _default_fig_ax(
+        ax=ax,
+        figsize=(
+            1.5 * len(df.index),
+            1.5 * len(df.columns),
+        ),
+    )
+    if norm is None:
+        norm = _norm_with_zero_center(df)
+
+    hm = ax.pcolormesh(df.T, cmap=cmap)
+    ax.set_xticks(
+        np.arange(0, len(df.index), 1) + 0.5,
+        labels=df.index,
+    )
+    ax.set_yticks(
+        np.arange(0, len(df.columns), 1) + 0.5,
+        labels=df.columns,
+    )
+
+    if annotate:
+        _annotate_colormap(df, ax, sci_annotation_bounds, annotation_style, hm)
+
+    if colorbar:
+        # Add a colorbar
+        cb = fig.colorbar(hm, cax, ax)
+        cb.outline.set_linewidth(0)  # type: ignore
+
+    if invert_yaxis:
+        ax.invert_yaxis()
+    return fig, ax, hm
 
 
 def heatmap_from_2d_idx(df: pd.DataFrame, variable: str) -> None:
@@ -1837,12 +1957,6 @@ def relative_label_distribution(
 #         title_kwargs=title_kwargs,
 #     )
 
-# from matplotlib.colors import (
-#     LogNorm,
-#     Normalize,
-#     SymLogNorm,
-#     colorConverter,  # type: ignore
-# )
 
 # from modelbase2.types import Array, ArrayLike, Axes, Axis
 
@@ -1852,107 +1966,3 @@ def relative_label_distribution(
 #     import pandas as pd
 #     from matplotlib.collections import QuadMesh
 #     from matplotlib.figure import Figure
-
-# def relative_luminance(color: ArrayLike) -> float:
-#     """Calculate the relative luminance of a color."""
-#     rgb = colorConverter.to_rgba_array(color)[:, :3]
-
-#     # If RsRGB <= 0.03928 then R = RsRGB/12.92 else R = ((RsRGB+0.055)/1.055) ^ 2.4
-#     rsrgb = np.where(rgb <= 0.03928, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
-
-#     # L = 0.2126 * R + 0.7152 * G + 0.0722 * B
-#     rel_luminance: ArrayLike = np.matmul(rsrgb, [0.2126, 0.7152, 0.0722])
-#     return rel_luminance[0]
-
-
-# def get_norm(vmin: float, vmax: float) -> plt.Normalize:
-#     if vmax < 1000 and vmin > -1000:
-#         norm = Normalize(vmin=vmin, vmax=vmax)
-#     elif vmin <= 0:
-#         norm = SymLogNorm(linthresh=1, vmin=vmin, vmax=vmax, base=10)
-#     else:
-#         norm = LogNorm(vmin=vmin, vmax=vmax)
-#     return norm
-
-
-# def heatmap_from_dataframe(
-#     df: pd.DataFrame,
-#     title: str | None = None,
-#     xlabel: str | None = None,
-#     ylabel: str | None = None,
-#     annotate: bool = True,
-#     colorbar: bool = True,
-#     cmap: str = "viridis",
-#     vmax: float | None = None,
-#     vmin: float | None = None,
-#     norm: plt.Normalize | None = None,
-#     ax: Axis | None = None,
-#     cax: Axis | None = None,
-#     sci_annotation_bounds: tuple[float, float] = (0.01, 100),
-#     annotation_style: str = "2g",
-# ) -> tuple[Figure, Axis, QuadMesh]:
-#     data = df.values
-#     rows = df.index
-#     columns = df.columns
-
-#     if ax is None:
-#         fig, ax = plt.subplots()
-#     else:
-#         fig = ax.get_figure()
-
-#     # Create norm
-#     if norm is None:
-#         if vmax is None:
-#             vmax = np.nanmax(data)
-#         if vmin is None:
-#             vmin = np.nanmin(data)
-#         vmax = cast(float, vmax)
-#         vmin = cast(float, vmin)
-#         norm = get_norm(vmin=vmin, vmax=vmax)
-
-#     # Create heatmap
-#     hm = ax.pcolormesh(data, norm=norm, cmap=cmap)
-
-#     # Despine axis
-#     for side in ["top", "right", "left", "bottom"]:
-#         ax.spines[side].set_visible(False)
-
-#     # Set the axis limits
-#     ax.set(xlim=(0, data.shape[1]), ylim=(0, data.shape[0]))
-
-#     # Set ticks and ticklabels
-#     ax.set_xticks(np.arange(len(columns)) + 0.5)
-#     ax.set_xticklabels(columns)
-
-#     ax.set_yticks(np.arange(len(rows)) + 0.5)
-#     ax.set_yticklabels(rows)
-
-#     # Set title and axis labels
-#     ax.set_title(title)
-#     ax.set_xlabel(xlabel)
-#     ax.set_ylabel(ylabel)
-
-#     if annotate:
-#         text_kwargs = {"ha": "center", "va": "center"}
-#         hm.update_scalarmappable()  # So that get_facecolor is an array
-#         xpos, ypos = np.meshgrid(np.arange(len(columns)), np.arange(len(rows)))
-#         for x, y, val, color in zip(
-#             xpos.flat, ypos.flat, hm.get_array().flat, hm.get_facecolor(), strict=True
-#         ):
-#             text_kwargs["color"] = (
-#                 "black" if relative_luminance(color) > 0.45 else "white"
-#             )
-#             if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1]:
-#                 val_text = f"{val:.{annotation_style}}"
-#             else:
-#                 val_text = f"{val:.0e}"
-#             ax.text(x + 0.5, y + 0.5, val_text, **text_kwargs)
-
-#     if colorbar:
-#         # Add a colorbar
-#         cb = ax.figure.colorbar(hm, cax, ax)
-#         cb.outline.set_linewidth(0)
-
-#     # Invert the y axis to show the plot in matrix form
-#     ax.invert_yaxis()
-#     return fig, ax, hm

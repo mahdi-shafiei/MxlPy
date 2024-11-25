@@ -99,6 +99,23 @@ class TimeCourse:
         self.fluxes = _empty_flux_df(model, time_points) if fluxes is None else fluxes
 
 
+@dataclass
+class TimeSeriesScan:
+    parameters: pd.DataFrame
+    results: pd.DataFrame
+
+    def get_by_name(self, name: str) -> pd.DataFrame:
+        return self.results[name].unstack().T
+
+    def get_agg_per_time(self, agg: str | Callable) -> pd.DataFrame:
+        mean = cast(pd.DataFrame, self.results.unstack(level=1).agg(agg, axis=0))
+        return cast(pd.DataFrame, mean.unstack().T)
+
+    def get_agg_per_run(self, agg: str | Callable) -> pd.DataFrame:
+        mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
+        return cast(pd.DataFrame, mean.unstack().T)
+
+
 def _steady_state_worker(
     model: ModelProtocol,
     y0: dict[str, float] | None,
@@ -148,7 +165,7 @@ def _protocol_worker(
     return TimeCourse(model, time_points, c, v)
 
 
-def combine_parameters(parameters: dict[str, Array]) -> pd.DataFrame:
+def cartesian_product(parameters: dict[str, Array]) -> pd.DataFrame:
     return pd.DataFrame(
         it.product(*parameters.values()),
         columns=list(parameters),
@@ -197,7 +214,7 @@ def parameter_scan_time_series(
     *,
     parallel: bool = True,
     cache: Cache | None = None,
-) -> tuple[pd.DataFrame, dict[int, pd.DataFrame], dict[int, pd.DataFrame]]:
+) -> TimeSeriesScan:
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -214,7 +231,16 @@ def parameter_scan_time_series(
     )
     concs = cast(dict, {k: v.concs for k, v in res.items()})
     fluxes = cast(dict, {k: v.fluxes for k, v in res.items()})
-    return parameters, concs, fluxes
+    return TimeSeriesScan(
+        parameters=parameters,
+        results=pd.concat(
+            (
+                pd.concat(concs, names=["n", "time"]),
+                pd.concat(fluxes, names=["n", "time"]),
+            ),
+            axis=1,
+        ),
+    )
 
 
 def parameter_scan_protocol(

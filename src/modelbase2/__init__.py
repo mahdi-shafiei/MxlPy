@@ -14,7 +14,7 @@ __all__ = [
     "Scipy",
     "Simulator",
     "TorchSurrogate",
-    "combine_parameters",
+    "cartesian_product",
     "distributions",
     "fit",
     "mc",
@@ -36,7 +36,7 @@ from .linear_label_map import LinearLabelMapper
 from .mc import Cache
 from .model import Model
 from .scans import (
-    combine_parameters,
+    cartesian_product,
     parameter_scan_protocol,
     parameter_scan_ss,
     parameter_scan_time_series,
