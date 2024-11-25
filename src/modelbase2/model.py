@@ -180,6 +180,9 @@ class Model:
     def parameters(self) -> dict[str, float]:
         return self._create_cache().parameter_values.copy()
 
+    def get_parameter_names(self) -> list[str]:
+        return list(self._parameters)
+
     @_invalidate_cache
     def remove_parameter(self, name: str) -> Self:
         self._remove_id(name=name)
@@ -266,8 +269,8 @@ class Model:
     def get_variable_names(self) -> list[str]:
         return list(self._variables)
 
-    def get_initial_conditions(self) -> list[float]:
-        return list(self._variables.values())
+    def get_initial_conditions(self) -> dict[str, float]:
+        return self._variables
 
     # def make_variable_static(self, name: str, parameter_value: float) -> Self:
     #     self.remove_compound(name)

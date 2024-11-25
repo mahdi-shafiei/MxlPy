@@ -1,15 +1,28 @@
+"""Scans
+
+| parameter_scan_ss          | Get steady-state results over supplied parameters |
+| parameter_scan_time_series | Get time series for each supplied parameter       |
+| parameter_scan_protocol    | Get protocol series for each supplied parameter   |
+"""
+
+from __future__ import annotations
+
 import itertools as it
-from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
 
 from modelbase2.parallel import Cache, parallelise
 from modelbase2.simulator import Simulator
-from modelbase2.types import Array, ModelProtocol, T
+from modelbase2.types import ProtocolByPars, SteadyStates, TimeCourseByPars
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from modelbase2.types import Array, ModelProtocol, T
 
 
 def _update_parameters_and(
@@ -67,6 +80,11 @@ def empty_time_course(
     return _empty_conc_df(model, time_points), _empty_flux_df(model, time_points)
 
 
+###############################################################################
+# Single returns
+###############################################################################
+
+
 @dataclass(slots=True, init=False)
 class TimePoint:
     concs: pd.Series
@@ -81,6 +99,10 @@ class TimePoint:
     ) -> None:
         self.concs = _empty_conc_series(model) if concs is None else concs.iloc[idx]
         self.fluxes = _empty_flux_series(model) if fluxes is None else fluxes.iloc[idx]
+
+    @property
+    def results(self) -> pd.Series:
+        return pd.concat((self.concs, self.fluxes), axis=0)
 
 
 @dataclass(slots=True, init=False)
@@ -98,22 +120,19 @@ class TimeCourse:
         self.concs = _empty_conc_df(model, time_points) if concs is None else concs
         self.fluxes = _empty_flux_df(model, time_points) if fluxes is None else fluxes
 
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
 
-@dataclass
-class TimeSeriesScan:
-    parameters: pd.DataFrame
-    results: pd.DataFrame
 
-    def get_by_name(self, name: str) -> pd.DataFrame:
-        return self.results[name].unstack().T
+###############################################################################
+# Scan returns
+###############################################################################
 
-    def get_agg_per_time(self, agg: str | Callable) -> pd.DataFrame:
-        mean = cast(pd.DataFrame, self.results.unstack(level=1).agg(agg, axis=0))
-        return cast(pd.DataFrame, mean.unstack().T)
 
-    def get_agg_per_run(self, agg: str | Callable) -> pd.DataFrame:
-        mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
-        return cast(pd.DataFrame, mean.unstack().T)
+###############################################################################
+# Workers
+###############################################################################
 
 
 def _steady_state_worker(
@@ -180,7 +199,7 @@ def parameter_scan_ss(
     parallel: bool = True,
     rel_norm: bool = False,
     cache: Cache | None = None,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> SteadyStates:
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -203,7 +222,7 @@ def parameter_scan_ss(
         idx = pd.MultiIndex.from_frame(parameters)
     concs.index = idx
     fluxes.index = idx
-    return concs, fluxes
+    return SteadyStates(concs, fluxes, parameters=parameters)
 
 
 def parameter_scan_time_series(
@@ -214,7 +233,7 @@ def parameter_scan_time_series(
     *,
     parallel: bool = True,
     cache: Cache | None = None,
-) -> TimeSeriesScan:
+) -> TimeCourseByPars:
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -231,15 +250,10 @@ def parameter_scan_time_series(
     )
     concs = cast(dict, {k: v.concs for k, v in res.items()})
     fluxes = cast(dict, {k: v.fluxes for k, v in res.items()})
-    return TimeSeriesScan(
+    return TimeCourseByPars(
         parameters=parameters,
-        results=pd.concat(
-            (
-                pd.concat(concs, names=["n", "time"]),
-                pd.concat(fluxes, names=["n", "time"]),
-            ),
-            axis=1,
-        ),
+        concs=pd.concat(concs, names=["n", "time"]),
+        fluxes=pd.concat(fluxes, names=["n", "time"]),
     )
 
 
@@ -252,7 +266,7 @@ def parameter_scan_protocol(
     *,
     parallel: bool = True,
     cache: Cache | None = None,
-) -> tuple[pd.DataFrame, dict[int, pd.DataFrame], dict[int, pd.DataFrame]]:
+) -> ProtocolByPars:
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -270,4 +284,9 @@ def parameter_scan_protocol(
     )
     concs = cast(dict, {k: v.concs for k, v in res.items()})
     fluxes = cast(dict, {k: v.fluxes for k, v in res.items()})
-    return parameters, concs, fluxes
+    return ProtocolByPars(
+        parameters=parameters,
+        protocol=protocol,
+        concs=pd.concat(concs, names=["n", "time"]),
+        fluxes=pd.concat(fluxes, names=["n", "time"]),
+    )

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import pandas as pd
+
 __all__ = [
     "Any",
     "Axis",
@@ -14,16 +16,13 @@ __all__ = [
 # Re-exporting some types here, because their imports have
 # changed between Python versions and I have no interest in
 # fixing it in every file
-from collections.abc import Callable, Hashable, Iterable, Mapping
-from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, Self, TypeVar, cast
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
+from typing import Any, ParamSpec, Protocol, Self, TypeVar, cast
 
 import numpy as np
 from matplotlib.axes import Axes as Axis
 from matplotlib.figure import Figure
 from numpy.typing import NDArray
-
-if TYPE_CHECKING:
-    import pandas as pd
 
 type DerivedFn = Callable[..., float]
 type Array = NDArray[np.float64]
@@ -56,6 +55,7 @@ def default_if_none(el: T | None, default: T) -> T:
 
 class ModelProtocol(Protocol):
     # Parameters
+    def get_parameter_names(self) -> list[str]: ...
     @property
     def parameters(self) -> dict[str, float]: ...
     def update_parameters(self, parameters: dict[str, float]) -> Self: ...
@@ -99,7 +99,7 @@ class ModelProtocol(Protocol):
         concs: dict[str, float],
         time: float,
     ) -> pd.Series: ...
-    def get_initial_conditions(self) -> ArrayLike: ...
+    def get_initial_conditions(self) -> dict[str, float]: ...
 
     # For integration
     def _get_rhs(self, /, time: float, concs: Array) -> Array: ...
@@ -188,3 +188,110 @@ class Reaction:
 class Readout:
     fn: DerivedFn
     args: list[str]
+
+
+@dataclass(slots=True)
+class ResponseCoefficients:
+    concs: pd.DataFrame
+    fluxes: pd.DataFrame
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return iter((self.concs, self.fluxes))
+
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
+
+
+@dataclass(slots=True)
+class ResponseCoefficientsByPars:
+    concs: pd.DataFrame
+    fluxes: pd.DataFrame
+    parameters: pd.DataFrame
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return iter((self.concs, self.fluxes))
+
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
+
+
+@dataclass(slots=True)
+class SteadyStates:
+    concs: pd.DataFrame
+    fluxes: pd.DataFrame
+    parameters: pd.DataFrame
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return iter((self.concs, self.fluxes))
+
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
+
+
+@dataclass(slots=True)
+class McSteadyStates:
+    concs: pd.DataFrame
+    fluxes: pd.DataFrame
+    parameters: pd.DataFrame
+    mc_parameters: pd.DataFrame
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return iter((self.concs, self.fluxes))
+
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
+
+
+@dataclass(slots=True)
+class TimeCourseByPars:
+    concs: pd.DataFrame
+    fluxes: pd.DataFrame
+    parameters: pd.DataFrame
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return iter((self.concs, self.fluxes))
+
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
+
+    def get_by_name(self, name: str) -> pd.DataFrame:
+        return self.results[name].unstack().T
+
+    def get_agg_per_time(self, agg: str | Callable) -> pd.DataFrame:
+        mean = cast(pd.DataFrame, self.results.unstack(level=1).agg(agg, axis=0))
+        return cast(pd.DataFrame, mean.unstack().T)
+
+    def get_agg_per_run(self, agg: str | Callable) -> pd.DataFrame:
+        mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
+        return cast(pd.DataFrame, mean.unstack().T)
+
+
+@dataclass(slots=True)
+class ProtocolByPars:
+    concs: pd.DataFrame
+    fluxes: pd.DataFrame
+    parameters: pd.DataFrame
+    protocol: pd.DataFrame
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        return iter((self.concs, self.fluxes))
+
+    @property
+    def results(self) -> pd.DataFrame:
+        return pd.concat((self.concs, self.fluxes), axis=1)
+
+    def get_by_name(self, name: str) -> pd.DataFrame:
+        return self.results[name].unstack().T
+
+    def get_agg_per_time(self, agg: str | Callable) -> pd.DataFrame:
+        mean = cast(pd.DataFrame, self.results.unstack(level=1).agg(agg, axis=0))
+        return cast(pd.DataFrame, mean.unstack().T)
+
+    def get_agg_per_run(self, agg: str | Callable) -> pd.DataFrame:
+        mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
+        return cast(pd.DataFrame, mean.unstack().T)

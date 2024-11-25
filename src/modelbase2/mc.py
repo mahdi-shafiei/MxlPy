@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING, cast
 
@@ -10,29 +9,20 @@ from modelbase2 import mca, scans
 from modelbase2.parallel import Cache, parallelise
 from modelbase2.scans import (
     _protocol_worker,
+    _steady_state_worker,
     _time_course_worker,
     _update_parameters_and,
+)
+from modelbase2.types import (
+    McSteadyStates,
+    ProtocolByPars,
+    ResponseCoefficientsByPars,
+    SteadyStates,
+    TimeCourseByPars,
 )
 
 if TYPE_CHECKING:
     from modelbase2.types import Array, ModelProtocol
-
-
-@dataclass
-class McSteadyState:
-    concs: pd.DataFrame
-    fluxes: pd.DataFrame
-
-
-@dataclass
-class McTimeCourse:
-    concs: pd.DataFrame
-    fluxes: pd.DataFrame
-
-
-@dataclass
-class McTimeProtocol(McTimeCourse):
-    protocol: pd.DataFrame
 
 
 def _parameter_scan_worker(
@@ -41,13 +31,65 @@ def _parameter_scan_worker(
     *,
     parameters: pd.DataFrame,
     rel_norm: bool,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> SteadyStates:
     return scans.parameter_scan_ss(
         model,
         parameters=parameters,
         y0=y0,
         parallel=False,
         rel_norm=rel_norm,
+    )
+
+
+def steady_state(
+    model: ModelProtocol,
+    mc_parameters: pd.DataFrame,
+    *,
+    y0: dict[str, float] | None = None,
+    max_workers: int | None = None,
+    cache: Cache | None = None,
+    rel_norm: bool = True,
+) -> SteadyStates:
+    """MC time course
+
+    Returns
+    -------
+    tuple[concentrations, fluxes] using pandas multiindex
+    Both dataframes are of shape (#time_points * #mc_parameters, #variables)
+
+    E.g.
+    p    t     x      y
+    0    0.0   0.1    0.00
+         1.0   0.2    0.01
+         2.0   0.3    0.02
+         3.0   0.4    0.03
+         ...   ...    ...
+    1    0.0   0.1    0.00
+         1.0   0.2    0.01
+         2.0   0.3    0.02
+         3.0   0.4    0.03
+
+    """
+    res = parallelise(
+        partial(
+            _update_parameters_and,
+            fn=partial(
+                _steady_state_worker,
+                y0=y0,
+                rel_norm=rel_norm,
+            ),
+            model=model,
+        ),
+        inputs=list(mc_parameters.iterrows()),
+        max_workers=max_workers,
+        cache=cache,
+    )
+    concs = {k: v.concs for k, v in res.items()}
+    fluxes = {k: v.fluxes for k, v in res.items()}
+    return SteadyStates(
+        concs=pd.concat(concs, axis=1).T,
+        fluxes=pd.concat(fluxes, axis=1).T,
+        parameters=mc_parameters,
     )
 
 
@@ -58,7 +100,7 @@ def time_course(
     y0: dict[str, float] | None = None,
     max_workers: int | None = None,
     cache: Cache | None = None,
-) -> McTimeCourse:
+) -> TimeCourseByPars:
     """MC time course
 
     Returns
@@ -95,7 +137,8 @@ def time_course(
     )
     concs = {k: v.concs.T for k, v in res.items()}
     fluxes = {k: v.fluxes.T for k, v in res.items()}
-    return McTimeCourse(
+    return TimeCourseByPars(
+        parameters=mc_parameters,
         concs=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
     )
@@ -109,7 +152,7 @@ def time_course_over_protocol(
     time_points_per_step: int = 10,
     max_workers: int | None = None,
     cache: Cache | None = None,
-) -> McTimeProtocol:
+) -> ProtocolByPars:
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -127,9 +170,10 @@ def time_course_over_protocol(
     )
     concs = {k: v.concs.T for k, v in res.items()}
     fluxes = {k: v.fluxes.T for k, v in res.items()}
-    return McTimeProtocol(
+    return ProtocolByPars(
         concs=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
+        parameters=mc_parameters,
         protocol=protocol,
     )
 
@@ -143,7 +187,7 @@ def parameter_scan_ss(
     max_workers: int | None = None,
     cache: Cache | None = None,
     rel_norm: bool = False,
-) -> McSteadyState:
+) -> McSteadyStates:
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -159,11 +203,13 @@ def parameter_scan_ss(
         cache=cache,
         max_workers=max_workers,
     )
-    concs = {k: v[0].T for k, v in res.items()}
-    fluxes = {k: v[1].T for k, v in res.items()}
-    return McSteadyState(
+    concs = {k: v.concs.T for k, v in res.items()}
+    fluxes = {k: v.fluxes.T for k, v in res.items()}
+    return McSteadyStates(
         concs=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
+        parameters=parameters,
+        mc_parameters=mc_parameters,
     )
 
 
@@ -183,7 +229,7 @@ def compound_elasticities(
         partial(
             _update_parameters_and,
             fn=partial(
-                mca.compound_elasticities,
+                mca.variable_elasticities,
                 variables=variables,
                 concs=concs,
                 time=time,
@@ -243,7 +289,7 @@ def response_coefficients(
     disable_tqdm: bool = False,
     max_workers: int | None = None,
     rel_norm: bool = False,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> ResponseCoefficientsByPars:
     res = parallelise(
         fn=partial(
             _update_parameters_and,
@@ -264,7 +310,11 @@ def response_coefficients(
         max_workers=max_workers,
     )
 
-    crcs = {k: v[0] for k, v in res.items()}
-    frcs = {k: v[1] for k, v in res.items()}
+    crcs = {k: v.concs for k, v in res.items()}
+    frcs = {k: v.fluxes for k, v in res.items()}
 
-    return cast(pd.DataFrame, pd.concat(crcs)), cast(pd.DataFrame, pd.concat(frcs))
+    return ResponseCoefficientsByPars(
+        concs=cast(pd.DataFrame, pd.concat(crcs)),
+        fluxes=cast(pd.DataFrame, pd.concat(frcs)),
+        parameters=mc_parameters,
+    )

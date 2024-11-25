@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import cast
+from typing import Protocol, cast
 
 import numpy as np
 import pandas as pd
@@ -13,9 +12,7 @@ from modelbase2.types import Array
 RNG = np.random.default_rng(seed=42)
 
 
-@dataclass
-class Distribution(ABC):
-    @abstractmethod
+class Distribution(Protocol):
     def sample(self, num: int) -> Array: ...
 
 

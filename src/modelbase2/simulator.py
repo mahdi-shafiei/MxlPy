@@ -54,10 +54,8 @@ class Simulator:
         test_run: bool = True,
     ) -> None:
         self.model = model
-        if y0 is None:
-            self.y0 = model.get_initial_conditions()
-        else:
-            self.y0 = [y0[k] for k in model.get_variable_names()]
+        y0 = model.get_initial_conditions() if y0 is None else y0
+        self.y0 = [y0[k] for k in model.get_variable_names()]
 
         self.integrator = integrator(
             self.model._get_rhs,  # noqa: SLF001

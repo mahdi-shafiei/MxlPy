@@ -7,6 +7,7 @@ import pandas as pd
 
 from modelbase2.parallel import parallelise
 from modelbase2.scans import _steady_state_worker
+from modelbase2.types import ResponseCoefficients
 
 if TYPE_CHECKING:
     from modelbase2.types import ModelProtocol
@@ -20,11 +21,11 @@ _DISPLACEMENT = 1e-4
 ###############################################################################
 
 
-def compound_elasticities(
+def variable_elasticities(
     model: ModelProtocol,
-    variables: list[str],
-    concs: dict[str, float],
     *,
+    concs: dict[str, float] | None = None,
+    variables: list[str] | None = None,
     time: float = 0,
     normalized: bool = True,
     displacement: float = _DISPLACEMENT,
@@ -34,6 +35,8 @@ def compound_elasticities(
     Also called epsilon-elasticities. Not in steady state!
     """
 
+    concs = model.get_initial_conditions() if concs is None else concs
+    variables = model.get_variable_names() if variables is None else variables
     elasticities = {}
 
     for var in variables:
@@ -56,8 +59,8 @@ def compound_elasticities(
 
 def parameter_elasticities(
     model: ModelProtocol,
-    parameters: list[str],
-    concs: dict[str, float],
+    parameters: list[str] | None = None,
+    concs: dict[str, float] | None = None,
     time: float = 0,
     *,
     normalized: bool = True,
@@ -67,8 +70,12 @@ def parameter_elasticities(
 
     Also called pi-elasticities. Not in steady state!
     """
+    concs = model.get_initial_conditions() if concs is None else concs
+    parameters = model.get_parameter_names() if parameters is None else parameters
+
     elasticities = {}
 
+    concs = model.get_initial_conditions() if concs is None else concs
     for par in parameters:
         old = model.parameters[par]
 
@@ -135,7 +142,7 @@ def _response_coefficient_worker(
 
 def response_coefficients(
     model: ModelProtocol,
-    parameters: list[str],
+    parameters: list[str] | None = None,
     *,
     y0: dict[str, float] | None = None,
     normalized: bool = True,
@@ -144,10 +151,11 @@ def response_coefficients(
     parallel: bool = True,
     max_workers: int | None = None,
     rel_norm: bool = False,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> ResponseCoefficients:
     """Get response of the steady state concentrations and
     fluxes to a change of the given parameter.
     """
+    parameters = model.get_parameter_names() if parameters is None else parameters
 
     res = parallelise(
         partial(
@@ -164,7 +172,7 @@ def response_coefficients(
         parallel=parallel,
         max_workers=max_workers,
     )
-    crcs = pd.DataFrame({k: v[0] for k, v in res.items()}).T
-    frcs = pd.DataFrame({k: v[1] for k, v in res.items()}).T
-
-    return crcs, frcs
+    return ResponseCoefficients(
+        concs=pd.DataFrame({k: v[0] for k, v in res.items()}).T,
+        fluxes=pd.DataFrame({k: v[1] for k, v in res.items()}).T,
+    )
