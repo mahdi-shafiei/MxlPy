@@ -1,8 +1,17 @@
-"""Scans
+"""Parameter Scanning Module
 
-| parameter_scan_ss          | Get steady-state results over supplied parameters |
-| parameter_scan_time_series | Get time series for each supplied parameter       |
-| parameter_scan_protocol    | Get protocol series for each supplied parameter   |
+This module provides functions and classes for performing parameter scans on metabolic models.
+It includes functionality for steady-state and time-course simulations, as well as protocol-based simulations.
+
+Classes:
+    TimePoint: Represents a single time point in a simulation.
+    TimeCourse: Represents a time course in a simulation.
+
+Functions:
+    cartesian_product: Generate a cartesian product of the parameter values.
+    parameter_scan_ss: Get steady-state results over supplied parameters.
+    parameter_scan_time_series: Get time series for each supplied parameter.
+    parameter_scan_protocol: Get protocol series for each supplied parameter.
 """
 
 from __future__ import annotations
@@ -23,19 +32,39 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from modelbase2.model import Model
-    from modelbase2.types import Array, T
+    from modelbase2.types import Array
 
 
-def _update_parameters_and(
+def _update_parameters_and[T](
     pars: pd.Series,
     fn: Callable[[Model], T],
     model: Model,
 ) -> T:
+    """
+    Update model parameters and execute a function.
+
+    Args:
+        pars: Series containing parameter values to update.
+        fn: Function to execute after updating parameters.
+        model: Model instance to update.
+
+    Returns:
+        Result of the function execution.
+    """
     model.update_parameters(pars.to_dict())
     return fn(model)
 
 
 def _empty_conc_series(model: Model) -> pd.Series:
+    """
+    Create an empty concentration series for the model.
+
+    Args:
+        model: Model instance to generate the series for.
+
+    Returns:
+        pd.Series: Series with NaN values for each model variable.
+    """
     return pd.Series(
         data=np.full(shape=len(model.get_variable_names()), fill_value=np.nan),
         index=model.get_variable_names(),
@@ -43,6 +72,15 @@ def _empty_conc_series(model: Model) -> pd.Series:
 
 
 def _empty_flux_series(model: Model) -> pd.Series:
+    """
+    Create an empty flux series for the model.
+
+    Args:
+        model: Model instance to generate the series for.
+
+    Returns:
+        pd.Series: Series with NaN values for each model reaction.
+    """
     return pd.Series(
         data=np.full(shape=len(model.get_reaction_names()), fill_value=np.nan),
         index=model.get_reaction_names(),
@@ -50,6 +88,16 @@ def _empty_flux_series(model: Model) -> pd.Series:
 
 
 def _empty_conc_df(model: Model, time_points: Array) -> pd.DataFrame:
+    """
+    Create an empty concentration DataFrame for the model over given time points.
+
+    Args:
+        model: Model instance to generate the DataFrame for.
+        time_points: Array of time points.
+
+    Returns:
+        pd.DataFrame: DataFrame with NaN values for each model variable at each time point.
+    """
     return pd.DataFrame(
         data=np.full(
             shape=(len(time_points), len(model.get_variable_names())),
@@ -61,6 +109,16 @@ def _empty_conc_df(model: Model, time_points: Array) -> pd.DataFrame:
 
 
 def _empty_flux_df(model: Model, time_points: Array) -> pd.DataFrame:
+    """
+    Create an empty concentration DataFrame for the model over given time points.
+
+    Args:
+        model: Model instance to generate the DataFrame for.
+        time_points: Array of time points.
+
+    Returns:
+        pd.DataFrame: DataFrame with NaN values for each model variable at each time point.
+    """
     return pd.DataFrame(
         data=np.full(
             shape=(len(time_points), len(model.get_reaction_names())),
@@ -88,6 +146,20 @@ def empty_time_course(
 
 @dataclass(slots=True, init=False)
 class TimePoint:
+    """
+    Represents a single time point in a simulation.
+
+    Attributes:
+        concs: Series of concentrations at the time point.
+        fluxes: Series of fluxes at the time point.
+
+    Args:
+        model: Model instance to generate the time point for.
+        concs: DataFrame of concentrations (default: None).
+        fluxes: DataFrame of fluxes (default: None).
+        idx: Index of the time point in the DataFrame (default: -1).
+    """
+
     concs: pd.Series
     fluxes: pd.Series
 
@@ -103,11 +175,31 @@ class TimePoint:
 
     @property
     def results(self) -> pd.Series:
+        """
+        Get the combined results of concentrations and fluxes.
+
+        Returns:
+            pd.Series: Combined series of concentrations and fluxes.
+        """
         return pd.concat((self.concs, self.fluxes), axis=0)
 
 
 @dataclass(slots=True, init=False)
 class TimeCourse:
+    """
+    Represents a time course in a simulation.
+
+    Attributes:
+        concs: DataFrame of concentrations over time.
+        fluxes: DataFrame of fluxes over time.
+
+    Args:
+        model: Model instance to generate the time course for.
+        time_points: Array of time points.
+        concs: DataFrame of concentrations (default: None).
+        fluxes: DataFrame of fluxes (default: None).
+    """
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
 
@@ -123,6 +215,12 @@ class TimeCourse:
 
     @property
     def results(self) -> pd.DataFrame:
+        """
+        Get the combined results of concentrations and fluxes over time.
+
+        Returns:
+            pd.DataFrame: Combined DataFrame of concentrations and fluxes.
+        """
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
@@ -142,6 +240,17 @@ def _steady_state_worker(
     *,
     rel_norm: bool,
 ) -> TimePoint:
+    """
+    Simulate the model to steady state and return concentrations and fluxes.
+
+    Args:
+        model: Model instance to simulate.
+        y0: Initial conditions as a dictionary {species: value}.
+        rel_norm: Whether to use relative normalization.
+
+    Returns:
+        TimePoint: Object containing steady-state concentrations and fluxes.
+    """
     c, v = (
         Simulator(model, y0=y0)
         .simulate_to_steady_state(rel_norm=rel_norm)
@@ -155,6 +264,17 @@ def _time_course_worker(
     y0: dict[str, float] | None,
     time_points: Array,
 ) -> TimeCourse:
+    """
+    Simulate the model to steady state and return concentrations and fluxes.
+
+    Args:
+        model: Model instance to simulate.
+        y0: Initial conditions as a dictionary {species: value}.
+        rel_norm: Whether to use relative normalization.
+
+    Returns:
+        TimePoint: Object containing steady-state concentrations and fluxes.
+    """
     c, v = (
         Simulator(model, y0=y0)
         .simulate(time_points=time_points)
@@ -169,6 +289,18 @@ def _protocol_worker(
     protocol: pd.DataFrame,
     time_points_per_step: int = 10,
 ) -> TimeCourse:
+    """
+    Simulate the model over a protocol and return concentrations and fluxes.
+
+    Args:
+        model: Model instance to simulate.
+        y0: Initial conditions as a dictionary {species: value}.
+        protocol: DataFrame containing the protocol steps.
+        time_points_per_step: Number of time points per protocol step (default: 10).
+
+    Returns:
+        TimeCourse: Object containing protocol series concentrations and fluxes.
+    """
     c, v = (
         Simulator(model, y0=y0)
         .simulate_over_protocol(
@@ -186,6 +318,15 @@ def _protocol_worker(
 
 
 def cartesian_product(parameters: dict[str, Array]) -> pd.DataFrame:
+    """
+    Generate a cartesian product of the parameter values.
+
+    Args:
+        pars: DataFrame containing parameter values.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the cartesian product of the parameter values.
+    """
     return pd.DataFrame(
         it.product(*parameters.values()),
         columns=list(parameters),
@@ -201,6 +342,20 @@ def parameter_scan_ss(
     rel_norm: bool = False,
     cache: Cache | None = None,
 ) -> SteadyStates:
+    """
+    Get steady-state results over supplied parameters.
+
+    Args:
+        model: Model instance to simulate.
+        pars: DataFrame containing parameter values to scan.
+        cache: Optional cache to store and retrieve results.
+        parallel: Whether to execute in parallel (default: True).
+        max_workers: Maximum number of worker processes (default: None).
+        disable_tqdm: Whether to disable the tqdm progress bar (default: False).
+
+    Returns:
+        SteadyStates: Steady-state results for each parameter set.
+    """
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -235,6 +390,21 @@ def parameter_scan_time_series(
     parallel: bool = True,
     cache: Cache | None = None,
 ) -> TimeCourseByPars:
+    """
+    Get time series for each supplied parameter.
+
+    Args:
+        model: Model instance to simulate.
+        pars: DataFrame containing parameter values to scan.
+        time_points: Array of time points for the simulation.
+        cache: Optional cache to store and retrieve results.
+        parallel: Whether to execute in parallel (default: True).
+        max_workers: Maximum number of worker processes (default: None).
+        disable_tqdm: Whether to disable the tqdm progress bar (default: False).
+
+    Returns:
+        TimeCourseByPars: Time series results for each parameter set.
+    """
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -268,6 +438,21 @@ def parameter_scan_protocol(
     parallel: bool = True,
     cache: Cache | None = None,
 ) -> ProtocolByPars:
+    """
+    Get protocol series for each supplied parameter.
+
+    Args:
+        model: Model instance to simulate.
+        pars: DataFrame containing parameter values to scan.
+        protocol: Protocol to follow for the simulation.
+        cache: Optional cache to store and retrieve results.
+        parallel: Whether to execute in parallel (default: True).
+        max_workers: Maximum number of worker processes (default: None).
+        disable_tqdm: Whether to disable the tqdm progress bar (default: False).
+
+    Returns:
+        TimeCourseByPars: Protocol series results for each parameter set.
+    """
     res = parallelise(
         partial(
             _update_parameters_and,

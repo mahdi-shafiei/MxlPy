@@ -1,3 +1,13 @@
+"""Simulation Module
+
+This module provides classes and functions for simulating metabolic models.
+It includes functionality for running simulations, normalizing results, and
+retrieving simulation data.
+
+Classes:
+    Simulator: Class for running simulations on a metabolic model.
+"""
+
 from __future__ import annotations
 
 import warnings
@@ -18,6 +28,16 @@ def _normalise_split_results(
     results: list[pd.DataFrame],
     normalise: float | ArrayLike,
 ) -> list[pd.DataFrame]:
+    """
+    Normalize split results by a given factor or array.
+
+    Args:
+        results: List of DataFrames containing the results to normalize.
+        normalise: Normalization factor or array.
+
+    Returns:
+        list[pd.DataFrame]: List of normalized DataFrames.
+    """
     if isinstance(normalise, int | float):
         return [i / normalise for i in results]
     if len(normalise) == len(results):
@@ -39,6 +59,18 @@ def _normalise_split_results(
     eq=False,
 )
 class Simulator:
+    """
+    Simulator class for running simulations on a metabolic model.
+
+    Attributes:
+        model: Model instance to simulate.
+        y0: Initial conditions for the simulation.
+        integrator: Integrator protocol to use for the simulation.
+        concs: List of DataFrames containing concentration results.
+        args: List of DataFrames containing argument values.
+        simulation_parameters: List of dictionaries containing simulation parameters.
+    """
+
     model: Model
     y0: ArrayLike
     integrator: IntegratorProtocol
@@ -75,6 +107,13 @@ class Simulator:
         results: pd.DataFrame,
         skipfirst: bool,
     ) -> None:
+        """
+        Save simulation results.
+
+        Args:
+            results: DataFrame containing the simulation results.
+            skipfirst: Whether to skip the first row of results.
+        """
         if self.concs is None:
             self.concs = [results]
         elif skipfirst:
@@ -87,7 +126,9 @@ class Simulator:
         self.simulation_parameters.append(self.model.parameters)
 
     def clear_results(self) -> None:
-        """Clear simulation results."""
+        """
+        Clear simulation results.
+        """
         self.concs = None
         self.args = None
         self.simulation_parameters = None
@@ -100,19 +141,19 @@ class Simulator:
         steps: int | None = None,
         time_points: ArrayLike | None = None,
     ) -> Self:
-        """Simulate the model.
+        """
+        Simulate the model.
 
         You can either supply only a terminal time point, or additionally also the
         number of steps or exact time points for which values should be returned.
 
-        Parameters
-        ----------
-        t_end
-            Last point of the integration
-        steps
-            Number of integration time steps to be returned
-        time_points
-            Explicit time points which shall be returned
+        Args:
+            t_end: Terminal time point for the simulation.
+            steps: Number of steps for the simulation.
+            time_points: Exact time points for which values should be returned.
+
+        Returns:
+            Self: The Simulator instance with updated results.
         """
         if steps is not None and time_points is not None:
             warnings.warn(
@@ -165,6 +206,20 @@ class Simulator:
         *,
         rel_norm: bool = False,
     ) -> Self:
+        """
+        Simulate the model to steady state.
+
+        You can either supply only a terminal time point, or additionally also the
+        number of steps or exact time points for which values should be returned.
+
+        Args:
+            t_end: Terminal time point for the simulation.
+            steps: Number of steps for the simulation.
+            time_points: Exact time points for which values should be returned.
+
+        Returns:
+            Self: The Simulator instance with updated results.
+        """
         time, results = self.integrator.integrate_to_steady_state(
             tolerance=tolerance,
             rel_norm=rel_norm,
@@ -243,7 +298,12 @@ class Simulator:
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> None | pd.DataFrame | list[pd.DataFrame]:
-        """Get simulation results."""
+        """
+        Get the concentration results.
+
+        Returns:
+            pd.DataFrame: DataFrame of concentrations.
+        """
         if self.concs is None:
             return None
 
@@ -289,7 +349,12 @@ class Simulator:
         concatenated: bool = True,
         include_readouts: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
-        """Get simulation results and derived compounds."""
+        """
+        Get the full concentration results, including derived quantities.
+
+        Returns:
+            pd.DataFrame: DataFrame of full concentrations.
+        """
         if (concs := self.concs) is None:
             return None
         if (params := self.simulation_parameters) is None:
@@ -342,7 +407,12 @@ class Simulator:
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
-        """Get the model fluxes for the simulation."""
+        """
+        Get the flux results.
+
+        Returns:
+            pd.DataFrame: DataFrame of fluxes.
+        """
         if (concs := self.concs) is None:
             return None
         if (params := self.simulation_parameters) is None:
@@ -380,6 +450,12 @@ class Simulator:
         )
 
     def get_results(self) -> pd.DataFrame | None:
+        """
+        Get the combined results of concentrations and fluxes.
+
+        Returns:
+            pd.DataFrame: Combined DataFrame of concentrations and fluxes.
+        """
         c, v = self.get_concs_and_fluxes()
         if c is None or v is None:
             return None

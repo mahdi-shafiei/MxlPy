@@ -1,3 +1,19 @@
+"""Types Module
+
+This module provides type definitions and utility types for use throughout the project.
+It includes type aliases for arrays, numbers, and callable functions, as well as re-exports
+of common types from standard libraries.
+
+Classes:
+    DerivedFn: Callable type for derived functions.
+    Array: Type alias for numpy arrays of float64.
+    Number: Type alias for float, list of floats, or numpy arrays.
+    Param: Type alias for parameter specifications.
+    RetType: Type alias for return types.
+    Axes: Type alias for numpy arrays of matplotlib axes.
+    ArrayLike: Type alias for numpy arrays or lists of floats.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,7 +32,7 @@ __all__ = [
 # Re-exporting some types here, because their imports have
 # changed between Python versions and I have no interest in
 # fixing it in every file
-from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast
 
 import numpy as np
@@ -37,15 +53,20 @@ RetType = TypeVar("RetType")
 Axes = NDArray[Axis]  # type: ignore
 ArrayLike = NDArray[np.float64] | list[float]
 
-T = TypeVar("T")
-V = TypeVar("V")
-Tin = TypeVar("Tin")
-Tout = TypeVar("Tout")
-Ti = TypeVar("Ti", bound=Iterable)
-K = TypeVar("K", bound=Hashable)
 
+def unwrap[T](el: T | None) -> T:
+    """
+    Unwraps an optional value, raising an error if the value is None.
 
-def unwrap(el: T | None) -> T:
+    Args:
+        el: The value to unwrap. It can be of type T or None.
+
+    Returns:
+        The unwrapped value if it is not None.
+
+    Raises:
+        ValueError: If the provided value is None.
+    """
     if el is None:
         msg = "Unexpected None"
         raise ValueError(msg)
@@ -61,8 +82,6 @@ def unwrap2[T1, T2](tpl: tuple[T1 | None, T2 | None]) -> tuple[T1, T2]:
 
 
 class IntegratorProtocol(Protocol):
-    """Interface for integrators"""
-
     def __init__(
         self,
         rhs: Callable,

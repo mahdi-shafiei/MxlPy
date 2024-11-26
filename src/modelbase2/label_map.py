@@ -1,3 +1,24 @@
+"""Label Mapping Module for Metabolic Models
+
+This module provides functionality for mapping between labeled metabolites and their
+isotopomers in metabolic models. It handles:
+
+- Mapping between labeled and unlabeled species
+- Generation of isotopomer combinations
+- Calculation of total concentrations across isotopomers
+
+Classes:
+    LabelMapper: Maps between labeled and unlabeled metabolites to their isotopomers
+
+Public Functions:
+    total_concentration: Calculate total concentration across isotopomers
+
+Examples:
+    >>> mapper = LabelMapper(model)
+    >>> isotopomers = mapper.get_isotopomers()
+    >>> total = total_concentration(0.1, 0.2, 0.3)  # 0.6
+"""
+
 from __future__ import annotations
 
 import itertools as it
@@ -14,13 +35,18 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-def total_concentration(
-    *args: float,
-) -> float:
-    """Return concentration of all isotopomers.
+def total_concentration(*args: float) -> float:
+    """Calculate sum of isotopomer concentrations.
 
-    Algebraic module function to keep track of the total
-    concentration of a compound (so sum of its isotopomers).
+    Args:
+        *args: Individual isotopomer concentrations to sum
+
+    Returns:
+        float: Total concentration across all isotopomers
+
+    Example:
+        >>> total_concentration(0.1, 0.2, 0.3)
+        0.6
     """
     return cast(float, np.sum(args, axis=0))
 
@@ -252,23 +278,62 @@ def _create_isotopomer_reactions(
 
 @dataclass(slots=True)
 class LabelMapper:
+    """Maps between labeled and unlabeled species in metabolic models.
+
+    Handles generation and mapping of isotopomers, including:
+    - Creating all possible isotopomer combinations
+    - Building labeled reaction networks
+    - Calculating total concentrations
+
+    Args:
+        model: Model instance to map labels for
+        label_variables: Dict mapping species to number of labels
+        label_maps: Dict mapping reactions to label transfer patterns
+
+    Example:
+        >>> mapper = LabelMapper(model)
+        >>> isotopomers = mapper.get_isotopomers()
+    """
+
     model: Model
     label_variables: dict[str, int] = field(default_factory=dict)
     label_maps: dict[str, list[int]] = field(default_factory=dict)
 
     def get_isotopomers(self) -> dict[str, list[str]]:
+        """Get all possible isotopomers for each labeled species.
+
+        Returns:
+            Dict mapping species names to lists of isotopomer names
+        """
         return {
             name: _generate_binary_labels(base_name=name, num_labels=num)
             for name, num in self.label_variables.items()
         }
 
     def get_isotopomer_of(self, name: str) -> list[str]:
+        """Get all possible isotopomers for a specific species.
+
+        Args:
+            name: Name of the labeled species
+
+        Returns:
+            List of isotopomer names
+        """
         return _generate_binary_labels(
             base_name=name,
             num_labels=self.label_variables[name],
         )
 
     def get_isotopomers_by_regex(self, name: str, regex: str) -> list[str]:
+        """Get isotopomers matching a regex pattern.
+
+        Args:
+            name: Name of the labeled species
+            regex: Regular expression pattern to match
+
+        Returns:
+            List of matching isotopomer names
+        """
         pattern = re.compile(regex)
         isotopomers = self.get_isotopomer_of(name=name)
         return [i for i in isotopomers if pattern.match(i)]
@@ -276,7 +341,19 @@ class LabelMapper:
     def get_isotopomers_of_at_position(
         self, name: str, positions: int | list[int]
     ) -> list[str]:
-        """ """
+        """Get isotopomers with specific label positions.
+
+        Args:
+            name: Name of the labeled species
+            positions: Single position or list of positions to match
+
+        Returns:
+            List of matching isotopomer names
+
+        Example:
+            >>> mapper.get_isotopomers_of_at_position("GAP", 0)
+            ['GAP__100', 'GAP__000']
+        """
         if isinstance(positions, int):
             positions = [positions]
 
@@ -295,7 +372,19 @@ class LabelMapper:
         )
 
     def get_isotopomers_of_with_n_labels(self, name: str, n_labels: int) -> list[str]:
-        """Get all isotopomers of a compound, that have excactly n labels."""
+        """Get all isotopomers of a compound that have exactly n labels.
+
+        Args:
+            name: Name of the labeled species
+            n_labels: Number of labels to match
+
+        Returns:
+            List of isotopomer names with exactly n labels
+
+        Example:
+            >>> mapper.get_isotopomers_of_with_n_labels("GAP", 2)
+            ['GAP__110', 'GAP__101', 'GAP__011']
+        """
         label_positions = self.label_variables[name]
         label_patterns = [
             ["1" if i in positions else "0" for i in range(label_positions)]
@@ -304,9 +393,17 @@ class LabelMapper:
         return [f"{name}__{''.join(i)}" for i in label_patterns]
 
     def build_model(
-        self,
-        initial_labels: dict[str, int | list[int]] | None = None,
+        self, initial_labels: dict[str, int | list[int]] | None = None
     ) -> Model:
+        """Build new model with labeled species and reactions.
+
+        Args:
+            initial_labels: Dict mapping species to initial label positions.
+                          Can be single position (int) or multiple (list).
+
+        Returns:
+            New Model instance with labeled components
+        """
         isotopomers = self.get_isotopomers()
         initial_labels = {} if initial_labels is None else initial_labels
 

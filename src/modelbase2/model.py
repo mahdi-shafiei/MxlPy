@@ -1,4 +1,16 @@
-"""The main class for modeling. Provides model construction and inspection tools."""
+"""Model for Metabolic System Representation
+
+This module provides the core Model class and supporting functionality for representing
+metabolic models, including reactions, variables, parameters and derived quantities.
+
+
+The Model class supports:
+    - Adding/removing reactions and variables
+    - Parameter management
+    - Derived quantity calculations
+    - Model state caching
+    - Import/export functionality
+"""
 
 from __future__ import annotations
 
@@ -19,19 +31,29 @@ from modelbase2.types import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Iterable, Mapping
 
     from modelbase2.surrogates import AbstractSurrogate
-    from modelbase2.types import Callable, DerivedFn, Iterable, Param, RetType
-
-    # from . import LabelModel, LinearLabelModel
+    from modelbase2.types import Callable, DerivedFn, Param, RetType
 
 
 class SortError(Exception):
-    pass
+    """Raised when dependencies cannot be sorted topologically.
+
+    This typically indicates circular dependencies in model components.
+    """
 
 
 def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetType]:
+    """Decorator that invalidates model cache when decorated method is called.
+
+    Args:
+        method: Method to wrap with cache invalidation
+
+    Returns:
+        Wrapped method that clears cache before execution
+    """
+
     def wrapper(
         *args: Param.args,
         **kwargs: Param.kwargs,
@@ -46,6 +68,19 @@ def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetTy
 def _sort_dependencies(
     available: set[str], elements: list[tuple[str, set[str]]], ctx: str
 ) -> list[str]:
+    """Sort model elements topologically based on their dependencies.
+
+    Args:
+        available: Set of available component names
+        elements: List of (name, dependencies) tuples to sort
+        ctx: Context string for error messages
+
+    Returns:
+        List of element names in dependency order
+
+    Raises:
+        SortError: If circular dependencies are detected
+    """
     from queue import Empty, SimpleQueue
 
     order = []
@@ -107,7 +142,7 @@ class ModelCache:
     parameter_values: dict[str, float]
     stoich_by_cpds: dict[str, dict[str, float]]
     dyn_stoich_by_cpds: dict[str, dict[str, DerivedVariable]]
-    dxdt: pd.Series[float]
+    dxdt: pd.Series
 
 
 @dataclass(slots=True)
@@ -549,7 +584,7 @@ class Model:
         time: float = 0.0,
         *,
         include_readouts: bool = False,
-    ) -> pd.Series[float]:
+    ) -> pd.Series:
         return pd.Series(
             self._get_args(
                 concs=concs,
@@ -598,7 +633,7 @@ class Model:
         time: float = 0.0,
         *,
         include_readouts: bool = True,
-    ) -> pd.Series[float]:
+    ) -> pd.Series:
         names = self.get_variable_names() + self.get_derived_variable_names()
         if include_readouts:
             names.extend(self.get_readout_names())
@@ -631,7 +666,7 @@ class Model:
         self,
         concs: dict[str, float],
         time: float = 0.0,
-    ) -> pd.Series[float]:
+    ) -> pd.Series:
         args = self.get_args(
             concs=concs,
             time=time,
@@ -707,7 +742,7 @@ class Model:
         self,
         concs: dict[str, float],
         time: float = 0.0,
-    ) -> pd.Series[float]:
+    ) -> pd.Series:
         if (cache := self._cache) is None:
             cache = self._create_cache()
         var_names = self.get_variable_names()

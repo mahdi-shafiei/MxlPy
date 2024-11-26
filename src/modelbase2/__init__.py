@@ -1,4 +1,37 @@
-"""modelbase2 is a package for creating and analysing metabolic models"""
+"""modelbase2: A Python Package for Metabolic Modeling and Analysis
+
+This package provides tools for creating, simulating and analyzing metabolic models
+with features including:
+
+Key Features:
+    - Model creation and manipulation
+    - Steady state and time-series simulations
+    - Parameter fitting and optimization
+    - Monte Carlo analysis
+    - Metabolic Control Analysis (MCA)
+    - SBML import/export support
+    - Visualization tools
+
+Core Components:
+    Model: Core class for metabolic model representation
+    Simulator: Handles model simulation and integration
+    DefaultIntegrator: Standard ODE solver implementation
+    LabelMapper: Maps between model components and labels
+    Cache: Performance optimization through result caching
+
+Simulation Features:
+    - Steady state calculations
+    - Time course simulations
+    - Parameter scanning
+    - Surrogate modeling with PyTorch
+
+Analysis Tools:
+    - Parameter fitting to experimental data
+    - Monte Carlo methods for uncertainty analysis
+    - Metabolic Control Analysis
+    - Custom visualization functions
+
+"""
 
 from __future__ import annotations
 

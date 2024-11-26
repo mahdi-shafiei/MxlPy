@@ -20,6 +20,24 @@ if TYPE_CHECKING:
 
 @dataclass
 class Scipy:
+    """
+    Scipy integrator for solving ODEs.
+
+    Attributes:
+        rhs: Right-hand side function of the ODE.
+        y0: Initial conditions.
+        atol: Absolute tolerance for the solver.
+        rtol: Relative tolerance for the solver.
+        t0: Initial time point.
+        _y0_orig: Original initial conditions.
+
+    Methods:
+        __post_init__: Initialize the Scipy integrator.
+        reset: Reset the integrator.
+        integrate: Integrate the ODE system.
+        integrate_to_steady_state: Integrate the ODE system to steady state.
+    """
+
     rhs: Callable
     y0: ArrayLike
     atol: float = 1e-8
@@ -41,6 +59,17 @@ class Scipy:
         steps: int | None = None,
         time_points: ArrayLike | None = None,
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        """
+        Integrate the ODE system.
+
+        Args:
+            t_end: Terminal time point for the integration.
+            steps: Number of steps for the integration.
+            time_points: Array of time points for the integration.
+
+        Returns:
+            tuple[ArrayLike | None, ArrayLike | None]: Tuple containing the time points and the integrated values.
+        """
         if time_points is not None:
             if time_points[0] != 0:
                 t = [self.t0]
@@ -80,6 +109,17 @@ class Scipy:
         max_steps: int = 1000,
         integrator: str = "lsoda",
     ) -> tuple[float | None, ArrayLike | None]:
+        """
+        Integrate the ODE system to steady state.
+
+        Args:
+            tolerance: Tolerance for determining steady state.
+            rel_norm: Whether to use relative normalization.
+            t_max: Maximum time point for the integration (default: 1,000,000,000).
+
+        Returns:
+            tuple[float | None, ArrayLike | None]: Tuple containing the final time point and the integrated values at steady state.
+        """
         self.reset()
         integ = spi.ode(self.rhs)
         integ.set_integrator(

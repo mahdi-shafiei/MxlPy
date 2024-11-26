@@ -1,3 +1,12 @@
+"""Label Scope Module
+
+This module provides functions for creating and managing label scopes in metabolic models.
+It includes functionality for initializing label scopes and retrieving reachable label positions.
+
+Functions:
+    get_label_scope: Return all label positions that can be reached step by step.
+"""
+
 # def _create_label_scope_seed(
 #     self, *, initial_labels: dict[str, int] | dict[str, list[int]]
 # ) -> dict[str, int]:
@@ -22,6 +31,7 @@
 #         labelled_compounds[i] = 1
 #     return labelled_compounds
 
+
 # def get_label_scope(
 #     self,
 #     initial_labels: dict[str, int] | dict[str, list[int]],
@@ -42,9 +52,7 @@
 #     >>> l.get_label_scope({"x": [0, 1], "y": 0})
 
 #     """
-#     labelled_compounds = self._create_label_scope_seed(
-#         initial_labels=initial_labels
-#     )
+#     labelled_compounds = self._create_label_scope_seed(initial_labels=initial_labels)
 #     new_labels = set("non empty entry to not fulfill while condition")
 #     # Loop until no new labels are inserted
 #     loop_count = 0

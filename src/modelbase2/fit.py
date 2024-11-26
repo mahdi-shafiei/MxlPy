@@ -1,7 +1,11 @@
-"""Fit model to data
+"""Parameter Fitting Module for Metabolic Models
 
-- steady-state concentrations / fluxes
-- time series concentrations / fluxes
+This module provides functions foru fitting model parameters to experimental data,
+including both steadyd-state and time-series data fitting capabilities.e
+
+Functions:
+    fit_steady_state: Fits parameters to steady-state experimental data
+    fit_time_series: Fits parameters to time-series experimental data
 """
 
 from __future__ import annotations
@@ -28,6 +32,19 @@ def _steady_state_residual(
     par_names: list[str],
     integrator: type[IntegratorProtocol],
 ) -> float:
+    """Calculate residual error between model steady state and experimental data.
+
+    Args:
+        par_values: Parameter values to test
+        data: Experimental steady state data
+        model: Model instance to simulatep
+        y0: Initial conditions
+        par_names: Names of parameters being fit
+        integrator: ODE integrator class to use
+
+    Returns:
+        float: Root mean square error between model and data
+    """
     c_ss, v_ss = (
         Simulator(
             model.update_parameters(dict(zip(par_names, par_values, strict=True))),
@@ -52,6 +69,19 @@ def _time_series_residual(
     par_names: list[str],
     integrator: type[IntegratorProtocol],
 ) -> float:
+    """Calculate residual error between model time course and experimental data.
+
+    Args:
+        par_values: Parameter values to test
+        data: Experimental time series data
+        model: Model instance to simulate
+        y0: Initial conditions
+        par_names: Names of parameters being fit
+        integrator: ODE integrator class to use
+
+    Returns:
+        float: Root mean square error between model and data
+    """
     c_ss, v_ss = (
         Simulator(
             model.update_parameters(dict(zip(par_names, par_values, strict=True))),
@@ -86,6 +116,22 @@ def steady_state(
     ] = _steady_state_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
+    """Fit model parameters to steady-state experimental data.
+
+    Args:
+        model: Model instance to fit
+        data: Experimental steady state data as pandas Series
+        p0: Initial parameter guesses as {parameter_name: value}
+        y0: Initial conditions as {species_name: value}
+        residual_fn: Function to calculate fitting error (default: _steady_state_residual)
+        integrator: ODE integrator class (default: DefaultIntegrator)
+
+    Returns:
+        dict[str, float]: Fitted parameters as {parameter_name: fitted_value}
+
+    Note:
+        Uses L-BFGS-B optimization with bounds [1e-12, 1e6] for all parameters
+    """
     par_names = list(p0.keys())
     x0 = list(p0.values())
 
@@ -129,6 +175,22 @@ def time_series(
     ] = _time_series_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
+    """Fit model parameters to time-series experimental data.
+
+    Args:
+        model: Model instance to fit
+        data: Experimental time series data as pandas DataFrame
+        p0: Initial parameter guesses as {parameter_name: value}
+        y0: Initial conditions as {species_name: value}
+        residual_fn: Function to calculate fitting error (default: _time_series_residual)
+        integrator: ODE integrator class (default: DefaultIntegrator)
+
+    Returns:
+        dict[str, float]: Fitted parameters as {parameter_name: fitted_value}
+
+    Note:
+        Uses L-BFGS-B optimization with bounds [1e-12, 1e6] for all parameters
+    """
     par_names = list(p0.keys())
     x0 = list(p0.values())
     p_orig = model.parameters

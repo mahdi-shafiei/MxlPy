@@ -21,6 +21,22 @@ if TYPE_CHECKING:
 
 @dataclass
 class Assimulo:
+    """
+    Assimulo integrator for solving ODEs.
+
+    Attributes:
+        rhs: Right-hand side function of the ODE.
+        y0: Initial conditions.
+        atol: Absolute tolerance for the solver.
+        rtol: Relative tolerance for the solver.
+        maxnef: Maximum number of error failures.
+        maxncf: Maximum number of convergence failures.
+        verbosity: Verbosity level of the solver.
+
+    Methods:
+        integrate: Integrate the ODE system.
+    """
+
     rhs: Callable
     y0: ArrayLike
     atol: float = 1e-8
@@ -47,6 +63,16 @@ class Assimulo:
         steps: int | None = None,
         time_points: ArrayLike | None = None,
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        """
+        Integrate the ODE system.
+
+        Args:
+            t_end: Terminal time point for the integration.
+            steps: Number of steps for the integration.
+
+        Returns:
+            np.ndarray: Array of integrated values.
+        """
         if steps is None:
             steps = 0
         try:
@@ -61,6 +87,17 @@ class Assimulo:
         rel_norm: bool,
         t_max: float = 1_000_000_000,
     ) -> tuple[float | None, ArrayLike | None]:
+        """
+        Integrate the ODE system to steady state.
+
+        Args:
+            tolerance: Tolerance for determining steady state.
+            rel_norm: Whether to use relative normalization.
+            t_max: Maximum time point for the integration (default: 1,000,000,000).
+
+        Returns:
+            tuple[float | None, ArrayLike | None]: Tuple containing the final time point and the integrated values at steady state.
+        """
         self.reset()
 
         try:

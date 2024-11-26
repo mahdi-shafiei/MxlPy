@@ -1,3 +1,18 @@
+"""Neural Network Parameter Estimation (NPE) Module
+
+This module provides classes and functions for training neural network models to estimate
+parameters in metabolic models. It includes functionality for both steady-state and
+time-series data.
+
+Classes:
+    DefaultSSAproximator: Default neural network model for steady-state approximation
+    DefaultTimeSeriesApproximator: Default neural network model for time-series approximation
+
+Functions:
+    train_torch_surrogate: Train a PyTorch surrogate model
+    train_torch_time_series_estimator: Train a PyTorch time series estimator
+"""
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -153,6 +168,24 @@ def train_torch_ss_estimator(
     optimimzer_cls: type[Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchSSEstimator, pd.Series]:
+    """Train a PyTorch steady state estimator.
+
+    This function trains a neural network model to estimate steady state data
+    using the provided features and targets. It supports both full-batch and
+    mini-batch training.
+
+    Args:
+        features: DataFrame containing the input features for training
+        targets: DataFrame containing the target values for training
+        epochs: Number of training epochs
+        batch_size: Size of mini-batches for training (None for full-batch)
+        approximator: Predefined neural network model (None to use default)
+        optimimzer_cls: Optimizer class to use for training (default: Adam)
+        device: Device to run the training on (default: DefaultDevice)
+
+    Returns:
+        tuple[TorchTimeSeriesEstimator, pd.Series]: Trained estimator and loss history
+    """
     if approximator is None:
         approximator = DefaultSSAproximator(
             n_inputs=len(features.columns),
@@ -196,6 +229,24 @@ def train_torch_time_series_estimator(
     optimimzer_cls: type[Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchTimeSeriesEstimator, pd.Series]:
+    """Train a PyTorch time series estimator.
+
+    This function trains a neural network model to estimate time series data
+    using the provided features and targets. It supports both full-batch and
+    mini-batch training.
+
+    Args:
+        features: DataFrame containing the input features for training
+        targets: DataFrame containing the target values for training
+        epochs: Number of training epochs
+        batch_size: Size of mini-batches for training (None for full-batch)
+        approximator: Predefined neural network model (None to use default)
+        optimimzer_cls: Optimizer class to use for training (default: Adam)
+        device: Device to run the training on (default: DefaultDevice)
+
+    Returns:
+        tuple[TorchTimeSeriesEstimator, pd.Series]: Trained estimator and loss history
+    """
     if approximator is None:
         approximator = DefaultTimeSeriesApproximator(
             n_inputs=len(features.columns),

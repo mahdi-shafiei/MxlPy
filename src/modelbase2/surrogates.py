@@ -1,3 +1,19 @@
+"""Surrogate Models Module
+
+This module provides classes and functions for creating and training surrogate models
+for metabolic simulations. It includes functionality for both steady-state and time-series
+data using neural networks.
+
+Classes:
+    AbstractSurrogate: Abstract base class for surrogate models.
+    TorchSurrogate: Surrogate model using PyTorch.
+    Approximator: Neural network approximator for surrogate modeling.
+
+Functions:
+    train_torch_surrogate: Train a PyTorch surrogate model.
+    train_torch_time_series_estimator: Train a PyTorch time series estimator.
+"""
+
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -26,6 +42,17 @@ DefaultCache = Cache(Path(".cache"))
 
 @dataclass(kw_only=True)
 class AbstractSurrogate:
+    """
+    Abstract base class for surrogate models.
+
+    Attributes:
+        inputs: List of input variable names.
+        stoichiometries: Dictionary mapping reaction names to stoichiometries.
+
+    Methods:
+        predict: Abstract method to predict outputs based on input data.
+    """
+
     inputs: list[str]
     stoichiometries: dict[str, dict[str, float]]
 
@@ -35,9 +62,28 @@ class AbstractSurrogate:
 
 @dataclass(kw_only=True)
 class TorchSurrogate(AbstractSurrogate):
+    """
+    Surrogate model using PyTorch.
+
+    Attributes:
+        model: PyTorch neural network model.
+
+    Methods:
+        predict: Predict outputs based on input data using the PyTorch model.
+    """
+
     model: torch.nn.Module
 
     def predict(self, y: np.ndarray) -> dict[str, float]:
+        """
+        Predict outputs based on input data using the PyTorch model.
+
+        Args:
+            y: Input data as a numpy array.
+
+        Returns:
+            dict[str, float]: Dictionary mapping output variable names to predicted values.
+        """
         with torch.no_grad():
             return dict(
                 zip(
@@ -51,6 +97,16 @@ class TorchSurrogate(AbstractSurrogate):
 
 
 class Approximator(nn.Module):
+    """
+    Neural network approximator for surrogate modeling.
+
+    Attributes:
+        net: Sequential neural network model.
+
+    Methods:
+        forward: Forward pass through the neural network.
+    """
+
     def __init__(self, n_inputs: int, n_outputs: int) -> None:
         super().__init__()
 
@@ -68,6 +124,15 @@ class Approximator(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass through the neural network.
+
+        Args:
+            x: Input tensor.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
         return self.net(x)
 
 
@@ -75,6 +140,16 @@ def _ss_flux(
     params: pd.Series,
     model: Model,
 ) -> pd.Series:
+    """
+    Calculate steady-state fluxes for given parameters.
+
+    Args:
+        params: Series containing parameter values.
+        model: Model instance to simulate.
+
+    Returns:
+        pd.Series: Series containing the steady-state fluxes.
+    """
     flux = (
         Simulator(model.update_parameters(params.to_dict()))
         .simulate_to_steady_state()
@@ -90,6 +165,17 @@ def create_ss_flux_data(
     parameters: pd.DataFrame,
     cache: Cache | None = DefaultCache,
 ) -> pd.DataFrame:
+    """
+    Create steady-state flux data for given parameters.
+
+    Args:
+        model: Model instance to simulate.
+        parameters: DataFrame containing parameter values.
+        cache: Optional cache to store and retrieve results.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the steady-state flux data.
+    """
     return cast(
         pd.DataFrame,
         (
@@ -118,6 +204,20 @@ def _train_batched(
     device: torch.device,
     batch_size: int,
 ) -> pd.Series:
+    """
+    Train the neural network using mini-batch gradient descent.
+
+    Args:
+        approximator: Neural network model to train.
+        features: Input features as a tensor.
+        targets: Target values as a tensor.
+        epochs: Number of training epochs.
+        optimizer: Optimizer for training.
+        batch_size: Size of mini-batches for training.
+
+    Returns:
+        pd.Series: Series containing the training loss history.
+    """
     rng = np.random.default_rng()
     losses = {}
     for i in tqdm.trange(epochs):
@@ -140,6 +240,19 @@ def _train_full(
     optimizer: Adam,
     device: torch.device,
 ) -> pd.Series:
+    """
+    Train the neural network using full-batch gradient descent.
+
+    Args:
+        approximator: Neural network model to train.
+        features: Input features as a tensor.
+        targets: Target values as a tensor.
+        epochs: Number of training epochs.
+        optimizer: Optimizer for training.
+
+    Returns:
+        pd.Series: Series containing the training loss history.
+    """
     X = torch.Tensor(features.to_numpy(), device=device)
     Y = torch.Tensor(targets.to_numpy(), device=device)
 
@@ -164,6 +277,23 @@ def train_torch_surrogate(
     optimimzer_cls: type[Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchSurrogate, pd.Series]:
+    """
+    Train a PyTorch surrogate model.
+
+    Args:
+        features: DataFrame containing the input features for training.
+        targets: DataFrame containing the target values for training.
+        epochs: Number of training epochs.
+        surrogate_inputs: List of input variable names for the surrogate model.
+        surrogate_stoichiometries: Dictionary mapping reaction names to stoichiometries.
+        batch_size: Size of mini-batches for training (None for full-batch).
+        approximator: Predefined neural network model (None to use default).
+        optimimzer_cls: Optimizer class to use for training (default: Adam).
+        device: Device to run the training on (default: DefaultDevice).
+
+    Returns:
+        tuple[TorchSurrogate, pd.Series]: Trained surrogate model and loss history.
+    """
     if approximator is None:
         approximator = Approximator(
             n_inputs=len(features.columns),

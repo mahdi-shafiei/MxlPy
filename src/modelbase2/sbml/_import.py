@@ -393,4 +393,13 @@ def _translate(sbml: Parser) -> Model:
 
 
 def from_sbml(file: Path | str) -> Model:
+    """
+    Import a metabolic model from an SBML file.
+
+    Args:
+        file: Path to the SBML file to import.
+
+    Returns:
+        Model: Imported model instance.
+    """
     return _translate(Parser().parse(file=file))

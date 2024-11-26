@@ -1,3 +1,17 @@
+"""Monte Carlo Analysis (MC) Module for Metabolic Models
+
+This module provides functions for performing Monte Carlo analysis on metabolic models.
+It includes functionality for steady-state and time-course simulations, as well as
+response coefficient calculations.
+
+Functions:
+    steady_state: Perform Monte Carlo analysis for steady-state simulations
+    time_course: Perform Monte Carlo analysis for time-course simulations
+    response_coefficients: Calculate response coefficients using Monte Carlo analysis
+    compound_elasticities: Calculate compound elasticities using Monte Carlo analysis
+    parameter_elasticities: Calculate parameter elasticities using Monte Carlo analysis
+"""
+
 from __future__ import annotations
 
 from functools import partial
@@ -33,6 +47,28 @@ def _parameter_scan_worker(
     parameters: pd.DataFrame,
     rel_norm: bool,
 ) -> SteadyStates:
+    """Worker function for parallel steady state scanning across parameter sets.
+
+    This function executes a parameter scan for steady state solutions for a given model
+    and parameter combinations. It's designed to be used as a worker in parallel processing.
+
+    Parameters
+    ----------
+    model : Model
+        The model object to analyze
+    y0 : dict[str, float] | None
+        Initial conditions for the solver. If None, default initial conditions are used.
+    parameters : pd.DataFrame
+        DataFrame containing parameter combinations to scan over. Each row represents one
+        parameter set.
+    rel_norm : bool
+        Whether to use relative normalization in the steady state calculations
+
+    Returns
+    -------
+    SteadyStates
+        Object containing the steady state solutions for the given parameter combinations
+    """
     return scans.parameter_scan_ss(
         model,
         parameters=parameters,

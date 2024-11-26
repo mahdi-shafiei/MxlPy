@@ -1,9 +1,18 @@
-"""Metabolic control analysis
+"""Metabolic Control Analysis (MCA) Module
 
-Main functions:
-    variable_elasticities
-    parameter_elasticities
-    response_coefficients
+Provides functions for analyzing control and regulation in metabolic networks through:
+- Elasticity coefficients (variable and parameter)
+- Response coefficients
+
+Main Functions:
+    variable_elasticities: Calculate non-steady state variable elasticities
+    parameter_elasticities: Calculate non-steady state parameter elasticities
+    response_coefficients: Calculate response coefficients for steady state
+
+Mathematical Background:
+    MCA quantifies how changes in system parameters affect metabolic variables
+    through elasticity and control coefficients. These describe the sensitivity
+    of reaction rates and steady state variables to perturbations.
 """
 
 from __future__ import annotations
@@ -21,7 +30,8 @@ if TYPE_CHECKING:
     from modelbase2.model import Model
 
 
-_DISPLACEMENT = 1e-4
+# Internal Constants
+_DISPLACEMENT: float = 1e-4  # Default perturbation size for coefficient calculation
 
 
 ###############################################################################
@@ -38,9 +48,29 @@ def variable_elasticities(
     normalized: bool = True,
     displacement: float = _DISPLACEMENT,
 ) -> pd.DataFrame:
-    """Get sensitivity of all rates to a change of the concentration of multiple compounds.
+    """Calculate non-steady state elasticity coefficients.
 
-    Also called epsilon-elasticities. Not in steady state!
+    Computes the sensitivity of reaction rates to changes in metabolite
+    concentrations (ε-elasticities).
+
+    Args:
+        model: Metabolic model instance
+        concs: Initial concentrations {metabolite: value}. Uses model defaults if None
+        variables: List of variables to analyze. Uses all if None
+        time: Time point for evaluation
+        normalized: Whether to normalize coefficients
+        displacement: Relative perturbation size
+
+    Returns:
+        DataFrame with elasticity coefficients (reactions x metabolites)
+
+    Example:
+        >>> elasticities = variable_elasticities(
+        ...     model,
+        ...     concs={"A": 1.0, "B": 2.0},
+        ...     variables=["A", "B"],
+        ...     normalized=True
+        ... )
     """
 
     concs = model.get_initial_conditions() if concs is None else concs
@@ -74,9 +104,16 @@ def parameter_elasticities(
     normalized: bool = True,
     displacement: float = _DISPLACEMENT,
 ) -> pd.DataFrame:
-    """Get sensitivity of all rates to a change of multiple parameter values.
+    """Calculate parameter elasticity coefficients.
 
-    Also called pi-elasticities. Not in steady state!
+    Args:
+        model: Metabolic model instance
+        parameters: List of parameters to analyze. Uses all if None
+        normalized: Whether to normalize coefficients
+        displacement: Relative perturbation size
+
+    Returns:
+        DataFrame with parameter elasticities (reactions x parameters)
     """
     concs = model.get_initial_conditions() if concs is None else concs
     parameters = model.get_parameter_names() if parameters is None else parameters
@@ -117,6 +154,28 @@ def _response_coefficient_worker(
     rel_norm: bool,
     displacement: float = _DISPLACEMENT,
 ) -> tuple[pd.Series, pd.Series]:
+    """Calculate response coefficients for a single parameter.
+
+    Internal helper function that computes concentration and flux response
+    coefficients using finite differences. The function:
+    1. Perturbs the parameter up and down by a small displacement
+    2. Calculates steady states for each perturbation
+    3. Computes response coefficients from the differences
+    4. Optionally normalizes the results
+
+    Args:
+        parameter: Name of the parameter to analyze
+        model: Metabolic model instance
+        y0: Initial conditions as a dictionary {species: value}
+        normalized: Whether to normalize the coefficients
+        rel_norm: Whether to use relative normalization
+        displacement: Relative perturbation size (default: _DISPLACEMENT)
+
+    Returns:
+        tuple[pd.Series, pd.Series]: Tuple containing:
+            - Series of concentration response coefficients
+            - Series of flux response coefficients
+    """
     old = model.parameters[parameter]
 
     model.update_parameters({parameter: old * (1 + displacement)})
@@ -160,8 +219,18 @@ def response_coefficients(
     max_workers: int | None = None,
     rel_norm: bool = False,
 ) -> ResponseCoefficients:
-    """Get response of the steady state concentrations and
-    fluxes to a change of the given parameter.
+    """Calculate response coefficients.
+
+    Args:
+        model: Metabolic model instance
+        parameters: Parameters to analyze. Uses all if None
+        normalized: Whether to normalize coefficients
+        displacement: Relative perturbation size
+
+    Returns:
+        ResponseCoefficients object containing:
+        - Flux response coefficients
+        - Concentration response coefficients
     """
     parameters = model.get_parameter_names() if parameters is None else parameters
 

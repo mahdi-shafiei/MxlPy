@@ -363,6 +363,22 @@ def to_sbml(
     substance_units: str = "mole",
     time_units: str = "second",
 ) -> str | None:
+    """
+    Export a metabolic model to an SBML file.
+
+    Args:
+        model: Model instance to export.
+        filename: Name of the SBML file to create.
+        model_name: Name of the model.
+        units: Dictionary of units to use in the SBML file (default: None).
+        compartments: Dictionary of compartments to use in the SBML file (default: None).
+        extent_units: Units for the extent of reactions (default: "mole").
+        substance_units: Units for the amount of substances (default: "mole").
+        time_units: Units for time (default: "second").
+
+    Returns:
+        str | None: None if the export is successful.
+    """
     doc = _model_to_sbml(
         model=model,
         model_name=model_name,
