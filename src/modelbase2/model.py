@@ -543,7 +543,23 @@ class Model:
                 args[name] = ro.fn(*(args[arg] for arg in ro.args))
         return args
 
-    def _get_args_vectorised(
+    def get_args(
+        self,
+        concs: dict[str, float],
+        time: float = 0.0,
+        *,
+        include_readouts: bool = False,
+    ) -> pd.Series[float]:
+        return pd.Series(
+            self._get_args(
+                concs=concs,
+                time=time,
+                include_readouts=include_readouts,
+            ),
+            dtype=float,
+        )
+
+    def get_args_time_series(
         self,
         concs: pd.DataFrame,
         *,
@@ -571,22 +587,6 @@ class Model:
             for name, ro in self._readouts.items():
                 args[name] = ro.fn(*args.loc[:, ro.args].to_numpy().T)
         return args
-
-    def get_args(
-        self,
-        concs: dict[str, float],
-        time: float = 0.0,
-        *,
-        include_readouts: bool = False,
-    ) -> pd.Series[float]:
-        return pd.Series(
-            self._get_args(
-                concs=concs,
-                time=time,
-                include_readouts=include_readouts,
-            ),
-            dtype=float,
-        )
 
     ##########################################################################
     # Get full concs
@@ -627,7 +627,26 @@ class Model:
             )
         return fluxes
 
-    def _get_fluxes_vectorised(
+    def get_fluxes(
+        self,
+        concs: dict[str, float],
+        time: float = 0.0,
+    ) -> pd.Series[float]:
+        args = self.get_args(
+            concs=concs,
+            time=time,
+            include_readouts=False,
+        )
+
+        fluxes: dict[str, float] = {}
+        for name, rxn in self._reactions.items():
+            fluxes[name] = rxn.fn(*args.loc[rxn.args])
+
+        for surrogate in self._surrogates.values():
+            fluxes |= surrogate.predict(args.loc[surrogate.inputs].to_numpy())
+        return pd.Series(fluxes, dtype=float)
+
+    def get_fluxes_time_series(
         self,
         args: pd.DataFrame,
     ) -> pd.DataFrame:
@@ -648,31 +667,12 @@ class Model:
             flux_df = pd.concat((flux_df, outputs), axis=1)
         return flux_df
 
-    def get_fluxes(
-        self,
-        concs: dict[str, float],
-        time: float = 0.0,
-    ) -> pd.Series[float]:
-        args = self.get_args(
-            concs=concs,
-            time=time,
-            include_readouts=False,
-        )
-
-        fluxes: dict[str, float] = {}
-        for name, rxn in self._reactions.items():
-            fluxes[name] = rxn.fn(*args.loc[rxn.args])
-
-        for surrogate in self._surrogates.values():
-            fluxes |= surrogate.predict(args.loc[surrogate.inputs].to_numpy())
-        return pd.Series(fluxes, dtype=float)
-
     ##########################################################################
     # Get rhs
     ##########################################################################
 
-    def _get_rhs(self, /, time: float, concs: Array) -> Array:
-        """Simulation version. Swaps t and y!
+    def __call__(self, /, time: float, concs: Array) -> Array:
+        """Simulation version of get_right_hand_side. Swaps t and y!
 
         This can't get kw-only args, as the integrators call it with pos-only
         """

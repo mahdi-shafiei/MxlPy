@@ -58,10 +58,7 @@ class Simulator:
         y0 = model.get_initial_conditions() if y0 is None else y0
         self.y0 = [y0[k] for k in model.get_variable_names()]
 
-        self.integrator = integrator(
-            self.model._get_rhs,  # noqa: SLF001
-            y0=self.y0,
-        )
+        self.integrator = integrator(self.model, y0=self.y0)
         self.concs = None
         self.args = None
         self.simulation_parameters = None
@@ -209,7 +206,7 @@ class Simulator:
         for res, p in zip(concs, params, strict=True):
             self.model.update_parameters(p)
             args.append(
-                self.model._get_args_vectorised(  # noqa: SLF001
+                self.model.get_args_time_series(
                     concs=res,
                     include_readouts=include_readouts,
                 )
@@ -356,7 +353,7 @@ class Simulator:
         fluxes: list[pd.DataFrame] = []
         for y, p in zip(args, params, strict=True):
             self.model.update_parameters(p)
-            fluxes.append(self.model._get_fluxes_vectorised(args=y))  # noqa: SLF001
+            fluxes.append(self.model.get_fluxes_time_series(args=y))
 
         if normalise is not None:
             fluxes = _normalise_split_results(
@@ -381,6 +378,18 @@ class Simulator:
             self.get_full_concs(include_readouts=include_readouts),
             self.get_fluxes(),
         )
+
+    def get_results(self) -> pd.DataFrame | None:
+        c, v = self.get_concs_and_fluxes()
+        if c is None or v is None:
+            return None
+        return pd.concat((c, v), axis=1)
+
+    def get_full_results(self) -> pd.DataFrame | None:
+        c, v = self.get_full_concs_and_fluxes()
+        if c is None or v is None:
+            return None
+        return pd.concat((c, v), axis=1)
 
     def get_new_y0(self) -> dict[str, float] | None:
         if (res := self.get_concs()) is None:
