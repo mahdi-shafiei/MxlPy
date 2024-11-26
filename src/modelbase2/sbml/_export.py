@@ -9,8 +9,9 @@ from typing import cast
 import dill
 import libsbml
 
+from modelbase2.model import Model
 from modelbase2.sbml._data import AtomicUnit, Compartment
-from modelbase2.types import Any, Model
+from modelbase2.types import Any
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
 RE_LAMBDA_RATE_FUNC = re.compile(r".*(lambda)(.+?):(.*?),")

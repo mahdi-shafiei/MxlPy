@@ -1,6 +1,6 @@
 import itertools as it
 import math
-from typing import cast
+from typing import Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -138,6 +138,17 @@ def _annotate_colormap(
 def add_grid(ax: Axes) -> Axes:
     ax.grid(visible=True)
     ax.set_axisbelow(b=True)
+    return ax
+
+
+def rotate_xlabels(
+    ax: Axes,
+    rotation: float = 45,
+    ha: Literal["left", "center", "right"] = "right",
+) -> Axes:
+    for label in ax.get_xticklabels():
+        label.set_rotation(rotation)
+        label.set_horizontalalignment(ha)
     return ax
 
 
@@ -411,6 +422,7 @@ def heatmap(
 
     if invert_yaxis:
         ax.invert_yaxis()
+    rotate_xlabels(ax, rotation=45, ha="right")
     return fig, ax, hm
 
 
@@ -439,6 +451,8 @@ def heatmap_from_2d_idx(
         np.arange(0, len(df2d.columns), 1) + 0.5,
         labels=[f"{i:.2f}" for i in df2d.columns],
     )
+
+    rotate_xlabels(ax, rotation=45, ha="right")
 
     # Add colorbar
     fig.colorbar(hm, ax=ax)
@@ -484,6 +498,10 @@ def violins(
 def violins_from_2d_idx(
     df: pd.DataFrame,
     *,
+    n_cols: int = 4,
+    row_height: int = 2,
+    sharex: bool = True,
+    sharey: bool = False,
     grid: bool = True,
 ) -> FigAxs:
     if len(cast(pd.MultiIndex, df.index).levels) != 2:  # noqa: PLR2004
@@ -492,9 +510,10 @@ def violins_from_2d_idx(
 
     fig, axs = grid_layout(
         len(df.columns),
-        n_cols=4,
-        row_height=2,
-        sharex=True,
+        n_cols=n_cols,
+        row_height=row_height,
+        sharex=sharex,
+        sharey=sharey,
         grid=grid,
     )
 
@@ -508,9 +527,7 @@ def violins_from_2d_idx(
         ax.yaxis.set_ticks([])
 
     for ax in axs:
-        for label in ax.get_xticklabels():
-            label.set_rotation(45)
-            label.set_horizontalalignment("right")
+        rotate_xlabels(ax)
     return fig, axs
 
 

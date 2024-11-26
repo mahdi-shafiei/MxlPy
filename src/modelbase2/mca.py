@@ -1,3 +1,11 @@
+"""Metabolic control analysis
+
+Main functions:
+    variable_elasticities
+    parameter_elasticities
+    response_coefficients
+"""
+
 from __future__ import annotations
 
 from functools import partial

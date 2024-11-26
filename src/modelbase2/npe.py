@@ -53,7 +53,7 @@ class DefaultTimeSeriesApproximator(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # lstm_out, (hidden_state, cell_state)
-        lstm_out, (hn, cn) = self.lstm(x)
+        _, (hn, _) = self.lstm(x)
         return self.to_out(hn[-1])  # Use last hidden state
 
 
