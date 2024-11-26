@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from modelbase2.ode import Simulator
+from modelbase2 import Simulator
+from modelbase2.model import Model
 from modelbase2.sbml._import import Parser
 
 try:
@@ -21,13 +22,12 @@ except ImportError:
 ASSET_PATH = Path("tests") / "sbml" / "assets"
 
 
-def get_simulation_settings(path, prefix):
+def get_simulation_settings(path: Path, prefix: str) -> dict:
     sim_settings = {}
     settings_file = path / f"{prefix}-settings.txt"
-    sim_settings = {}
-    with open(settings_file, "r") as f:
-        for i in f.readlines():
-            i = i.strip().split(": ")
+    with settings_file.open() as f:
+        for line in f:
+            i = line.strip().split(": ")
             if i[0] == "absolute":
                 sim_settings["atol"] = float(i[1])
             elif i[0] == "relative":
@@ -37,7 +37,9 @@ def get_simulation_settings(path, prefix):
     return sim_settings
 
 
-def add_constant_species_to_results(m, expected, result):
+def add_constant_species_to_results(
+    m: Model, expected: pd.DataFrame, result: pd.DataFrame
+) -> pd.DataFrame:
     """If a species is constant we don't include it in the results.
     Since SBML does, we need to manually add it.
     """
@@ -52,7 +54,7 @@ def add_constant_species_to_results(m, expected, result):
     return result
 
 
-def get_files(test):
+def get_files(test: int) -> tuple[Parser, dict, pd.DataFrame]:
     prefix = f"{test:05d}"
     path = ASSET_PATH / prefix
     sim_settings = get_simulation_settings(path=path, prefix=prefix)
@@ -61,7 +63,7 @@ def get_files(test):
     return parser, sim_settings, expected
 
 
-def add_dummy_compound(m, y0):
+def add_dummy_compound(m: Model, y0: dict[str, float]) -> None:
     m.add_compound("dummy")
     m.add_reaction(
         "dummy",
@@ -73,7 +75,7 @@ def add_dummy_compound(m, y0):
     y0.update({"dummy": 0})
 
 
-def routine(test):
+def routine(test: int) -> bool:
     parser, sim_settings, expected = get_files(test=test)
     m, y0 = parser.build_model_from_sbml()
     if len(m.stoichiometries) == 0:
@@ -98,7937 +100,7937 @@ def routine(test):
     ).all()
 
 
-def test_00001():
+def test_00001() -> None:
     assert routine(test=1)
 
 
-def test_00002():
+def test_00002() -> None:
     assert routine(test=2)
 
 
-def test_00003():
+def test_00003() -> None:
     assert routine(test=3)
 
 
-def test_00004():
+def test_00004() -> None:
     assert routine(test=4)
 
 
-def test_00005():
+def test_00005() -> None:
     assert routine(test=5)
 
 
-def test_00006():
+def test_00006() -> None:
     assert routine(test=6)
 
 
-def test_00007():
+def test_00007() -> None:
     assert routine(test=7)
 
 
-def test_00008():
+def test_00008() -> None:
     assert routine(test=8)
 
 
-def test_00009():
+def test_00009() -> None:
     assert routine(test=9)
 
 
-def test_00010():
+def test_00010() -> None:
     assert routine(test=10)
 
 
-def test_00011():
+def test_00011() -> None:
     assert routine(test=11)
 
 
-def test_00012():
+def test_00012() -> None:
     assert routine(test=12)
 
 
-def test_00013():
+def test_00013() -> None:
     assert routine(test=13)
 
 
-def test_00014():
+def test_00014() -> None:
     assert routine(test=14)
 
 
-def test_00015():
+def test_00015() -> None:
     assert routine(test=15)
 
 
-def test_00016():
+def test_00016() -> None:
     assert routine(test=16)
 
 
-def test_00017():
+def test_00017() -> None:
     assert routine(test=17)
 
 
-def test_00018():
+def test_00018() -> None:
     assert routine(test=18)
 
 
-def test_00019():
+def test_00019() -> None:
     assert routine(test=19)
 
 
-def test_00020():
+def test_00020() -> None:
     assert routine(test=20)
 
 
-def test_00021():
+def test_00021() -> None:
     assert routine(test=21)
 
 
-def test_00022():
+def test_00022() -> None:
     assert routine(test=22)
 
 
-def test_00023():
+def test_00023() -> None:
     assert routine(test=23)
 
 
-def test_00024():
+def test_00024() -> None:
     assert routine(test=24)
 
 
-def test_00025():
+def test_00025() -> None:
     assert routine(test=25)
 
 
-def test_00026():
+def test_00026() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=26)
 
 
-def test_00027():
+def test_00027() -> None:
     assert routine(test=27)
 
 
-def test_00028():
+def test_00028() -> None:
     if ASSIMULO_FLAG:
         assert not routine(test=28)
     else:
         assert routine(test=28)
 
 
-def test_00029():
+def test_00029() -> None:
     assert routine(test=29)
 
 
-def test_00030():
+def test_00030() -> None:
     assert routine(test=30)
 
 
-def test_00031():
+def test_00031() -> None:
     assert routine(test=31)
 
 
-def test_00032():
+def test_00032() -> None:
     assert routine(test=32)
 
 
-def test_00033():
+def test_00033() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=33)
 
 
-def test_00034():
+def test_00034() -> None:
     assert routine(test=34)
 
 
-def test_00035():
+def test_00035() -> None:
     assert routine(test=35)
 
 
-def test_00036():
+def test_00036() -> None:
     assert routine(test=36)
 
 
-def test_00037():
+def test_00037() -> None:
     assert routine(test=37)
 
 
-def test_00038():
+def test_00038() -> None:
     assert routine(test=38)
 
 
-def test_00039():
+def test_00039() -> None:
     assert routine(test=39)
 
 
-def test_00040():
+def test_00040() -> None:
     assert routine(test=40)
 
 
-def test_00041():
+def test_00041() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=41)
 
 
-def test_00042():
+def test_00042() -> None:
     assert routine(test=42)
 
 
-def test_00043():
+def test_00043() -> None:
     assert routine(test=43)
 
 
-def test_00044():
+def test_00044() -> None:
     assert routine(test=44)
 
 
-def test_00045():
+def test_00045() -> None:
     assert routine(test=45)
 
 
-def test_00046():
+def test_00046() -> None:
     assert routine(test=46)
 
 
-def test_00047():
+def test_00047() -> None:
     assert routine(test=47)
 
 
-def test_00048():
+def test_00048() -> None:
     assert routine(test=48)
 
 
-def test_00049():
+def test_00049() -> None:
     assert routine(test=49)
 
 
-def test_00050():
+def test_00050() -> None:
     assert routine(test=50)
 
 
-def test_00051():
+def test_00051() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=51)
 
 
-def test_00052():
+def test_00052() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=52)
 
 
-def test_00053():
+def test_00053() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=53)
 
 
-def test_00054():
+def test_00054() -> None:
     assert routine(test=54)
 
 
-def test_00055():
+def test_00055() -> None:
     assert routine(test=55)
 
 
-def test_00056():
+def test_00056() -> None:
     assert routine(test=56)
 
 
-def test_00057():
+def test_00057() -> None:
     assert routine(test=57)
 
 
-def test_00058():
+def test_00058() -> None:
     assert routine(test=58)
 
 
-# def test_00059():  # FIXME
+# def test_00059() -> None:  # FIXME
 #     assert routine(test=59)
 
 
-def test_00060():
+def test_00060() -> None:
     assert routine(test=60)
 
 
-def test_00061():
+def test_00061() -> None:
     assert routine(test=61)
 
 
-def test_00062():
+def test_00062() -> None:
     assert routine(test=62)
 
 
-def test_00063():
+def test_00063() -> None:
     assert routine(test=63)
 
 
-def test_00064():
+def test_00064() -> None:
     assert routine(test=64)
 
 
-def test_00065():
+def test_00065() -> None:
     assert routine(test=65)
 
 
-def test_00066():
+def test_00066() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=66)
 
 
-def test_00067():
+def test_00067() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=67)
 
 
-# def test_00068():  # FIXME
+# def test_00068() -> None:  # FIXME
 #     assert routine(test=68)
 
-# def test_00069():  # FIXME
+# def test_00069() -> None:  # FIXME
 #     assert routine(test=69)
 
-# def test_00070():  # FIXME
+# def test_00070() -> None:  # FIXME
 #     assert routine(test=70)
 
 
-def test_00071():
+def test_00071() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=71)
 
 
-def test_00072():
+def test_00072() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=72)
 
 
-def test_00073():
+def test_00073() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=73)
 
 
-def test_00074():
+def test_00074() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=74)
 
 
-def test_00075():
+def test_00075() -> None:
     assert routine(test=75)
 
 
-def test_00076():
+def test_00076() -> None:
     assert routine(test=76)
 
 
-def test_00077():
+def test_00077() -> None:
     assert routine(test=77)
 
 
-def test_00078():
+def test_00078() -> None:
     assert routine(test=78)
 
 
-def test_00079():
+def test_00079() -> None:
     assert routine(test=79)
 
 
-def test_00080():
+def test_00080() -> None:
     assert routine(test=80)
 
 
-def test_00081():
+def test_00081() -> None:
     assert routine(test=81)
 
 
-def test_00082():
+def test_00082() -> None:
     assert routine(test=82)
 
 
-def test_00083():
+def test_00083() -> None:
     assert routine(test=83)
 
 
-def test_00084():
+def test_00084() -> None:
     assert routine(test=84)
 
 
-def test_00085():
+def test_00085() -> None:
     assert routine(test=85)
 
 
-def test_00086():
+def test_00086() -> None:
     assert routine(test=86)
 
 
-def test_00087():
+def test_00087() -> None:
     assert routine(test=87)
 
 
-def test_00088():
+def test_00088() -> None:
     assert routine(test=88)
 
 
-def test_00089():
+def test_00089() -> None:
     assert routine(test=89)
 
 
-def test_00090():
+def test_00090() -> None:
     assert routine(test=90)
 
 
-def test_00091():
+def test_00091() -> None:
     assert routine(test=91)
 
 
-def test_00092():
+def test_00092() -> None:
     assert routine(test=92)
 
 
-def test_00093():
+def test_00093() -> None:
     assert routine(test=93)
 
 
-def test_00094():
+def test_00094() -> None:
     assert routine(test=94)
 
 
-def test_00095():
+def test_00095() -> None:
     assert routine(test=95)
 
 
-def test_00096():
+def test_00096() -> None:
     assert routine(test=96)
 
 
-def test_00097():
+def test_00097() -> None:
     assert routine(test=97)
 
 
-def test_00098():
+def test_00098() -> None:
     assert routine(test=98)
 
 
-def test_00099():
+def test_00099() -> None:
     assert routine(test=99)
 
 
-def test_00100():
+def test_00100() -> None:
     assert routine(test=100)
 
 
-def test_00101():
+def test_00101() -> None:
     assert routine(test=101)
 
 
-def test_00102():
+def test_00102() -> None:
     assert routine(test=102)
 
 
-def test_00103():
+def test_00103() -> None:
     assert routine(test=103)
 
 
-def test_00104():
+def test_00104() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=104)
 
 
-def test_00105():
+def test_00105() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=105)
 
 
-def test_00106():
+def test_00106() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=106)
 
 
-def test_00107():
+def test_00107() -> None:
     assert routine(test=107)
 
 
-def test_00108():
+def test_00108() -> None:
     assert routine(test=108)
 
 
-def test_00109():
+def test_00109() -> None:
     assert routine(test=109)
 
 
-def test_00110():
+def test_00110() -> None:
     assert routine(test=110)
 
 
-def test_00111():
+def test_00111() -> None:
     assert routine(test=111)
 
 
-def test_00112():
+def test_00112() -> None:
     assert routine(test=112)
 
 
-def test_00113():
+def test_00113() -> None:
     assert routine(test=113)
 
 
-def test_00114():
+def test_00114() -> None:
     assert routine(test=114)
 
 
-def test_00115():
+def test_00115() -> None:
     assert routine(test=115)
 
 
-def test_00116():
+def test_00116() -> None:
     assert routine(test=116)
 
 
-def test_00117():
+def test_00117() -> None:
     assert routine(test=117)
 
 
-def test_00118():
+def test_00118() -> None:
     assert routine(test=118)
 
 
-def test_00119():
+def test_00119() -> None:
     assert routine(test=119)
 
 
-def test_00120():
+def test_00120() -> None:
     assert routine(test=120)
 
 
-def test_00121():
+def test_00121() -> None:
     assert routine(test=121)
 
 
-def test_00122():
+def test_00122() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=122)
 
 
-def test_00123():
+def test_00123() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=123)
 
 
-def test_00124():
+def test_00124() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=124)
 
 
-def test_00125():
+def test_00125() -> None:
     assert routine(test=125)
 
 
-def test_00126():
+def test_00126() -> None:
     assert routine(test=126)
 
 
-def test_00127():
+def test_00127() -> None:
     assert routine(test=127)
 
 
-def test_00128():
+def test_00128() -> None:
     assert routine(test=128)
 
 
-# def test_00129():  # FIXME
+# def test_00129() -> None:  # FIXME
 #     assert routine(test=129)
 
-# def test_00130():  # FIXME
+# def test_00130() -> None:  # FIXME
 #     assert routine(test=130)
 
-# def test_00131():  # FIXME
+# def test_00131() -> None:  # FIXME
 #     assert routine(test=131)
 
 
-def test_00132():
+def test_00132() -> None:
     assert routine(test=132)
 
 
-def test_00133():
+def test_00133() -> None:
     assert routine(test=133)
 
 
-# def test_00134():  # FIXME
+# def test_00134() -> None:  # FIXME
 #     assert routine(test=134)
 
 
-def test_00135():
+def test_00135() -> None:
     assert routine(test=135)
 
 
-def test_00136():
+def test_00136() -> None:
     assert routine(test=136)
 
 
-def test_00137():
+def test_00137() -> None:
     assert routine(test=137)
 
 
-def test_00138():
+def test_00138() -> None:
     assert routine(test=138)
 
 
-def test_00139():
+def test_00139() -> None:
     assert routine(test=139)
 
 
-def test_00140():
+def test_00140() -> None:
     assert routine(test=140)
 
 
-def test_00141():
+def test_00141() -> None:
     assert routine(test=141)
 
 
-def test_00142():
+def test_00142() -> None:
     assert routine(test=142)
 
 
-def test_00143():
+def test_00143() -> None:
     assert routine(test=143)
 
 
-def test_00144():
+def test_00144() -> None:
     assert routine(test=144)
 
 
-def test_00145():
+def test_00145() -> None:
     assert routine(test=145)
 
 
-def test_00146():
+def test_00146() -> None:
     assert routine(test=146)
 
 
-def test_00147():
+def test_00147() -> None:
     assert routine(test=147)
 
 
-def test_00148():
+def test_00148() -> None:
     assert routine(test=148)
 
 
-def test_00149():
+def test_00149() -> None:
     assert routine(test=149)
 
 
-def test_00150():
+def test_00150() -> None:
     assert routine(test=150)
 
 
-def test_00151():
+def test_00151() -> None:
     assert routine(test=151)
 
 
-def test_00152():
+def test_00152() -> None:
     assert routine(test=152)
 
 
-def test_00153():
+def test_00153() -> None:
     assert routine(test=153)
 
 
-def test_00154():
+def test_00154() -> None:
     assert routine(test=154)
 
 
-def test_00155():
+def test_00155() -> None:
     assert routine(test=155)
 
 
-def test_00156():
+def test_00156() -> None:
     assert routine(test=156)
 
 
-def test_00157():
+def test_00157() -> None:
     assert routine(test=157)
 
 
-def test_00158():
+def test_00158() -> None:
     assert routine(test=158)
 
 
-def test_00159():
+def test_00159() -> None:
     assert routine(test=159)
 
 
-def test_00160():
+def test_00160() -> None:
     assert routine(test=160)
 
 
-def test_00161():
+def test_00161() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=161)
 
 
-def test_00162():
+def test_00162() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=162)
 
 
-def test_00163():
+def test_00163() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=163)
 
 
-def test_00164():
+def test_00164() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=164)
 
 
-def test_00165():
+def test_00165() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=165)
 
 
-def test_00166():
+def test_00166() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=166)
 
 
-def test_00167():
+def test_00167() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=167)
 
 
-def test_00168():
+def test_00168() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=168)
 
 
-def test_00169():
+def test_00169() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=169)
 
 
-def test_00170():
+def test_00170() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=170)
 
 
-def test_00171():
+def test_00171() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=171)
 
 
-def test_00172():
+def test_00172() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=172)
 
 
-def test_00173():
+def test_00173() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=173)
 
 
-def test_00174():
+def test_00174() -> None:
     assert routine(test=174)
 
 
-def test_00175():
+def test_00175() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=175)
 
 
-def test_00176():
+def test_00176() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=176)
 
 
-def test_00177():
+def test_00177() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=177)
 
 
-def test_00178():
+def test_00178() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=178)
 
 
-def test_00179():
+def test_00179() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=179)
 
 
-def test_00180():
+def test_00180() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=180)
 
 
-def test_00181():
+def test_00181() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=181)
 
 
-def test_00182():
+def test_00182() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=182)
 
 
-def test_00183():
+def test_00183() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=183)
 
 
-def test_00184():
+def test_00184() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=184)
 
 
-def test_00185():
+def test_00185() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=185)
 
 
-def test_00186():
+def test_00186() -> None:
     assert routine(test=186)
 
 
-def test_00187():
+def test_00187() -> None:
     assert routine(test=187)
 
 
-def test_00188():
+def test_00188() -> None:
     assert routine(test=188)
 
 
-def test_00189():
+def test_00189() -> None:
     assert routine(test=189)
 
 
-def test_00190():
+def test_00190() -> None:
     assert routine(test=190)
 
 
-def test_00191():
+def test_00191() -> None:
     assert routine(test=191)
 
 
-def test_00192():
+def test_00192() -> None:
     assert routine(test=192)
 
 
-def test_00193():
+def test_00193() -> None:
     assert routine(test=193)
 
 
-def test_00194():
+def test_00194() -> None:
     assert routine(test=194)
 
 
-def test_00195():
+def test_00195() -> None:
     assert routine(test=195)
 
 
-def test_00196():
+def test_00196() -> None:
     if ASSIMULO_FLAG:
         assert not routine(test=196)
     else:
         assert routine(test=196)
 
 
-def test_00197():
+def test_00197() -> None:
     if ASSIMULO_FLAG:
         assert not routine(test=197)
     else:
         assert routine(test=197)
 
 
-def test_00198():
+def test_00198() -> None:
     assert routine(test=198)
 
 
-def test_00199():
+def test_00199() -> None:
     assert routine(test=199)
 
 
-def test_00200():
+def test_00200() -> None:
     assert routine(test=200)
 
 
-def test_00201():
+def test_00201() -> None:
     assert routine(test=201)
 
 
-def test_00202():
+def test_00202() -> None:
     assert routine(test=202)
 
 
-def test_00203():
+def test_00203() -> None:
     assert routine(test=203)
 
 
-def test_00204():
+def test_00204() -> None:
     assert routine(test=204)
 
 
-def test_00205():
+def test_00205() -> None:
     assert routine(test=205)
 
 
-def test_00206():
+def test_00206() -> None:
     assert routine(test=206)
 
 
-def test_00207():
+def test_00207() -> None:
     assert routine(test=207)
 
 
-def test_00208():
+def test_00208() -> None:
     assert routine(test=208)
 
 
-def test_00209():
+def test_00209() -> None:
     assert routine(test=209)
 
 
-def test_00210():
+def test_00210() -> None:
     assert routine(test=210)
 
 
-def test_00211():
+def test_00211() -> None:
     assert routine(test=211)
 
 
-def test_00212():
+def test_00212() -> None:
     assert routine(test=212)
 
 
-def test_00213():
+def test_00213() -> None:
     assert routine(test=213)
 
 
-def test_00214():
+def test_00214() -> None:
     assert routine(test=214)
 
 
-def test_00215():
+def test_00215() -> None:
     assert routine(test=215)
 
 
-def test_00216():
+def test_00216() -> None:
     assert routine(test=216)
 
 
-def test_00217():
+def test_00217() -> None:
     assert routine(test=217)
 
 
-def test_00218():
+def test_00218() -> None:
     assert routine(test=218)
 
 
-def test_00219():
+def test_00219() -> None:
     assert routine(test=219)
 
 
-def test_00220():
+def test_00220() -> None:
     assert routine(test=220)
 
 
-def test_00221():
+def test_00221() -> None:
     assert routine(test=221)
 
 
-def test_00222():
+def test_00222() -> None:
     assert routine(test=222)
 
 
-def test_00223():
+def test_00223() -> None:
     assert routine(test=223)
 
 
-def test_00224():
+def test_00224() -> None:
     assert routine(test=224)
 
 
-def test_00225():
+def test_00225() -> None:
     assert routine(test=225)
 
 
-def test_00226():
+def test_00226() -> None:
     assert routine(test=226)
 
 
-def test_00227():
+def test_00227() -> None:
     assert routine(test=227)
 
 
-def test_00228():
+def test_00228() -> None:
     assert routine(test=228)
 
 
-def test_00229():
+def test_00229() -> None:
     assert routine(test=229)
 
 
-def test_00230():
+def test_00230() -> None:
     assert routine(test=230)
 
 
-def test_00231():
+def test_00231() -> None:
     assert routine(test=231)
 
 
-def test_00232():
+def test_00232() -> None:
     assert routine(test=232)
 
 
-def test_00233():
+def test_00233() -> None:
     assert routine(test=233)
 
 
-def test_00234():
+def test_00234() -> None:
     assert routine(test=234)
 
 
-def test_00235():
+def test_00235() -> None:
     assert routine(test=235)
 
 
-def test_00236():
+def test_00236() -> None:
     assert routine(test=236)
 
 
-def test_00237():
+def test_00237() -> None:
     assert routine(test=237)
 
 
-def test_00238():
+def test_00238() -> None:
     assert routine(test=238)
 
 
-def test_00239():
+def test_00239() -> None:
     assert routine(test=239)
 
 
-def test_00240():
+def test_00240() -> None:
     assert routine(test=240)
 
 
-def test_00241():
+def test_00241() -> None:
     assert routine(test=241)
 
 
-def test_00242():
+def test_00242() -> None:
     assert routine(test=242)
 
 
-def test_00243():
+def test_00243() -> None:
     assert routine(test=243)
 
 
-def test_00244():
+def test_00244() -> None:
     assert routine(test=244)
 
 
-def test_00245():
+def test_00245() -> None:
     assert routine(test=245)
 
 
-def test_00246():
+def test_00246() -> None:
     assert routine(test=246)
 
 
-def test_00247():
+def test_00247() -> None:
     assert routine(test=247)
 
 
-def test_00248():
+def test_00248() -> None:
     assert routine(test=248)
 
 
-def test_00249():
+def test_00249() -> None:
     assert routine(test=249)
 
 
-def test_00250():
+def test_00250() -> None:
     assert routine(test=250)
 
 
-def test_00251():
+def test_00251() -> None:
     assert routine(test=251)
 
 
-def test_00252():
+def test_00252() -> None:
     assert routine(test=252)
 
 
-def test_00253():
+def test_00253() -> None:
     assert routine(test=253)
 
 
-def test_00254():
+def test_00254() -> None:
     assert routine(test=254)
 
 
-def test_00255():
+def test_00255() -> None:
     assert routine(test=255)
 
 
-def test_00256():
+def test_00256() -> None:
     assert routine(test=256)
 
 
-def test_00257():
+def test_00257() -> None:
     assert routine(test=257)
 
 
-def test_00258():
+def test_00258() -> None:
     assert routine(test=258)
 
 
-def test_00259():
+def test_00259() -> None:
     assert routine(test=259)
 
 
-def test_00260():
+def test_00260() -> None:
     assert routine(test=260)
 
 
-def test_00261():
+def test_00261() -> None:
     assert routine(test=261)
 
 
-def test_00262():
+def test_00262() -> None:
     assert routine(test=262)
 
 
-def test_00263():
+def test_00263() -> None:
     assert routine(test=263)
 
 
-def test_00264():
+def test_00264() -> None:
     assert routine(test=264)
 
 
-def test_00265():
+def test_00265() -> None:
     assert routine(test=265)
 
 
-def test_00266():
+def test_00266() -> None:
     assert routine(test=266)
 
 
-def test_00267():
+def test_00267() -> None:
     assert routine(test=267)
 
 
-def test_00268():
+def test_00268() -> None:
     assert routine(test=268)
 
 
-def test_00269():
+def test_00269() -> None:
     if ASSIMULO_FLAG:
         assert not routine(test=269)
     else:
         assert routine(test=269)
 
 
-def test_00270():
+def test_00270() -> None:
     assert routine(test=270)
 
 
-def test_00271():
+def test_00271() -> None:
     with pytest.raises(TypeError):
         routine(test=271)
 
 
-def test_00272():
+def test_00272() -> None:
     assert routine(test=272)
 
 
-def test_00273():
+def test_00273() -> None:
     assert routine(test=273)
 
 
-def test_00274():
+def test_00274() -> None:
     assert routine(test=274)
 
 
-def test_00275():
+def test_00275() -> None:
     with pytest.raises(TypeError):
         routine(test=275)
 
 
-def test_00276():
+def test_00276() -> None:
     assert routine(test=276)
 
 
-def test_00277():
+def test_00277() -> None:
     assert routine(test=277)
 
 
-def test_00278():
+def test_00278() -> None:
     assert routine(test=278)
 
 
-def test_00279():
+def test_00279() -> None:
     assert routine(test=279)
 
 
-def test_00280():
+def test_00280() -> None:
     assert routine(test=280)
 
 
-def test_00281():
+def test_00281() -> None:
     assert routine(test=281)
 
 
-def test_00282():
+def test_00282() -> None:
     assert routine(test=282)
 
 
-def test_00283():
+def test_00283() -> None:
     assert routine(test=283)
 
 
-def test_00284():
+def test_00284() -> None:
     assert routine(test=284)
 
 
-def test_00285():
+def test_00285() -> None:
     assert routine(test=285)
 
 
-def test_00286():
+def test_00286() -> None:
     assert routine(test=286)
 
 
-def test_00287():
+def test_00287() -> None:
     assert routine(test=287)
 
 
-def test_00288():
+def test_00288() -> None:
     assert routine(test=288)
 
 
-def test_00289():
+def test_00289() -> None:
     assert routine(test=289)
 
 
-def test_00290():
+def test_00290() -> None:
     assert routine(test=290)
 
 
-def test_00291():
+def test_00291() -> None:
     assert routine(test=291)
 
 
-def test_00292():
+def test_00292() -> None:
     assert routine(test=292)
 
 
-def test_00293():
+def test_00293() -> None:
     assert routine(test=293)
 
 
-def test_00294():
+def test_00294() -> None:
     assert routine(test=294)
 
 
-def test_00295():
+def test_00295() -> None:
     assert routine(test=295)
 
 
-def test_00296():
+def test_00296() -> None:
     assert routine(test=296)
 
 
-def test_00297():
+def test_00297() -> None:
     assert routine(test=297)
 
 
-def test_00298():
+def test_00298() -> None:
     assert routine(test=298)
 
 
-def test_00299():
+def test_00299() -> None:
     assert routine(test=299)
 
 
-def test_00300():
+def test_00300() -> None:
     assert routine(test=300)
 
 
-def test_00301():
+def test_00301() -> None:
     assert routine(test=301)
 
 
-def test_00302():
+def test_00302() -> None:
     assert routine(test=302)
 
 
-def test_00303():
+def test_00303() -> None:
     assert routine(test=303)
 
 
-def test_00304():
+def test_00304() -> None:
     assert routine(test=304)
 
 
-def test_00305():
+def test_00305() -> None:
     assert routine(test=305)
 
 
-def test_00306():
+def test_00306() -> None:
     assert routine(test=306)
 
 
-def test_00307():
+def test_00307() -> None:
     assert routine(test=307)
 
 
-def test_00308():
+def test_00308() -> None:
     assert routine(test=308)
 
 
-def test_00309():
+def test_00309() -> None:
     assert routine(test=309)
 
 
-def test_00310():
+def test_00310() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=310)
 
 
-def test_00311():
+def test_00311() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=311)
 
 
-def test_00312():
+def test_00312() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=312)
 
 
-def test_00313():
+def test_00313() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=313)
 
 
-def test_00314():
+def test_00314() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=314)
 
 
-def test_00315():
+def test_00315() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=315)
 
 
-def test_00316():
+def test_00316() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=316)
 
 
-def test_00317():
+def test_00317() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=317)
 
 
-def test_00318():
+def test_00318() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=318)
 
 
-def test_00319():
+def test_00319() -> None:
     assert routine(test=319)
 
 
-def test_00320():
+def test_00320() -> None:
     assert routine(test=320)
 
 
-def test_00321():
+def test_00321() -> None:
     assert routine(test=321)
 
 
-def test_00322():
+def test_00322() -> None:
     assert routine(test=322)
 
 
-def test_00323():
+def test_00323() -> None:
     assert routine(test=323)
 
 
-def test_00324():
+def test_00324() -> None:
     assert routine(test=324)
 
 
-def test_00325():
+def test_00325() -> None:
     assert routine(test=325)
 
 
-def test_00326():
+def test_00326() -> None:
     assert routine(test=326)
 
 
-def test_00327():
+def test_00327() -> None:
     assert routine(test=327)
 
 
-def test_00328():
+def test_00328() -> None:
     assert routine(test=328)
 
 
-def test_00329():
+def test_00329() -> None:
     assert routine(test=329)
 
 
-def test_00330():
+def test_00330() -> None:
     assert routine(test=330)
 
 
-def test_00331():
+def test_00331() -> None:
     assert routine(test=331)
 
 
-def test_00332():
+def test_00332() -> None:
     assert routine(test=332)
 
 
-def test_00333():
+def test_00333() -> None:
     assert routine(test=333)
 
 
-def test_00334():
+def test_00334() -> None:
     assert routine(test=334)
 
 
-def test_00335():
+def test_00335() -> None:
     assert routine(test=335)
 
 
-def test_00336():
+def test_00336() -> None:
     assert routine(test=336)
 
 
-def test_00337():
+def test_00337() -> None:
     assert routine(test=337)
 
 
-def test_00338():
+def test_00338() -> None:
     assert routine(test=338)
 
 
-def test_00339():
+def test_00339() -> None:
     assert routine(test=339)
 
 
-def test_00340():
+def test_00340() -> None:
     assert routine(test=340)
 
 
-def test_00341():
+def test_00341() -> None:
     assert routine(test=341)
 
 
-def test_00342():
+def test_00342() -> None:
     assert routine(test=342)
 
 
-def test_00343():
+def test_00343() -> None:
     assert routine(test=343)
 
 
-def test_00344():
+def test_00344() -> None:
     assert routine(test=344)
 
 
-def test_00345():
+def test_00345() -> None:
     assert routine(test=345)
 
 
-def test_00346():
+def test_00346() -> None:
     assert routine(test=346)
 
 
-def test_00347():
+def test_00347() -> None:
     assert routine(test=347)
 
 
-def test_00348():
+def test_00348() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=348)
 
 
-def test_00349():
+def test_00349() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=349)
 
 
-def test_00350():
+def test_00350() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=350)
 
 
-def test_00351():
+def test_00351() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=351)
 
 
-def test_00352():
+def test_00352() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=352)
 
 
-def test_00353():
+def test_00353() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=353)
 
 
-def test_00354():
+def test_00354() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=354)
 
 
-def test_00355():
+def test_00355() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=355)
 
 
-def test_00356():
+def test_00356() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=356)
 
 
-def test_00357():
+def test_00357() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=357)
 
 
-def test_00358():
+def test_00358() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=358)
 
 
-def test_00359():
+def test_00359() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=359)
 
 
-def test_00360():
+def test_00360() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=360)
 
 
-def test_00361():
+def test_00361() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=361)
 
 
-def test_00362():
+def test_00362() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=362)
 
 
-def test_00363():
+def test_00363() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=363)
 
 
-def test_00364():
+def test_00364() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=364)
 
 
-def test_00365():
+def test_00365() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=365)
 
 
-def test_00366():
+def test_00366() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=366)
 
 
-def test_00367():
+def test_00367() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=367)
 
 
-def test_00368():
+def test_00368() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=368)
 
 
-def test_00369():
+def test_00369() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=369)
 
 
-def test_00370():
+def test_00370() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=370)
 
 
-def test_00371():
+def test_00371() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=371)
 
 
-def test_00372():
+def test_00372() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=372)
 
 
-def test_00373():
+def test_00373() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=373)
 
 
-def test_00374():
+def test_00374() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=374)
 
 
-def test_00375():
+def test_00375() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=375)
 
 
-def test_00376():
+def test_00376() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=376)
 
 
-def test_00377():
+def test_00377() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=377)
 
 
-def test_00378():
+def test_00378() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=378)
 
 
-def test_00379():
+def test_00379() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=379)
 
 
-def test_00380():
+def test_00380() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=380)
 
 
-def test_00381():
+def test_00381() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=381)
 
 
-def test_00382():
+def test_00382() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=382)
 
 
-def test_00383():
+def test_00383() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=383)
 
 
-def test_00384():
+def test_00384() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=384)
 
 
-def test_00385():
+def test_00385() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=385)
 
 
-def test_00386():
+def test_00386() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=386)
 
 
-def test_00387():
+def test_00387() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=387)
 
 
-# def test_00388():  # FIXME
+# def test_00388() -> None:  # FIXME
 #     assert routine(test=388)
 
 
-def test_00389():
+def test_00389() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=389)
 
 
-def test_00390():
+def test_00390() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=390)
 
 
-# def test_00391():  # FIXME
+# def test_00391() -> None:  # FIXME
 #     assert routine(test=391)
 
 
-def test_00392():
+def test_00392() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=392)
 
 
-def test_00393():
+def test_00393() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=393)
 
 
-# def test_00394():  # FIXME
+# def test_00394() -> None:  # FIXME
 #     assert routine(test=394)
 
 
-def test_00395():
+def test_00395() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=395)
 
 
-def test_00396():
+def test_00396() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=396)
 
 
-def test_00397():
+def test_00397() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=397)
 
 
-def test_00398():
+def test_00398() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=398)
 
 
-def test_00399():
+def test_00399() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=399)
 
 
-def test_00400():
+def test_00400() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=400)
 
 
-def test_00401():
+def test_00401() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=401)
 
 
-def test_00402():
+def test_00402() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=402)
 
 
-def test_00403():
+def test_00403() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=403)
 
 
-def test_00404():
+def test_00404() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=404)
 
 
-def test_00405():
+def test_00405() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=405)
 
 
-def test_00406():
+def test_00406() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=406)
 
 
-def test_00407():
+def test_00407() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=407)
 
 
-def test_00408():
+def test_00408() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=408)
 
 
-def test_00409():
+def test_00409() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=409)
 
 
-def test_00410():
+def test_00410() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=410)
 
 
-def test_00411():
+def test_00411() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=411)
 
 
-def test_00412():
+def test_00412() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=412)
 
 
-def test_00413():
+def test_00413() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=413)
 
 
-def test_00414():
+def test_00414() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=414)
 
 
-def test_00415():
+def test_00415() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=415)
 
 
-def test_00416():
+def test_00416() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=416)
 
 
-def test_00417():
+def test_00417() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=417)
 
 
-def test_00418():
+def test_00418() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=418)
 
 
-def test_00419():
+def test_00419() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=419)
 
 
-def test_00420():
+def test_00420() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=420)
 
 
-def test_00421():
+def test_00421() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=421)
 
 
-def test_00422():
+def test_00422() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=422)
 
 
-def test_00423():
+def test_00423() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=423)
 
 
-def test_00424():
+def test_00424() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=424)
 
 
-def test_00425():
+def test_00425() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=425)
 
 
-def test_00426():
+def test_00426() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=426)
 
 
-def test_00427():
+def test_00427() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=427)
 
 
-def test_00428():
+def test_00428() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=428)
 
 
-def test_00429():
+def test_00429() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=429)
 
 
-def test_00430():
+def test_00430() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=430)
 
 
-def test_00431():
+def test_00431() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=431)
 
 
-def test_00432():
+def test_00432() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=432)
 
 
-def test_00433():
+def test_00433() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=433)
 
 
-def test_00434():
+def test_00434() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=434)
 
 
-def test_00435():
+def test_00435() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=435)
 
 
-def test_00436():
+def test_00436() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=436)
 
 
-def test_00437():
+def test_00437() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=437)
 
 
-def test_00438():
+def test_00438() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=438)
 
 
-def test_00439():
+def test_00439() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=439)
 
 
-def test_00440():
+def test_00440() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=440)
 
 
-def test_00441():
+def test_00441() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=441)
 
 
-def test_00442():
+def test_00442() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=442)
 
 
-def test_00443():
+def test_00443() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=443)
 
 
-def test_00444():
+def test_00444() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=444)
 
 
-# def test_00445():  # FIXME
+# def test_00445() -> None:  # FIXME
 #     assert routine(test=445)
 
 
-def test_00446():
+def test_00446() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=446)
 
 
-def test_00447():
+def test_00447() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=447)
 
 
-# def test_00448():  # FIXME
+# def test_00448() -> None:  # FIXME
 #     assert routine(test=448)
 
 
-def test_00449():
+def test_00449() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=449)
 
 
-def test_00450():
+def test_00450() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=450)
 
 
-# def test_00451():  # FIXME
+# def test_00451() -> None:  # FIXME
 #     assert routine(test=451)
 
 
-def test_00452():
+def test_00452() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=452)
 
 
-def test_00453():
+def test_00453() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=453)
 
 
-def test_00454():
+def test_00454() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=454)
 
 
-def test_00455():
+def test_00455() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=455)
 
 
-def test_00456():
+def test_00456() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=456)
 
 
-def test_00457():
+def test_00457() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=457)
 
 
-def test_00458():
+def test_00458() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=458)
 
 
-def test_00459():
+def test_00459() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=459)
 
 
-def test_00460():
+def test_00460() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=460)
 
 
-def test_00461():
+def test_00461() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=461)
 
 
-def test_00462():
+def test_00462() -> None:
     assert routine(test=462)
 
 
-def test_00463():
+def test_00463() -> None:
     assert routine(test=463)
 
 
-def test_00464():
+def test_00464() -> None:
     assert routine(test=464)
 
 
-def test_00465():
+def test_00465() -> None:
     assert routine(test=465)
 
 
-def test_00466():
+def test_00466() -> None:
     assert routine(test=466)
 
 
-def test_00467():
+def test_00467() -> None:
     assert routine(test=467)
 
 
-def test_00468():
+def test_00468() -> None:
     assert routine(test=468)
 
 
-def test_00469():
+def test_00469() -> None:
     assert routine(test=469)
 
 
-def test_00470():
+def test_00470() -> None:
     assert routine(test=470)
 
 
-def test_00471():
+def test_00471() -> None:
     assert routine(test=471)
 
 
-def test_00472():
+def test_00472() -> None:
     assert routine(test=472)
 
 
-def test_00473():
+def test_00473() -> None:
     assert routine(test=473)
 
 
-def test_00474():
+def test_00474() -> None:
     assert routine(test=474)
 
 
-def test_00475():
+def test_00475() -> None:
     assert routine(test=475)
 
 
-def test_00476():
+def test_00476() -> None:
     assert routine(test=476)
 
 
-def test_00477():
+def test_00477() -> None:
     assert routine(test=477)
 
 
-def test_00478():
+def test_00478() -> None:
     assert routine(test=478)
 
 
-def test_00479():
+def test_00479() -> None:
     assert routine(test=479)
 
 
-def test_00480():
+def test_00480() -> None:
     assert routine(test=480)
 
 
-def test_00481():
+def test_00481() -> None:
     assert routine(test=481)
 
 
-def test_00482():
+def test_00482() -> None:
     assert routine(test=482)
 
 
-def test_00483():
+def test_00483() -> None:
     assert routine(test=483)
 
 
-def test_00484():
+def test_00484() -> None:
     assert routine(test=484)
 
 
-def test_00485():
+def test_00485() -> None:
     assert routine(test=485)
 
 
-def test_00486():
+def test_00486() -> None:
     assert routine(test=486)
 
 
-def test_00487():
+def test_00487() -> None:
     assert routine(test=487)
 
 
-def test_00488():
+def test_00488() -> None:
     assert routine(test=488)
 
 
-def test_00489():
+def test_00489() -> None:
     assert routine(test=489)
 
 
-def test_00490():
+def test_00490() -> None:
     assert routine(test=490)
 
 
-def test_00491():
+def test_00491() -> None:
     assert routine(test=491)
 
 
-def test_00492():
+def test_00492() -> None:
     assert routine(test=492)
 
 
-def test_00493():
+def test_00493() -> None:
     assert routine(test=493)
 
 
-def test_00494():
+def test_00494() -> None:
     assert routine(test=494)
 
 
-def test_00495():
+def test_00495() -> None:
     assert routine(test=495)
 
 
-def test_00496():
+def test_00496() -> None:
     assert routine(test=496)
 
 
-def test_00497():
+def test_00497() -> None:
     assert routine(test=497)
 
 
-def test_00498():
+def test_00498() -> None:
     assert routine(test=498)
 
 
-def test_00499():
+def test_00499() -> None:
     assert routine(test=499)
 
 
-def test_00500():
+def test_00500() -> None:
     assert routine(test=500)
 
 
-def test_00501():
+def test_00501() -> None:
     assert routine(test=501)
 
 
-def test_00502():
+def test_00502() -> None:
     assert routine(test=502)
 
 
-def test_00503():
+def test_00503() -> None:
     assert routine(test=503)
 
 
-# def test_00504():  # FIXME
+# def test_00504() -> None:  # FIXME
 #     assert routine(test=504)
 
 
-# def test_00505():  # FIXME
+# def test_00505() -> None:  # FIXME
 #     assert routine(test=505)
 
 
-# def test_00506():  # FIXME
+# def test_00506() -> None:  # FIXME
 #     assert routine(test=506)
 
 
-# def test_00507():  # FIXME
+# def test_00507() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=507)
 
 
-# def test_00508():  # FIXME
+# def test_00508() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=508)
 
 
-# def test_00509():  # FIXME
+# def test_00509() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=509)
 
 
-def test_00510():
+def test_00510() -> None:
     assert routine(test=510)
 
 
-def test_00511():
+def test_00511() -> None:
     assert routine(test=511)
 
 
-def test_00512():
+def test_00512() -> None:
     assert routine(test=512)
 
 
-def test_00513():
+def test_00513() -> None:
     assert routine(test=513)
 
 
-def test_00514():
+def test_00514() -> None:
     assert routine(test=514)
 
 
-def test_00515():
+def test_00515() -> None:
     assert routine(test=515)
 
 
-# def test_00516():  # FIXME
+# def test_00516() -> None:  # FIXME
 #     assert routine(test=516)
 
-# def test_00517():  # FIXME
+# def test_00517() -> None:  # FIXME
 #     assert routine(test=517)
 
-# def test_00518():  # FIXME
+# def test_00518() -> None:  # FIXME
 #     assert routine(test=518)
 
-# def test_00519():  # FIXME
+# def test_00519() -> None:  # FIXME
 #     assert routine(test=519)
 
-# def test_00520():  # FIXME
+# def test_00520() -> None:  # FIXME
 #     assert routine(test=520)
 
-# def test_00521():  # FIXME
+# def test_00521() -> None:  # FIXME
 #     assert routine(test=521)
 
 
-def test_00522():
+def test_00522() -> None:
     assert routine(test=522)
 
 
-def test_00523():
+def test_00523() -> None:
     assert routine(test=523)
 
 
-def test_00524():
+def test_00524() -> None:
     assert routine(test=524)
 
 
-def test_00525():
+def test_00525() -> None:
     assert routine(test=525)
 
 
-def test_00526():
+def test_00526() -> None:
     assert routine(test=526)
 
 
-def test_00527():
+def test_00527() -> None:
     assert routine(test=527)
 
 
-def test_00528():
+def test_00528() -> None:
     assert routine(test=528)
 
 
-def test_00529():
+def test_00529() -> None:
     assert routine(test=529)
 
 
-def test_00530():
+def test_00530() -> None:
     assert routine(test=530)
 
 
-def test_00531():
+def test_00531() -> None:
     assert routine(test=531)
 
 
-def test_00532():
+def test_00532() -> None:
     assert routine(test=532)
 
 
-def test_00533():
+def test_00533() -> None:
     assert routine(test=533)
 
 
-def test_00534():
+def test_00534() -> None:
     assert routine(test=534)
 
 
-def test_00535():
+def test_00535() -> None:
     assert routine(test=535)
 
 
-def test_00536():
+def test_00536() -> None:
     assert routine(test=536)
 
 
-def test_00537():
+def test_00537() -> None:
     assert routine(test=537)
 
 
-def test_00538():
+def test_00538() -> None:
     assert routine(test=538)
 
 
-def test_00539():
+def test_00539() -> None:
     assert routine(test=539)
 
 
-def test_00540():
+def test_00540() -> None:
     assert routine(test=540)
 
 
-def test_00541():
+def test_00541() -> None:
     assert routine(test=541)
 
 
-def test_00542():
+def test_00542() -> None:
     assert routine(test=542)
 
 
-def test_00543():
+def test_00543() -> None:
     assert routine(test=543)
 
 
-def test_00544():
+def test_00544() -> None:
     assert routine(test=544)
 
 
-def test_00545():
+def test_00545() -> None:
     assert routine(test=545)
 
 
-def test_00546():
+def test_00546() -> None:
     assert routine(test=546)
 
 
-def test_00547():
+def test_00547() -> None:
     assert routine(test=547)
 
 
-def test_00548():
+def test_00548() -> None:
     assert routine(test=548)
 
 
-def test_00549():
+def test_00549() -> None:
     assert routine(test=549)
 
 
-def test_00550():
+def test_00550() -> None:
     assert routine(test=550)
 
 
-def test_00551():
+def test_00551() -> None:
     assert routine(test=551)
 
 
-def test_00552():
+def test_00552() -> None:
     assert routine(test=552)
 
 
-def test_00553():
+def test_00553() -> None:
     assert routine(test=553)
 
 
-def test_00554():
+def test_00554() -> None:
     assert routine(test=554)
 
 
-def test_00555():
+def test_00555() -> None:
     assert routine(test=555)
 
 
-def test_00556():
+def test_00556() -> None:
     assert routine(test=556)
 
 
-def test_00557():
+def test_00557() -> None:
     assert routine(test=557)
 
 
-def test_00558():
+def test_00558() -> None:
     assert routine(test=558)
 
 
-def test_00559():
+def test_00559() -> None:
     assert routine(test=559)
 
 
-def test_00560():
+def test_00560() -> None:
     assert routine(test=560)
 
 
-# def test_00561():  # FIXME
+# def test_00561() -> None:  # FIXME
 #     assert routine(test=561)
 
-# def test_00562():  # FIXME
+# def test_00562() -> None:  # FIXME
 #     assert routine(test=562)
 
-# def test_00563():  # FIXME
+# def test_00563() -> None:  # FIXME
 #     assert routine(test=563)
 
-# def test_00564():  # FIXME
+# def test_00564() -> None:  # FIXME
 #     assert routine(test=564)
 
 
-def test_00565():
+def test_00565() -> None:
     assert routine(test=565)
 
 
-def test_00566():
+def test_00566() -> None:
     assert routine(test=566)
 
 
-def test_00567():
+def test_00567() -> None:
     assert routine(test=567)
 
 
-def test_00568():
+def test_00568() -> None:
     assert routine(test=568)
 
 
-def test_00569():
+def test_00569() -> None:
     assert routine(test=569)
 
 
-def test_00570():
+def test_00570() -> None:
     assert routine(test=570)
 
 
-def test_00571():
+def test_00571() -> None:
     with pytest.raises(NameError):
         routine(test=571)
 
 
-def test_00572():
+def test_00572() -> None:
     with pytest.raises(TypeError):
         routine(test=572)
 
 
-def test_00573():
+def test_00573() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=573)
 
 
-def test_00574():
+def test_00574() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=574)
 
 
-def test_00575():
+def test_00575() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=575)
 
 
-def test_00576():
+def test_00576() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=576)
 
 
-def test_00577():
+def test_00577() -> None:
     assert routine(test=577)
 
 
-def test_00578():
+def test_00578() -> None:
     assert routine(test=578)
 
 
-def test_00579():
+def test_00579() -> None:
     assert routine(test=579)
 
 
-def test_00580():
+def test_00580() -> None:
     assert routine(test=580)
 
 
-def test_00581():
+def test_00581() -> None:
     assert routine(test=581)
 
 
-def test_00582():
+def test_00582() -> None:
     assert routine(test=582)
 
 
-def test_00583():
+def test_00583() -> None:
     assert routine(test=583)
 
 
-def test_00584():
+def test_00584() -> None:
     assert routine(test=584)
 
 
-def test_00585():
+def test_00585() -> None:
     assert routine(test=585)
 
 
-def test_00586():
+def test_00586() -> None:
     assert routine(test=586)
 
 
-def test_00587():
+def test_00587() -> None:
     assert routine(test=587)
 
 
-def test_00588():
+def test_00588() -> None:
     assert routine(test=588)
 
 
-def test_00589():
+def test_00589() -> None:
     assert routine(test=589)
 
 
-def test_00590():
+def test_00590() -> None:
     assert routine(test=590)
 
 
-def test_00591():
+def test_00591() -> None:
     assert routine(test=591)
 
 
-def test_00592():
+def test_00592() -> None:
     assert routine(test=592)
 
 
-def test_00593():
+def test_00593() -> None:
     assert routine(test=593)
 
 
-def test_00594():
+def test_00594() -> None:
     assert routine(test=594)
 
 
-def test_00595():
+def test_00595() -> None:
     assert routine(test=595)
 
 
-def test_00596():
+def test_00596() -> None:
     assert routine(test=596)
 
 
-# def test_00597():  # FIXME
+# def test_00597() -> None:  # FIXME
 #     assert routine(test=597)
 
 
-def test_00598():
+def test_00598() -> None:
     assert routine(test=598)
 
 
-def test_00599():
+def test_00599() -> None:
     assert routine(test=599)
 
 
-def test_00600():
+def test_00600() -> None:
     assert routine(test=600)
 
 
-def test_00601():
+def test_00601() -> None:
     assert routine(test=601)
 
 
-def test_00602():
+def test_00602() -> None:
     assert routine(test=602)
 
 
-def test_00603():
+def test_00603() -> None:
     assert routine(test=603)
 
 
-def test_00604():
+def test_00604() -> None:
     assert routine(test=604)
 
 
-def test_00605():
+def test_00605() -> None:
     assert routine(test=605)
 
 
-def test_00606():
+def test_00606() -> None:
     assert routine(test=606)
 
 
-def test_00607():
+def test_00607() -> None:
     assert routine(test=607)
 
 
-def test_00608():
+def test_00608() -> None:
     assert routine(test=608)
 
 
-# def test_00609():  # FIXME
+# def test_00609() -> None:  # FIXME
 #     assert routine(test=609)
 
-# def test_00610():  # FIXME
+# def test_00610() -> None:  # FIXME
 #     assert routine(test=610)
 
 
-def test_00611():
+def test_00611() -> None:
     assert routine(test=611)
 
 
-def test_00612():
+def test_00612() -> None:
     assert routine(test=612)
 
 
-def test_00613():
+def test_00613() -> None:
     assert routine(test=613)
 
 
-def test_00614():
+def test_00614() -> None:
     assert routine(test=614)
 
 
-def test_00615():
+def test_00615() -> None:
     assert routine(test=615)
 
 
-def test_00616():
+def test_00616() -> None:
     assert routine(test=616)
 
 
-def test_00617():
+def test_00617() -> None:
     assert routine(test=617)
 
 
-def test_00618():
+def test_00618() -> None:
     assert routine(test=618)
 
 
-def test_00619():
+def test_00619() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=619)
 
 
-def test_00620():
+def test_00620() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=620)
 
 
-def test_00621():
+def test_00621() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=621)
 
 
-def test_00622():
+def test_00622() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=622)
 
 
-def test_00623():
+def test_00623() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=623)
 
 
-def test_00624():
+def test_00624() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=624)
 
 
-def test_00625():
+def test_00625() -> None:
     assert routine(test=625)
 
 
-def test_00626():
+def test_00626() -> None:
     assert routine(test=626)
 
 
-def test_00627():
+def test_00627() -> None:
     assert routine(test=627)
 
 
-def test_00628():
+def test_00628() -> None:
     assert routine(test=628)
 
 
-def test_00629():
+def test_00629() -> None:
     assert routine(test=629)
 
 
-def test_00630():
+def test_00630() -> None:
     assert routine(test=630)
 
 
-def test_00631():
+def test_00631() -> None:
     assert routine(test=631)
 
 
-def test_00632():
+def test_00632() -> None:
     assert routine(test=632)
 
 
-def test_00633():
+def test_00633() -> None:
     assert routine(test=633)
 
 
-def test_00634():
+def test_00634() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=634)
 
 
-def test_00635():
+def test_00635() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=635)
 
 
-def test_00636():
+def test_00636() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=636)
 
 
-def test_00637():
+def test_00637() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=637)
 
 
-def test_00638():
+def test_00638() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=638)
 
 
-def test_00639():
+def test_00639() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=639)
 
 
-def test_00640():
+def test_00640() -> None:
     assert routine(test=640)
 
 
-def test_00641():
+def test_00641() -> None:
     assert routine(test=641)
 
 
-def test_00642():
+def test_00642() -> None:
     assert routine(test=642)
 
 
-def test_00643():
+def test_00643() -> None:
     assert routine(test=643)
 
 
-def test_00644():
+def test_00644() -> None:
     assert routine(test=644)
 
 
-def test_00645():
+def test_00645() -> None:
     assert routine(test=645)
 
 
-def test_00646():
+def test_00646() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=646)
 
 
-def test_00647():
+def test_00647() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=647)
 
 
-def test_00648():
+def test_00648() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=648)
 
 
-def test_00649():
+def test_00649() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=649)
 
 
-def test_00650():
+def test_00650() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=650)
 
 
-def test_00651():
+def test_00651() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=651)
 
 
-def test_00652():
+def test_00652() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=652)
 
 
-def test_00653():
+def test_00653() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=653)
 
 
-def test_00654():
+def test_00654() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=654)
 
 
-def test_00655():
+def test_00655() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=655)
 
 
-def test_00656():
+def test_00656() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=656)
 
 
-def test_00657():
+def test_00657() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=657)
 
 
-def test_00658():
+def test_00658() -> None:
     assert routine(test=658)
 
 
-def test_00659():
+def test_00659() -> None:
     assert routine(test=659)
 
 
-def test_00660():
+def test_00660() -> None:
     assert routine(test=660)
 
 
-def test_00661():
+def test_00661() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=661)
 
 
-def test_00662():
+def test_00662() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=662)
 
 
-def test_00663():
+def test_00663() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=663)
 
 
-def test_00664():
+def test_00664() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=664)
 
 
-def test_00665():
+def test_00665() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=665)
 
 
-def test_00666():
+def test_00666() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=666)
 
 
-def test_00667():
+def test_00667() -> None:
     assert routine(test=667)
 
 
-def test_00668():
+def test_00668() -> None:
     assert routine(test=668)
 
 
-def test_00669():
+def test_00669() -> None:
     assert routine(test=669)
 
 
-def test_00670():
+def test_00670() -> None:
     assert routine(test=670)
 
 
-def test_00671():
+def test_00671() -> None:
     assert routine(test=671)
 
 
-def test_00672():
+def test_00672() -> None:
     assert routine(test=672)
 
 
-def test_00673():
+def test_00673() -> None:
     assert routine(test=673)
 
 
-def test_00674():
+def test_00674() -> None:
     assert routine(test=674)
 
 
-def test_00675():
+def test_00675() -> None:
     assert routine(test=675)
 
 
-def test_00676():
+def test_00676() -> None:
     assert routine(test=676)
 
 
-def test_00677():
+def test_00677() -> None:
     assert routine(test=677)
 
 
-def test_00678():
+def test_00678() -> None:
     assert routine(test=678)
 
 
-def test_00679():
+def test_00679() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=679)
 
 
-def test_00680():
+def test_00680() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=680)
 
 
-def test_00681():
+def test_00681() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=681)
 
 
-def test_00682():
+def test_00682() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=682)
 
 
-def test_00683():
+def test_00683() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=683)
 
 
-def test_00684():
+def test_00684() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=684)
 
 
-def test_00685():
+def test_00685() -> None:
     assert routine(test=685)
 
 
-def test_00686():
+def test_00686() -> None:
     assert routine(test=686)
 
 
-def test_00687():
+def test_00687() -> None:
     assert routine(test=687)
 
 
-# def test_00688():  # FIXME
+# def test_00688() -> None:  # FIXME
 #     assert routine(test=688)
 
 
-def test_00689():
+def test_00689() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=689)
 
 
-def test_00690():
+def test_00690() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=690)
 
 
-def test_00691():
+def test_00691() -> None:
     assert routine(test=691)
 
 
-def test_00692():
+def test_00692() -> None:
     assert routine(test=692)
 
 
-def test_00693():
+def test_00693() -> None:
     assert routine(test=693)
 
 
-def test_00694():
+def test_00694() -> None:
     assert routine(test=694)
 
 
-def test_00695():
+def test_00695() -> None:
     assert routine(test=695)
 
 
-def test_00696():
+def test_00696() -> None:
     assert routine(test=696)
 
 
-def test_00697():
+def test_00697() -> None:
     assert routine(test=697)
 
 
-def test_00698():
+def test_00698() -> None:
     assert routine(test=698)
 
 
-def test_00699():
+def test_00699() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=699)
 
 
-def test_00700():
+def test_00700() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=700)
 
 
-def test_00701():
+def test_00701() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=701)
 
 
-def test_00702():
+def test_00702() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=702)
 
 
-def test_00703():
+def test_00703() -> None:
     assert routine(test=703)
 
 
-def test_00704():
+def test_00704() -> None:
     assert routine(test=704)
 
 
-def test_00705():
+def test_00705() -> None:
     assert routine(test=705)
 
 
-def test_00706():
+def test_00706() -> None:
     assert routine(test=706)
 
 
-def test_00707():
+def test_00707() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=707)
 
 
-def test_00708():
+def test_00708() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=708)
 
 
-def test_00709():
+def test_00709() -> None:
     assert routine(test=709)
 
 
-def test_00710():
+def test_00710() -> None:
     assert routine(test=710)
 
 
-def test_00711():
+def test_00711() -> None:
     assert routine(test=711)
 
 
-def test_00712():
+def test_00712() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=712)
 
 
-def test_00713():
+def test_00713() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=713)
 
 
-def test_00714():
+def test_00714() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=714)
 
 
-def test_00715():
+def test_00715() -> None:
     assert routine(test=715)
 
 
-def test_00716():
+def test_00716() -> None:
     assert routine(test=716)
 
 
-def test_00717():
+def test_00717() -> None:
     assert routine(test=717)
 
 
-def test_00718():
+def test_00718() -> None:
     assert routine(test=718)
 
 
-def test_00719():
+def test_00719() -> None:
     assert routine(test=719)
 
 
-def test_00720():
+def test_00720() -> None:
     assert routine(test=720)
 
 
-def test_00721():
+def test_00721() -> None:
     assert routine(test=721)
 
 
-def test_00722():
+def test_00722() -> None:
     assert routine(test=722)
 
 
-def test_00723():
+def test_00723() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=723)
 
 
-def test_00724():
+def test_00724() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=724)
 
 
-# def test_00725():  # FIXME
+# def test_00725() -> None:  # FIXME
 #     assert routine(test=725)
 
-# def test_00726():  # FIXME
+# def test_00726() -> None:  # FIXME
 #     assert routine(test=726)
 
-# def test_00727():  # FIXME
+# def test_00727() -> None:  # FIXME
 #     assert routine(test=727)
 
-# def test_00728():  # FIXME
+# def test_00728() -> None:  # FIXME
 #     assert routine(test=728)
 
-# def test_00729():  # FIXME
+# def test_00729() -> None:  # FIXME
 #     assert routine(test=729)
 
-# def test_00730():  # FIXME
+# def test_00730() -> None:  # FIXME
 #     assert routine(test=730)
 
-# def test_00731():  # FIXME
+# def test_00731() -> None:  # FIXME
 #     assert routine(test=731)
 
 
-def test_00732():
+def test_00732() -> None:
     assert routine(test=732)
 
 
-def test_00733():
+def test_00733() -> None:
     assert routine(test=733)
 
 
-def test_00734():
+def test_00734() -> None:
     assert routine(test=734)
 
 
-def test_00735():
+def test_00735() -> None:
     assert routine(test=735)
 
 
-def test_00736():
+def test_00736() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=736)
 
 
-def test_00737():
+def test_00737() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=737)
 
 
-def test_00738():
+def test_00738() -> None:
     assert routine(test=738)
 
 
-def test_00739():
+def test_00739() -> None:
     assert routine(test=739)
 
 
-def test_00740():
+def test_00740() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=740)
 
 
-def test_00741():
+def test_00741() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=741)
 
 
-def test_00742():
+def test_00742() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=742)
 
 
-def test_00743():
+def test_00743() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=743)
 
 
-def test_00744():
+def test_00744() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=744)
 
 
-def test_00745():
+def test_00745() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=745)
 
 
-def test_00746():
+def test_00746() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=746)
 
 
-def test_00747():
+def test_00747() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=747)
 
 
-def test_00748():
+def test_00748() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=748)
 
 
-def test_00749():
+def test_00749() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=749)
 
 
-def test_00750():
+def test_00750() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=750)
 
 
-def test_00751():
+def test_00751() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=751)
 
 
-def test_00752():
+def test_00752() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=752)
 
 
-def test_00753():
+def test_00753() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=753)
 
 
-def test_00754():
+def test_00754() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=754)
 
 
-def test_00755():
+def test_00755() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=755)
 
 
-def test_00756():
+def test_00756() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=756)
 
 
-def test_00757():
+def test_00757() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=757)
 
 
-def test_00758():
+def test_00758() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=758)
 
 
-def test_00759():
+def test_00759() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=759)
 
 
-def test_00760():
+def test_00760() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=760)
 
 
-def test_00761():
+def test_00761() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=761)
 
 
-def test_00762():
+def test_00762() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=762)
 
 
-def test_00763():
+def test_00763() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=763)
 
 
-def test_00764():
+def test_00764() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=764)
 
 
-def test_00765():
+def test_00765() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=765)
 
 
-def test_00766():
+def test_00766() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=766)
 
 
-def test_00767():
+def test_00767() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=767)
 
 
-def test_00768():
+def test_00768() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=768)
 
 
-def test_00769():
+def test_00769() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=769)
 
 
-def test_00770():
+def test_00770() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=770)
 
 
-def test_00771():
+def test_00771() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=771)
 
 
-def test_00772():
+def test_00772() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=772)
 
 
-def test_00773():
+def test_00773() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=773)
 
 
-def test_00774():
+def test_00774() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=774)
 
 
-def test_00775():
+def test_00775() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=775)
 
 
-def test_00776():
+def test_00776() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=776)
 
 
-def test_00777():
+def test_00777() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=777)
 
 
-def test_00778():
+def test_00778() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=778)
 
 
-def test_00779():
+def test_00779() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=779)
 
 
-def test_00780():
+def test_00780() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=780)
 
 
-def test_00781():
+def test_00781() -> None:
     assert routine(test=781)
 
 
-def test_00782():
+def test_00782() -> None:
     assert routine(test=782)
 
 
-def test_00783():
+def test_00783() -> None:
     assert routine(test=783)
 
 
-def test_00784():
+def test_00784() -> None:
     assert routine(test=784)
 
 
-def test_00785():
+def test_00785() -> None:
     assert routine(test=785)
 
 
-def test_00786():
+def test_00786() -> None:
     assert routine(test=786)
 
 
-def test_00787():
+def test_00787() -> None:
     assert routine(test=787)
 
 
-def test_00788():
+def test_00788() -> None:
     assert routine(test=788)
 
 
-def test_00789():
+def test_00789() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=789)
 
 
-def test_00790():
+def test_00790() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=790)
 
 
-def test_00791():
+def test_00791() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=791)
 
 
-def test_00792():
+def test_00792() -> None:
     assert routine(test=792)
 
 
-def test_00793():
+def test_00793() -> None:
     assert routine(test=793)
 
 
-def test_00794():
+def test_00794() -> None:
     assert routine(test=794)
 
 
-def test_00795():
+def test_00795() -> None:
     assert routine(test=795)
 
 
-def test_00796():
+def test_00796() -> None:
     assert routine(test=796)
 
 
-def test_00797():
+def test_00797() -> None:
     assert routine(test=797)
 
 
-def test_00798():
+def test_00798() -> None:
     assert routine(test=798)
 
 
-def test_00799():
+def test_00799() -> None:
     assert routine(test=799)
 
 
-def test_00800():
+def test_00800() -> None:
     assert routine(test=800)
 
 
-def test_00801():
+def test_00801() -> None:
     assert routine(test=801)
 
 
-def test_00802():
+def test_00802() -> None:
     assert routine(test=802)
 
 
-def test_00803():
+def test_00803() -> None:
     assert routine(test=803)
 
 
-def test_00804():
+def test_00804() -> None:
     assert routine(test=804)
 
 
-def test_00805():
+def test_00805() -> None:
     assert routine(test=805)
 
 
-def test_00806():
+def test_00806() -> None:
     assert routine(test=806)
 
 
-def test_00807():
+def test_00807() -> None:
     assert routine(test=807)
 
 
-def test_00808():
+def test_00808() -> None:
     assert routine(test=808)
 
 
-def test_00809():
+def test_00809() -> None:
     assert routine(test=809)
 
 
-def test_00810():
+def test_00810() -> None:
     assert routine(test=810)
 
 
-def test_00811():
+def test_00811() -> None:
     assert routine(test=811)
 
 
-def test_00812():
+def test_00812() -> None:
     assert routine(test=812)
 
 
-def test_00813():
+def test_00813() -> None:
     assert routine(test=813)
 
 
-def test_00814():
+def test_00814() -> None:
     assert routine(test=814)
 
 
-def test_00815():
+def test_00815() -> None:
     assert routine(test=815)
 
 
-def test_00816():
+def test_00816() -> None:
     assert routine(test=816)
 
 
-def test_00817():
+def test_00817() -> None:
     assert routine(test=817)
 
 
-def test_00818():
+def test_00818() -> None:
     assert routine(test=818)
 
 
-def test_00819():
+def test_00819() -> None:
     assert routine(test=819)
 
 
-def test_00820():
+def test_00820() -> None:
     assert routine(test=820)
 
 
-def test_00821():
+def test_00821() -> None:
     assert routine(test=821)
 
 
-def test_00822():
+def test_00822() -> None:
     assert routine(test=822)
 
 
-def test_00823():
+def test_00823() -> None:
     assert routine(test=823)
 
 
-def test_00824():
+def test_00824() -> None:
     assert routine(test=824)
 
 
-def test_00825():
+def test_00825() -> None:
     assert routine(test=825)
 
 
-def test_00826():
+def test_00826() -> None:
     assert routine(test=826)
 
 
-# def test_00827():  # FIXME
+# def test_00827() -> None:  # FIXME
 #     assert routine(test=827)
 
-# def test_00828():  # FIXME
+# def test_00828() -> None:  # FIXME
 #     assert routine(test=828)
 
-# def test_00829():  # FIXME
+# def test_00829() -> None:  # FIXME
 #     assert routine(test=829)
 
 
-def test_00830():
+def test_00830() -> None:
     assert routine(test=830)
 
 
-def test_00831():
+def test_00831() -> None:
     assert routine(test=831)
 
 
-def test_00832():
+def test_00832() -> None:
     assert routine(test=832)
 
 
-def test_00833():
+def test_00833() -> None:
     assert routine(test=833)
 
 
-def test_00834():
+def test_00834() -> None:
     assert routine(test=834)
 
 
-def test_00835():
+def test_00835() -> None:
     assert routine(test=835)
 
 
-def test_00836():
+def test_00836() -> None:
     assert routine(test=836)
 
 
-def test_00837():
+def test_00837() -> None:
     assert routine(test=837)
 
 
-def test_00838():
+def test_00838() -> None:
     assert routine(test=838)
 
 
-def test_00839():
+def test_00839() -> None:
     assert routine(test=839)
 
 
-def test_00840():
+def test_00840() -> None:
     assert routine(test=840)
 
 
-def test_00841():
+def test_00841() -> None:
     assert routine(test=841)
 
 
-def test_00842():
+def test_00842() -> None:
     assert routine(test=842)
 
 
-def test_00843():
+def test_00843() -> None:
     assert routine(test=843)
 
 
-def test_00844():
+def test_00844() -> None:
     assert routine(test=844)
 
 
-def test_00845():
+def test_00845() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=845)
 
 
-def test_00846():
+def test_00846() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=846)
 
 
-def test_00847():
+def test_00847() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=847)
 
 
-def test_00848():
+def test_00848() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=848)
 
 
-def test_00849():
+def test_00849() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=849)
 
 
-def test_00850():
+def test_00850() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=850)
 
 
-def test_00851():
+def test_00851() -> None:
     assert routine(test=851)
 
 
-def test_00852():
+def test_00852() -> None:
     assert routine(test=852)
 
 
-def test_00853():
+def test_00853() -> None:
     assert routine(test=853)
 
 
-def test_00854():
+def test_00854() -> None:
     assert routine(test=854)
 
 
-def test_00855():
+def test_00855() -> None:
     assert routine(test=855)
 
 
-def test_00856():
+def test_00856() -> None:
     assert routine(test=856)
 
 
-def test_00857():
+def test_00857() -> None:
     assert routine(test=857)
 
 
-def test_00858():
+def test_00858() -> None:
     assert routine(test=858)
 
 
-def test_00859():
+def test_00859() -> None:
     assert routine(test=859)
 
 
-def test_00860():
+def test_00860() -> None:
     assert routine(test=860)
 
 
-def test_00861():
+def test_00861() -> None:
     assert routine(test=861)
 
 
-def test_00862():
+def test_00862() -> None:
     assert routine(test=862)
 
 
-def test_00863():
+def test_00863() -> None:
     assert routine(test=863)
 
 
-def test_00864():
+def test_00864() -> None:
     assert routine(test=864)
 
 
-def test_00865():
+def test_00865() -> None:
     assert routine(test=865)
 
 
-def test_00866():
+def test_00866() -> None:
     assert routine(test=866)
 
 
-def test_00867():
+def test_00867() -> None:
     assert routine(test=867)
 
 
-def test_00868():
+def test_00868() -> None:
     assert routine(test=868)
 
 
-def test_00869():
+def test_00869() -> None:
     assert routine(test=869)
 
 
-# def test_00870():  # FIXME
+# def test_00870() -> None:  # FIXME
 #     assert routine(test=870)
 
-# def test_00871():  # FIXME
+# def test_00871() -> None:  # FIXME
 #     assert routine(test=871)
 
-# def test_00872():  # FIXME
+# def test_00872() -> None:  # FIXME
 #     assert routine(test=872)
 
-# def test_00873():  # FIXME
+# def test_00873() -> None:  # FIXME
 #     assert routine(test=873)
 
-# def test_00874():  # FIXME
+# def test_00874() -> None:  # FIXME
 #     assert routine(test=874)
 
-# def test_00875():  # FIXME
+# def test_00875() -> None:  # FIXME
 #     assert routine(test=875)
 
 
-def test_00876():
+def test_00876() -> None:
     assert routine(test=876)
 
 
-def test_00877():
+def test_00877() -> None:
     assert routine(test=877)
 
 
-def test_00878():
+def test_00878() -> None:
     assert routine(test=878)
 
 
-# def test_00879():  # FIXME
+# def test_00879() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=879)
 
 
-def test_00880():
+def test_00880() -> None:
     assert routine(test=880)
 
 
-def test_00881():
+def test_00881() -> None:
     assert routine(test=881)
 
 
-def test_00882():
+def test_00882() -> None:
     assert routine(test=882)
 
 
-def test_00883():
+def test_00883() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=883)
 
 
-def test_00884():
+def test_00884() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=884)
 
 
-def test_00885():
+def test_00885() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=885)
 
 
-def test_00886():
+def test_00886() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=886)
 
 
-def test_00887():
+def test_00887() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=887)
 
 
-def test_00888():
+def test_00888() -> None:
     assert routine(test=888)
 
 
-def test_00889():
+def test_00889() -> None:
     assert routine(test=889)
 
 
-def test_00890():
+def test_00890() -> None:
     assert routine(test=890)
 
 
-def test_00891():
+def test_00891() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=891)
 
 
-def test_00892():
+def test_00892() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=892)
 
 
-def test_00893():
+def test_00893() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=893)
 
 
-def test_00894():
+def test_00894() -> None:
     assert routine(test=894)
 
 
-def test_00895():
+def test_00895() -> None:
     assert routine(test=895)
 
 
-def test_00896():
+def test_00896() -> None:
     assert routine(test=896)
 
 
-def test_00897():
+def test_00897() -> None:
     assert routine(test=897)
 
 
-# def test_00898():  # FIXME
+# def test_00898() -> None:  # FIXME
 #     assert routine(test=898)
 
-# def test_00899():  # FIXME
+# def test_00899() -> None:  # FIXME
 #     assert routine(test=899)
 
-# def test_00900():  # FIXME
+# def test_00900() -> None:  # FIXME
 #     assert routine(test=900)
 
 
-def test_00901():
+def test_00901() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=901)
 
 
-def test_00902():
+def test_00902() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=902)
 
 
-def test_00903():
+def test_00903() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=903)
 
 
-def test_00904():
+def test_00904() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=904)
 
 
-def test_00905():
+def test_00905() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=905)
 
 
-def test_00906():
+def test_00906() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=906)
 
 
-def test_00907():
+def test_00907() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=907)
 
 
-def test_00908():
+def test_00908() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=908)
 
 
-def test_00909():
+def test_00909() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=909)
 
 
-def test_00910():
+def test_00910() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=910)
 
 
-def test_00911():
+def test_00911() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=911)
 
 
-def test_00912():
+def test_00912() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=912)
 
 
-def test_00913():
+def test_00913() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=913)
 
 
-def test_00914():
+def test_00914() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=914)
 
 
-def test_00915():
+def test_00915() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=915)
 
 
-def test_00916():
+def test_00916() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=916)
 
 
-def test_00917():
+def test_00917() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=917)
 
 
-def test_00918():
+def test_00918() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=918)
 
 
-def test_00919():
+def test_00919() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=919)
 
 
-# def test_00920():  # FIXME
+# def test_00920() -> None:  # FIXME
 #     assert routine(test=920)
 
 
-# def test_00921():  # FIXME
+# def test_00921() -> None:  # FIXME
 #     assert routine(test=921)
 
 
-# def test_00922():  # FIXME
+# def test_00922() -> None:  # FIXME
 #     assert routine(test=922)
 
 
-def test_00923():
+def test_00923() -> None:
     assert routine(test=923)
 
 
-def test_00924():
+def test_00924() -> None:
     assert routine(test=924)
 
 
-def test_00925():
+def test_00925() -> None:
     assert routine(test=925)
 
 
-def test_00926():
+def test_00926() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=926)
 
 
-def test_00927():
+def test_00927() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=927)
 
 
-def test_00928():
+def test_00928() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=928)
 
 
-def test_00929():
+def test_00929() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=929)
 
 
-def test_00930():
+def test_00930() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=930)
 
 
-def test_00931():
+def test_00931() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=931)
 
 
-def test_00932():
+def test_00932() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=932)
 
 
-def test_00933():
+def test_00933() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=933)
 
 
-def test_00934():
+def test_00934() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=934)
 
 
-def test_00935():
+def test_00935() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=935)
 
 
-def test_00936():
+def test_00936() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=936)
 
 
-def test_00937():
+def test_00937() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=937)
 
 
-def test_00938():
+def test_00938() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=938)
 
 
-def test_00939():
+def test_00939() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=939)
 
 
-def test_00940():
+def test_00940() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=940)
 
 
-def test_00941():
+def test_00941() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=941)
 
 
-def test_00942():
+def test_00942() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=942)
 
 
-def test_00943():
+def test_00943() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=943)
 
 
-def test_00944():
+def test_00944() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=944)
 
 
-def test_00945():
+def test_00945() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=945)
 
 
-def test_00946():
+def test_00946() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=946)
 
 
-def test_00947():
+def test_00947() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=947)
 
 
-def test_00948():
+def test_00948() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=948)
 
 
-def test_00949():
+def test_00949() -> None:
     assert routine(test=949)
 
 
-# def test_00950():  # FIXME
+# def test_00950() -> None:  # FIXME
 #     assert routine(test=950)
 
-# def test_00951():  # FIXME
+# def test_00951() -> None:  # FIXME
 #     assert routine(test=951)
 
 
-def test_00952():
+def test_00952() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=952)
 
 
-def test_00953():
+def test_00953() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=953)
 
 
-# def test_00954():  # FIXME
+# def test_00954() -> None:  # FIXME
 #     assert routine(test=954)
 
-# def test_00955():  # FIXME
+# def test_00955() -> None:  # FIXME
 #     assert routine(test=955)
 
-# def test_00956():  # FIXME
+# def test_00956() -> None:  # FIXME
 #     assert routine(test=956)
 
 
-def test_00957():
+def test_00957() -> None:
     assert routine(test=957)
 
 
-# def test_00958():  # FIXME
+# def test_00958() -> None:  # FIXME
 #     assert routine(test=958)
 
 
-def test_00959():
+def test_00959() -> None:
     with pytest.raises(ZeroDivisionError):
         routine(test=959)
 
 
-# def test_00960():  # FIXME
+# def test_00960() -> None:  # FIXME
 #     assert routine(test=960)
 
 
-def test_00961():
+def test_00961() -> None:
     assert routine(test=961)
 
 
-def test_00962():
+def test_00962() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=962)
 
 
-def test_00963():
+def test_00963() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=963)
 
 
-def test_00964():
+def test_00964() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=964)
 
 
-def test_00965():
+def test_00965() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=965)
 
 
-def test_00966():
+def test_00966() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=966)
 
 
-def test_00967():
+def test_00967() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=967)
 
 
-# def test_00968():  # FIXME
+# def test_00968() -> None:  # FIXME
 #     assert routine(test=968)
 
 
-def test_00969():
+def test_00969() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=969)
 
 
-def test_00970():
+def test_00970() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=970)
 
 
-def test_00971():
+def test_00971() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=971)
 
 
-def test_00972():
+def test_00972() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=972)
 
 
-# def test_00973():  # FIXME
+# def test_00973() -> None:  # FIXME
 #     assert routine(test=973)
 
 
-def test_00974():
+def test_00974() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=974)
 
 
-def test_00975():
+def test_00975() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=975)
 
 
-def test_00976():
+def test_00976() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=976)
 
 
-def test_00977():
+def test_00977() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=977)
 
 
-def test_00978():
+def test_00978() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=978)
 
 
-def test_00979():
+def test_00979() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=979)
 
 
-def test_00980():
+def test_00980() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=980)
 
 
-def test_00981():
+def test_00981() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=981)
 
 
-def test_00982():
+def test_00982() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=982)
 
 
-def test_00983():
+def test_00983() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=983)
 
 
-def test_00984():
+def test_00984() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=984)
 
 
-def test_00985():
+def test_00985() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=985)
 
 
-# def test_00986():  # FIXME
+# def test_00986() -> None:  # FIXME
 #     assert routine(test=986)
 
-# def test_00987():  # FIXME
+# def test_00987() -> None:  # FIXME
 #     assert routine(test=987)
 
-# def test_00988():  # FIXME
+# def test_00988() -> None:  # FIXME
 #     assert routine(test=988)
 
-# def test_00989():  # FIXME
+# def test_00989() -> None:  # FIXME
 #     assert routine(test=989)
 
-# def test_00990():  # FIXME
+# def test_00990() -> None:  # FIXME
 #     assert routine(test=990)
 
-# def test_00991():  # FIXME
+# def test_00991() -> None:  # FIXME
 #     assert routine(test=991)
 
-# def test_00992():  # FIXME
+# def test_00992() -> None:  # FIXME
 #     assert routine(test=992)
 
-# def test_00993():  # FIXME
+# def test_00993() -> None:  # FIXME
 #     assert routine(test=993)
 
-# def test_00994():  # FIXME
+# def test_00994() -> None:  # FIXME
 #     assert routine(test=994)
 
 
-def test_00995():
+def test_00995() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=995)
 
 
-def test_00996():
+def test_00996() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=996)
 
 
-def test_00997():
+def test_00997() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=997)
 
 
-# def test_00998():  # FIXME
+# def test_00998() -> None:  # FIXME
 #     assert routine(test=998)
 
 
-def test_00999():
+def test_00999() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=999)
 
 
-def test_01000():
+def test_01000() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1000)
 
 
-def test_01001():
+def test_01001() -> None:
     assert routine(test=1001)
 
 
-def test_01002():
+def test_01002() -> None:
     assert routine(test=1002)
 
 
-def test_01003():
+def test_01003() -> None:
     assert routine(test=1003)
 
 
-def test_01004():
+def test_01004() -> None:
     assert routine(test=1004)
 
 
-def test_01005():
+def test_01005() -> None:
     assert routine(test=1005)
 
 
-def test_01006():
+def test_01006() -> None:
     assert routine(test=1006)
 
 
-def test_01007():
+def test_01007() -> None:
     assert routine(test=1007)
 
 
-def test_01008():
+def test_01008() -> None:
     assert routine(test=1008)
 
 
-def test_01009():
+def test_01009() -> None:
     assert routine(test=1009)
 
 
-def test_01010():
+def test_01010() -> None:
     assert routine(test=1010)
 
 
-def test_01011():
+def test_01011() -> None:
     assert routine(test=1011)
 
 
-def test_01012():
+def test_01012() -> None:
     assert routine(test=1012)
 
 
-def test_01013():
+def test_01013() -> None:
     assert routine(test=1013)
 
 
-def test_01014():
+def test_01014() -> None:
     assert routine(test=1014)
 
 
-def test_01015():
+def test_01015() -> None:
     assert routine(test=1015)
 
 
-def test_01016():
+def test_01016() -> None:
     assert routine(test=1016)
 
 
-def test_01017():
+def test_01017() -> None:
     assert routine(test=1017)
 
 
-def test_01018():
+def test_01018() -> None:
     assert routine(test=1018)
 
 
-def test_01019():
+def test_01019() -> None:
     assert routine(test=1019)
 
 
-def test_01020():
+def test_01020() -> None:
     assert routine(test=1020)
 
 
-def test_01021():
+def test_01021() -> None:
     assert routine(test=1021)
 
 
-def test_01022():
+def test_01022() -> None:
     assert routine(test=1022)
 
 
-def test_01023():
+def test_01023() -> None:
     assert routine(test=1023)
 
 
-def test_01024():
+def test_01024() -> None:
     assert routine(test=1024)
 
 
-def test_01025():
+def test_01025() -> None:
     assert routine(test=1025)
 
 
-def test_01026():
+def test_01026() -> None:
     assert routine(test=1026)
 
 
-# def test_01027():  # FIXME
+# def test_01027() -> None:  # FIXME
 #     assert routine(test=1027)
 
-# def test_01028():  # FIXME
+# def test_01028() -> None:  # FIXME
 #     assert routine(test=1028)
 
-# def test_01029():  # FIXME
+# def test_01029() -> None:  # FIXME
 #     assert routine(test=1029)
 
 
-def test_01030():
+def test_01030() -> None:
     assert routine(test=1030)
 
 
-def test_01031():
+def test_01031() -> None:
     assert routine(test=1031)
 
 
-def test_01032():
+def test_01032() -> None:
     assert routine(test=1032)
 
 
-def test_01033():
+def test_01033() -> None:
     assert routine(test=1033)
 
 
-def test_01034():
+def test_01034() -> None:
     assert routine(test=1034)
 
 
-def test_01035():
+def test_01035() -> None:
     assert routine(test=1035)
 
 
-def test_01036():
+def test_01036() -> None:
     assert routine(test=1036)
 
 
-def test_01037():
+def test_01037() -> None:
     assert routine(test=1037)
 
 
-def test_01038():
+def test_01038() -> None:
     assert routine(test=1038)
 
 
-def test_01039():
+def test_01039() -> None:
     assert routine(test=1039)
 
 
-def test_01040():
+def test_01040() -> None:
     assert routine(test=1040)
 
 
-def test_01041():
+def test_01041() -> None:
     assert routine(test=1041)
 
 
-def test_01042():
+def test_01042() -> None:
     assert routine(test=1042)
 
 
-def test_01043():
+def test_01043() -> None:
     assert routine(test=1043)
 
 
-def test_01044():
+def test_01044() -> None:
     assert routine(test=1044)
 
 
-def test_01045():
+def test_01045() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1045)
 
 
-def test_01046():
+def test_01046() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1046)
 
 
-def test_01047():
+def test_01047() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1047)
 
 
-def test_01048():
+def test_01048() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1048)
 
 
-def test_01049():
+def test_01049() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1049)
 
 
-def test_01050():
+def test_01050() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1050)
 
 
-# def test_01051():  # FIXME
+# def test_01051() -> None:  # FIXME
 #     assert routine(test=1051)
 
-# def test_01052():  # FIXME
+# def test_01052() -> None:  # FIXME
 #     assert routine(test=1052)
 
-# def test_01053():  # FIXME
+# def test_01053() -> None:  # FIXME
 #     assert routine(test=1053)
 
 
-def test_01054():
+def test_01054() -> None:
     assert routine(test=1054)
 
 
-def test_01055():
+def test_01055() -> None:
     assert routine(test=1055)
 
 
-def test_01056():
+def test_01056() -> None:
     assert routine(test=1056)
 
 
-def test_01057():
+def test_01057() -> None:
     assert routine(test=1057)
 
 
-def test_01058():
+def test_01058() -> None:
     assert routine(test=1058)
 
 
-def test_01059():
+def test_01059() -> None:
     assert routine(test=1059)
 
 
-def test_01060():
+def test_01060() -> None:
     assert routine(test=1060)
 
 
-def test_01061():
+def test_01061() -> None:
     assert routine(test=1061)
 
 
-def test_01062():
+def test_01062() -> None:
     assert routine(test=1062)
 
 
-def test_01063():
+def test_01063() -> None:
     assert routine(test=1063)
 
 
-def test_01064():
+def test_01064() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1064)
 
 
-def test_01065():
+def test_01065() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1065)
 
 
-def test_01066():
+def test_01066() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1066)
 
 
-def test_01067():
+def test_01067() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1067)
 
 
-def test_01068():
+def test_01068() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1068)
 
 
-def test_01069():
+def test_01069() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1069)
 
 
-def test_01070():
+def test_01070() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1070)
 
 
-def test_01071():
+def test_01071() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1071)
 
 
-def test_01072():
+def test_01072() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1072)
 
 
-def test_01073():
+def test_01073() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1073)
 
 
-def test_01074():
+def test_01074() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1074)
 
 
-def test_01075():
+def test_01075() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1075)
 
 
-def test_01076():
+def test_01076() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1076)
 
 
-def test_01077():
+def test_01077() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1077)
 
 
-def test_01078():
+def test_01078() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1078)
 
 
-def test_01079():
+def test_01079() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1079)
 
 
-def test_01080():
+def test_01080() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1080)
 
 
-def test_01081():
+def test_01081() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1081)
 
 
-def test_01082():
+def test_01082() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1082)
 
 
-def test_01083():
+def test_01083() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1083)
 
 
-def test_01084():
+def test_01084() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1084)
 
 
-def test_01085():
+def test_01085() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1085)
 
 
-def test_01086():
+def test_01086() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1086)
 
 
-def test_01087():
+def test_01087() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1087)
 
 
-def test_01088():
+def test_01088() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1088)
 
 
-def test_01089():
+def test_01089() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1089)
 
 
-def test_01090():
+def test_01090() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1090)
 
 
-def test_01091():
+def test_01091() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1091)
 
 
-def test_01092():
+def test_01092() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1092)
 
 
-def test_01093():
+def test_01093() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1093)
 
 
-def test_01094():
+def test_01094() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1094)
 
 
-def test_01095():
+def test_01095() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1095)
 
 
-def test_01096():
+def test_01096() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1096)
 
 
-def test_01097():
+def test_01097() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1097)
 
 
-def test_01098():
+def test_01098() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1098)
 
 
-def test_01099():
+def test_01099() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1099)
 
 
-def test_01100():
+def test_01100() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1100)
 
 
-def test_01101():
+def test_01101() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1101)
 
 
-def test_01102():
+def test_01102() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1102)
 
 
-def test_01103():
+def test_01103() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1103)
 
 
-def test_01104():
+def test_01104() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1104)
 
 
-def test_01105():
+def test_01105() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1105)
 
 
-def test_01106():
+def test_01106() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1106)
 
 
-def test_01107():
+def test_01107() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1107)
 
 
-def test_01108():
+def test_01108() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1108)
 
 
-def test_01109():
+def test_01109() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1109)
 
 
-def test_01110():
+def test_01110() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1110)
 
 
-def test_01111():
+def test_01111() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1111)
 
 
-def test_01112():
+def test_01112() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1112)
 
 
-def test_01113():
+def test_01113() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1113)
 
 
-def test_01114():
+def test_01114() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1114)
 
 
-def test_01115():
+def test_01115() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1115)
 
 
-def test_01116():
+def test_01116() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1116)
 
 
-def test_01117():
+def test_01117() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1117)
 
 
-def test_01118():
+def test_01118() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1118)
 
 
-def test_01119():
+def test_01119() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1119)
 
 
-def test_01120():
+def test_01120() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1120)
 
 
-def test_01121():
+def test_01121() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1121)
 
 
-def test_01122():
+def test_01122() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1122)
 
 
-def test_01123():
+def test_01123() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1123)
 
 
-def test_01124():
+def test_01124() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1124)
 
 
-def test_01125():
+def test_01125() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1125)
 
 
-def test_01126():
+def test_01126() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1126)
 
 
-def test_01127():
+def test_01127() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1127)
 
 
-def test_01128():
+def test_01128() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1128)
 
 
-def test_01129():
+def test_01129() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1129)
 
 
-def test_01130():
+def test_01130() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1130)
 
 
-def test_01131():
+def test_01131() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1131)
 
 
-def test_01132():
+def test_01132() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1132)
 
 
-def test_01133():
+def test_01133() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1133)
 
 
-def test_01134():
+def test_01134() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1134)
 
 
-def test_01135():
+def test_01135() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1135)
 
 
-def test_01136():
+def test_01136() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1136)
 
 
-def test_01137():
+def test_01137() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1137)
 
 
-def test_01138():
+def test_01138() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1138)
 
 
-def test_01139():
+def test_01139() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1139)
 
 
-def test_01140():
+def test_01140() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1140)
 
 
-def test_01141():
+def test_01141() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1141)
 
 
-def test_01142():
+def test_01142() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1142)
 
 
-def test_01143():
+def test_01143() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1143)
 
 
-def test_01144():
+def test_01144() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1144)
 
 
-def test_01145():
+def test_01145() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1145)
 
 
-def test_01146():
+def test_01146() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1146)
 
 
-def test_01147():
+def test_01147() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1147)
 
 
-def test_01148():
+def test_01148() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1148)
 
 
-def test_01149():
+def test_01149() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1149)
 
 
-def test_01150():
+def test_01150() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1150)
 
 
-def test_01151():
+def test_01151() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1151)
 
 
-def test_01152():
+def test_01152() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1152)
 
 
-def test_01153():
+def test_01153() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1153)
 
 
-def test_01154():
+def test_01154() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1154)
 
 
-def test_01155():
+def test_01155() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1155)
 
 
-def test_01156():
+def test_01156() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1156)
 
 
-def test_01157():
+def test_01157() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1157)
 
 
-def test_01158():
+def test_01158() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1158)
 
 
-def test_01159():
+def test_01159() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1159)
 
 
-def test_01160():
+def test_01160() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1160)
 
 
-def test_01161():
+def test_01161() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1161)
 
 
-def test_01162():
+def test_01162() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1162)
 
 
-def test_01163():
+def test_01163() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1163)
 
 
-def test_01164():
+def test_01164() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1164)
 
 
-def test_01165():
+def test_01165() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1165)
 
 
-def test_01166():
+def test_01166() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1166)
 
 
-def test_01167():
+def test_01167() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1167)
 
 
-def test_01168():
+def test_01168() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1168)
 
 
-def test_01169():
+def test_01169() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1169)
 
 
-def test_01170():
+def test_01170() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1170)
 
 
-def test_01171():
+def test_01171() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1171)
 
 
-def test_01172():
+def test_01172() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1172)
 
 
-def test_01173():
+def test_01173() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1173)
 
 
-def test_01174():
+def test_01174() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1174)
 
 
-def test_01175():
+def test_01175() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1175)
 
 
-def test_01176():
+def test_01176() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1176)
 
 
-def test_01177():
+def test_01177() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1177)
 
 
-def test_01178():
+def test_01178() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1178)
 
 
-def test_01179():
+def test_01179() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1179)
 
 
-def test_01180():
+def test_01180() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1180)
 
 
-def test_01181():
+def test_01181() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1181)
 
 
-def test_01182():
+def test_01182() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1182)
 
 
-def test_01183():
+def test_01183() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1183)
 
 
-# def test_01184():  # FIXME
+# def test_01184() -> None:  # FIXME
 #     assert routine(test=1184)
 
 
-# def test_01185():  # FIXME
+# def test_01185() -> None:  # FIXME
 #     assert routine(test=1185)
 
 
-# def test_01186():  # FIXME
+# def test_01186() -> None:  # FIXME
 #     assert routine(test=1186)
 
-# def test_01187():  # FIXME
+# def test_01187() -> None:  # FIXME
 #     assert routine(test=1187)
 
-# def test_01188():  # FIXME
+# def test_01188() -> None:  # FIXME
 #     assert routine(test=1188)
 
-# def test_01189():  # FIXME
+# def test_01189() -> None:  # FIXME
 #     assert routine(test=1189)
 
-# def test_01190():  # FIXME
+# def test_01190() -> None:  # FIXME
 #     assert routine(test=1190)
 
-# def test_01191():  # FIXME
+# def test_01191() -> None:  # FIXME
 #     assert routine(test=1191)
 
-# def test_01192():  # FIXME
+# def test_01192() -> None:  # FIXME
 #     assert routine(test=1192)
 
-# def test_01193():  # FIXME
+# def test_01193() -> None:  # FIXME
 #     assert routine(test=1193)
 
-# def test_01194():  # FIXME
+# def test_01194() -> None:  # FIXME
 #     assert routine(test=1194)
 
-# def test_01195():  # FIXME
+# def test_01195() -> None:  # FIXME
 #     assert routine(test=1195)
 
-# def test_01196():  # FIXME
+# def test_01196() -> None:  # FIXME
 #     assert routine(test=1196)
 
 
-def test_01197():
+def test_01197() -> None:
     assert routine(test=1197)
 
 
-def test_01198():
+def test_01198() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1198)
 
 
-def test_01199():
+def test_01199() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1199)
 
 
-def test_01200():
+def test_01200() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1200)
 
 
-def test_01201():
+def test_01201() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1201)
 
 
-def test_01202():
+def test_01202() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1202)
 
 
-def test_01203():
+def test_01203() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1203)
 
 
-def test_01204():
+def test_01204() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1204)
 
 
-# def test_01205():  # FIXME
+# def test_01205() -> None:  # FIXME
 #     assert routine(test=1205)
 
 
-def test_01206():
+def test_01206() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1206)
 
 
-def test_01207():
+def test_01207() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1207)
 
 
-def test_01208():
+def test_01208() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1208)
 
 
-def test_01209():
+def test_01209() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1209)
 
 
-def test_01210():
+def test_01210() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1210)
 
 
-def test_01211():
+def test_01211() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1211)
 
 
-def test_01212():
+def test_01212() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1212)
 
 
-def test_01213():
+def test_01213() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1213)
 
 
-def test_01214():
+def test_01214() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1214)
 
 
-def test_01215():
+def test_01215() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1215)
 
 
-def test_01216():
+def test_01216() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1216)
 
 
-# def test_01217():  # FIXME
+# def test_01217() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=1217)
 
 
-# def test_01218():  # FIXME
+# def test_01218() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=1218)
 
 
-def test_01219():
+def test_01219() -> None:
     assert routine(test=1219)
 
 
-def test_01220():
+def test_01220() -> None:
     assert routine(test=1220)
 
 
-def test_01221():
+def test_01221() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1221)
 
 
-def test_01222():
+def test_01222() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1222)
 
 
-def test_01223():
+def test_01223() -> None:
     assert routine(test=1223)
 
 
-def test_01224():
+def test_01224() -> None:
     with pytest.raises(KeyError):
         routine(test=1224)
 
 
-def test_01225():
+def test_01225() -> None:
     with pytest.raises(KeyError):
         routine(test=1225)
 
 
-def test_01226():
+def test_01226() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1226)
 
 
-def test_01227():
+def test_01227() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1227)
 
 
-def test_01228():
+def test_01228() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1228)
 
 
-def test_01229():
+def test_01229() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1229)
 
 
-def test_01230():
+def test_01230() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1230)
 
 
-def test_01231():
+def test_01231() -> None:
     with pytest.raises(KeyError):
         routine(test=1231)
 
 
-def test_01232():
+def test_01232() -> None:
     assert routine(test=1232)
 
 
-def test_01233():
+def test_01233() -> None:
     with pytest.raises(KeyError):
         routine(test=1233)
 
 
-def test_01234():
+def test_01234() -> None:
     assert routine(test=1234)
 
 
-def test_01235():
+def test_01235() -> None:
     assert routine(test=1235)
 
 
-def test_01236():
+def test_01236() -> None:
     assert routine(test=1236)
 
 
-def test_01237():
+def test_01237() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1237)
 
 
-def test_01238():
+def test_01238() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1238)
 
 
-def test_01239():
+def test_01239() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1239)
 
 
-def test_01240():
+def test_01240() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1240)
 
 
-def test_01241():
+def test_01241() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1241)
 
 
-def test_01242():
+def test_01242() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1242)
 
 
-def test_01243():
+def test_01243() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1243)
 
 
-def test_01244():
+def test_01244() -> None:
     assert routine(test=1244)
 
 
-def test_01245():
+def test_01245() -> None:
     assert routine(test=1245)
 
 
-def test_01246():
+def test_01246() -> None:
     assert routine(test=1246)
 
 
-def test_01247():
+def test_01247() -> None:
     assert routine(test=1247)
 
 
-def test_01248():
+def test_01248() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1248)
 
 
-def test_01249():
+def test_01249() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1249)
 
 
-def test_01250():
+def test_01250() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1250)
 
 
-def test_01251():
+def test_01251() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1251)
 
 
-def test_01252():
+def test_01252() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1252)
 
 
-def test_01253():
+def test_01253() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1253)
 
 
-def test_01254():
+def test_01254() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1254)
 
 
-def test_01255():
+def test_01255() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1255)
 
 
-def test_01256():
+def test_01256() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1256)
 
 
-def test_01257():
+def test_01257() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1257)
 
 
-def test_01258():
+def test_01258() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1258)
 
 
-def test_01259():
+def test_01259() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1259)
 
 
-def test_01260():
+def test_01260() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1260)
 
 
-def test_01261():
+def test_01261() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1261)
 
 
-def test_01262():
+def test_01262() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1262)
 
 
-def test_01263():
+def test_01263() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1263)
 
 
-def test_01264():
+def test_01264() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1264)
 
 
-def test_01265():
+def test_01265() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1265)
 
 
-def test_01266():
+def test_01266() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1266)
 
 
-def test_01267():
+def test_01267() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1267)
 
 
-def test_01268():
+def test_01268() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1268)
 
 
-def test_01269():
+def test_01269() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1269)
 
 
-def test_01270():
+def test_01270() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1270)
 
 
-def test_01271():
+def test_01271() -> None:
     assert routine(test=1271)
 
 
-# def test_01272():  # FIXME
+# def test_01272() -> None:  # FIXME
 #     assert routine(test=1272)
 
 
-# def test_01273():  # FIXME
+# def test_01273() -> None:  # FIXME
 #     assert routine(test=1273)
 
 
-def test_01274():
+def test_01274() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1274)
 
 
-# def test_01275():  # FIXME
+# def test_01275() -> None:  # FIXME
 #     assert routine(test=1275)
 
 
-# def test_01276():
+# def test_01276() -> None:
 #     with pytest.raises(np.AxisError):
 #         assert routine(test=1276)
 
 
-def test_01277():
+def test_01277() -> None:
     with pytest.raises(NameError):
         routine(test=1277)
 
 
-def test_01278():
+def test_01278() -> None:
     assert routine(test=1278)
 
 
-def test_01279():
+def test_01279() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1279)
 
 
-def test_01280():
+def test_01280() -> None:
     with pytest.raises(ValueError):
         routine(test=1280)
 
 
-def test_01281():
+def test_01281() -> None:
     with pytest.raises(TypeError):
         routine(test=1281)
 
 
-# def test_01282():  # FIXME
+# def test_01282() -> None:  # FIXME
 #     assert routine(test=1282)
 
 
-# def test_01283():  # FIXME
+# def test_01283() -> None:  # FIXME
 #     assert routine(test=1283)
 
 
-def test_01284():
+def test_01284() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1284)
 
 
-def test_01285():
+def test_01285() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1285)
 
 
-def test_01286():
+def test_01286() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1286)
 
 
-def test_01287():
+def test_01287() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1287)
 
 
-def test_01288():
+def test_01288() -> None:
     assert routine(test=1288)
 
 
-# def test_01289():  # FIXME
+# def test_01289() -> None:  # FIXME
 #     assert routine(test=1289)
 
 
-def test_01290():
+def test_01290() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1290)
 
 
-def test_01291():
+def test_01291() -> None:
     assert routine(test=1291)
 
 
-def test_01292():
+def test_01292() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1292)
 
 
-def test_01293():
+def test_01293() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1293)
 
 
-def test_01294():
+def test_01294() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1294)
 
 
-def test_01295():
+def test_01295() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1295)
 
 
-def test_01296():
+def test_01296() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1296)
 
 
-def test_01297():
+def test_01297() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1297)
 
 
-def test_01298():
+def test_01298() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1298)
 
 
-def test_01299():
+def test_01299() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1299)
 
 
-def test_01300():
+def test_01300() -> None:
     with pytest.raises(KeyError):
         routine(test=1300)
 
 
-def test_01301():
+def test_01301() -> None:
     with pytest.raises(KeyError):
         routine(test=1301)
 
 
-def test_01302():
+def test_01302() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1302)
 
 
-def test_01303():
+def test_01303() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1303)
 
 
-def test_01304():
+def test_01304() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1304)
 
 
-def test_01305():
+def test_01305() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1305)
 
 
-def test_01306():
+def test_01306() -> None:
     with pytest.raises(KeyError):
         routine(test=1306)
 
 
-# def test_01307():  # FIXME
+# def test_01307() -> None:  # FIXME
 #     assert routine(test=1307)
 
-# def test_01308():  # FIXME
+# def test_01308() -> None:  # FIXME
 #     assert routine(test=1308)
 
 
-def test_01309():
+def test_01309() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1309)
 
 
-def test_01310():
+def test_01310() -> None:
     assert routine(test=1310)
 
 
-# def test_01311():  # FIXME
+# def test_01311() -> None:  # FIXME
 #     assert routine(test=1311)
 
 
-# def test_01312():  # FIXME
+# def test_01312() -> None:  # FIXME
 #     assert routine(test=1312)
 
 
-# def test_01313():  # FIXME
+# def test_01313() -> None:  # FIXME
 #     assert routine(test=1313)
 
 
-# def test_01314():  # FIXME
+# def test_01314() -> None:  # FIXME
 #     assert routine(test=1314)
 
 
-# def test_01315():  # FIXME
+# def test_01315() -> None:  # FIXME
 #     assert routine(test=1315)
 
 
-# def test_01316():  # FIXME
+# def test_01316() -> None:  # FIXME
 #     assert routine(test=1316)
 
 
-def test_01317():
+def test_01317() -> None:
     assert routine(test=1317)
 
 
-def test_01318():
+def test_01318() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1318)
 
 
-def test_01319():
+def test_01319() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1319)
 
 
-def test_01320():
+def test_01320() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1320)
 
 
-def test_01321():
+def test_01321() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1321)
 
 
-def test_01322():
+def test_01322() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1322)
 
 
-# def test_01323():  # FIXME
+# def test_01323() -> None:  # FIXME
 #     assert routine(test=1323)
 
 
-def test_01324():
+def test_01324() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1324)
 
 
-def test_01325():
+def test_01325() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1325)
 
 
-def test_01326():
+def test_01326() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1326)
 
 
-def test_01327():
+def test_01327() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1327)
 
 
-def test_01328():
+def test_01328() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1328)
 
 
-def test_01329():
+def test_01329() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1329)
 
 
-def test_01330():
+def test_01330() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1330)
 
 
-def test_01331():
+def test_01331() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1331)
 
 
-def test_01332():
+def test_01332() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1332)
 
 
-def test_01333():
+def test_01333() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1333)
 
 
-def test_01334():
+def test_01334() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1334)
 
 
-def test_01335():
+def test_01335() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1335)
 
 
-def test_01336():
+def test_01336() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1336)
 
 
-def test_01337():
+def test_01337() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1337)
 
 
-def test_01338():
+def test_01338() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1338)
 
 
-def test_01339():
+def test_01339() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1339)
 
 
-def test_01340():
+def test_01340() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1340)
 
 
-def test_01341():
+def test_01341() -> None:
     assert routine(test=1341)
 
 
-def test_01342():
+def test_01342() -> None:
     assert routine(test=1342)
 
 
-# def test_01343():  # FIXME
+# def test_01343() -> None:  # FIXME
 #     assert routine(test=1343)
 
 
-def test_01344():
+def test_01344() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1344)
 
 
-def test_01345():
+def test_01345() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1345)
 
 
-def test_01346():
+def test_01346() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1346)
 
 
-def test_01347():
+def test_01347() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1347)
 
 
-def test_01348():
+def test_01348() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1348)
 
 
-def test_01349():
+def test_01349() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1349)
 
 
-def test_01350():
+def test_01350() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1350)
 
 
-def test_01351():
+def test_01351() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1351)
 
 
-def test_01352():
+def test_01352() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1352)
 
 
-def test_01353():
+def test_01353() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1353)
 
 
-def test_01354():
+def test_01354() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1354)
 
 
-def test_01355():
+def test_01355() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1355)
 
 
-def test_01356():
+def test_01356() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1356)
 
 
-def test_01357():
+def test_01357() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1357)
 
 
-def test_01358():
+def test_01358() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1358)
 
 
-def test_01359():
+def test_01359() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1359)
 
 
-def test_01360():
+def test_01360() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1360)
 
 
-def test_01361():
+def test_01361() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1361)
 
 
-def test_01362():
+def test_01362() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1362)
 
 
-def test_01363():
+def test_01363() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1363)
 
 
-def test_01364():
+def test_01364() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1364)
 
 
-def test_01365():
+def test_01365() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1365)
 
 
-def test_01366():
+def test_01366() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1366)
 
 
-def test_01367():
+def test_01367() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1367)
 
 
-def test_01368():
+def test_01368() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1368)
 
 
-def test_01369():
+def test_01369() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1369)
 
 
-def test_01370():
+def test_01370() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1370)
 
 
-def test_01371():
+def test_01371() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1371)
 
 
-def test_01372():
+def test_01372() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1372)
 
 
-def test_01373():
+def test_01373() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1373)
 
 
-def test_01374():
+def test_01374() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1374)
 
 
-def test_01375():
+def test_01375() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1375)
 
 
-def test_01376():
+def test_01376() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1376)
 
 
-def test_01377():
+def test_01377() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1377)
 
 
-def test_01378():
+def test_01378() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1378)
 
 
-def test_01379():
+def test_01379() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1379)
 
 
-def test_01380():
+def test_01380() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1380)
 
 
-def test_01381():
+def test_01381() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1381)
 
 
-def test_01382():
+def test_01382() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1382)
 
 
-def test_01383():
+def test_01383() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1383)
 
 
-def test_01384():
+def test_01384() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1384)
 
 
-def test_01385():
+def test_01385() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1385)
 
 
-def test_01386():
+def test_01386() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1386)
 
 
-def test_01387():
+def test_01387() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1387)
 
 
-def test_01388():
+def test_01388() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1388)
 
 
-def test_01389():
+def test_01389() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1389)
 
 
-def test_01390():
+def test_01390() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1390)
 
 
-def test_01391():
+def test_01391() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1391)
 
 
-def test_01392():
+def test_01392() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1392)
 
 
-def test_01393():
+def test_01393() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1393)
 
 
-def test_01394():
+def test_01394() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1394)
 
 
-# def test_01395():  # FIXME
+# def test_01395() -> None:  # FIXME
 #     with pytest.raises(KeyError):
 #         routine(test=1395)
 
 
-# def test_01396():  # FIXME
+# def test_01396() -> None:  # FIXME
 #     assert routine(test=1396)
 
-# def test_01397():  # FIXME
+# def test_01397() -> None:  # FIXME
 #     assert routine(test=1397)
 
-# def test_01398():  # FIXME
+# def test_01398() -> None:  # FIXME
 #     assert routine(test=1398)
 
-# def test_01399():  # FIXME
+# def test_01399() -> None:  # FIXME
 #     assert routine(test=1399)
 
 
-def test_01400():
+def test_01400() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1400)
 
 
-def test_01401():
+def test_01401() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1401)
 
 
-def test_01402():
+def test_01402() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1402)
 
 
-def test_01403():
+def test_01403() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1403)
 
 
-def test_01404():
+def test_01404() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1404)
 
 
-def test_01405():
+def test_01405() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1405)
 
 
-def test_01406():
+def test_01406() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1406)
 
 
-def test_01407():
+def test_01407() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1407)
 
 
-def test_01408():
+def test_01408() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1408)
 
 
-def test_01409():
+def test_01409() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1409)
 
 
-def test_01410():
+def test_01410() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1410)
 
 
-def test_01411():
+def test_01411() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1411)
 
 
-def test_01412():
+def test_01412() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1412)
 
 
-def test_01413():
+def test_01413() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1413)
 
 
-def test_01414():
+def test_01414() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1414)
 
 
-def test_01415():
+def test_01415() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1415)
 
 
-def test_01416():
+def test_01416() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1416)
 
 
-def test_01417():
+def test_01417() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1417)
 
 
-def test_01418():
+def test_01418() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1418)
 
 
-def test_01419():
+def test_01419() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1419)
 
 
-def test_01420():
+def test_01420() -> None:
     assert routine(test=1420)
 
 
-def test_01421():
+def test_01421() -> None:
     assert routine(test=1421)
 
 
-def test_01422():
+def test_01422() -> None:
     assert routine(test=1422)
 
 
-def test_01423():
+def test_01423() -> None:
     assert routine(test=1423)
 
 
-def test_01424():
+def test_01424() -> None:
     assert routine(test=1424)
 
 
-def test_01425():
+def test_01425() -> None:
     assert routine(test=1425)
 
 
-def test_01426():
+def test_01426() -> None:
     assert routine(test=1426)
 
 
-def test_01427():
+def test_01427() -> None:
     assert routine(test=1427)
 
 
-def test_01428():
+def test_01428() -> None:
     assert routine(test=1428)
 
 
-def test_01429():
+def test_01429() -> None:
     assert routine(test=1429)
 
 
-def test_01430():
+def test_01430() -> None:
     assert routine(test=1430)
 
 
-def test_01431():
+def test_01431() -> None:
     assert routine(test=1431)
 
 
-def test_01432():
+def test_01432() -> None:
     assert routine(test=1432)
 
 
-def test_01433():
+def test_01433() -> None:
     assert routine(test=1433)
 
 
-def test_01434():
+def test_01434() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1434)
 
 
-# def test_01435():  # FIXME
+# def test_01435() -> None:  # FIXME
 #     assert routine(test=1435)
 
 
-def test_01436():
+def test_01436() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1436)
 
 
-# def test_01437():  # FIXME
+# def test_01437() -> None:  # FIXME
 #     assert routine(test=1437)
 
 
-def test_01438():
+def test_01438() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1438)
 
 
-# def test_01439():  # FIXME
+# def test_01439() -> None:  # FIXME
 #     assert routine(test=1439)
 
 
-def test_01440():
+def test_01440() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1440)
 
 
-# def test_01441():  # FIXME
+# def test_01441() -> None:  # FIXME
 #     assert routine(test=1441)
 
 
-def test_01442():
+def test_01442() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1442)
 
 
-# def test_01443():  # FIXME
+# def test_01443() -> None:  # FIXME
 #     assert routine(test=1443)
 
 
-def test_01444():
+def test_01444() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1444)
 
 
-def test_01445():
+def test_01445() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1445)
 
 
-def test_01446():
+def test_01446() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1446)
 
 
-def test_01447():
+def test_01447() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1447)
 
 
-def test_01448():
+def test_01448() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1448)
 
 
-def test_01449():
+def test_01449() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1449)
 
 
-def test_01450():
+def test_01450() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1450)
 
 
-def test_01451():
+def test_01451() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1451)
 
 
-def test_01452():
+def test_01452() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1452)
 
 
-def test_01453():
+def test_01453() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1453)
 
 
-def test_01454():
+def test_01454() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1454)
 
 
-def test_01455():
+def test_01455() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1455)
 
 
-def test_01456():
+def test_01456() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1456)
 
 
-def test_01457():
+def test_01457() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1457)
 
 
-def test_01458():
+def test_01458() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1458)
 
 
-def test_01459():
+def test_01459() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1459)
 
 
-def test_01460():
+def test_01460() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1460)
 
 
-def test_01461():
+def test_01461() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1461)
 
 
-def test_01462():
+def test_01462() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1462)
 
 
-def test_01463():
+def test_01463() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1463)
 
 
-def test_01464():
+def test_01464() -> None:
     assert routine(test=1464)
 
 
-def test_01465():
+def test_01465() -> None:
     assert routine(test=1465)
 
 
-def test_01466():
+def test_01466() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1466)
 
 
-def test_01467():
+def test_01467() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1467)
 
 
-def test_01468():
+def test_01468() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1468)
 
 
-def test_01469():
+def test_01469() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1469)
 
 
-def test_01470():
+def test_01470() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1470)
 
 
-def test_01471():
+def test_01471() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1471)
 
 
-def test_01472():
+def test_01472() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1472)
 
 
-def test_01473():
+def test_01473() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1473)
 
 
-def test_01474():
+def test_01474() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1474)
 
 
-def test_01475():
+def test_01475() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1475)
 
 
-def test_01476():
+def test_01476() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1476)
 
 
-def test_01477():
+def test_01477() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1477)
 
 
-def test_01478():
+def test_01478() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1478)
 
 
-def test_01479():
+def test_01479() -> None:
     assert routine(test=1479)
 
 
-def test_01480():
+def test_01480() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1480)
 
 
-# def test_01481():  # FIXME
+# def test_01481() -> None:  # FIXME
 #     assert routine(test=1481)
 
 
-def test_01482():
+def test_01482() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1482)
 
 
-def test_01483():
+def test_01483() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1483)
 
 
-def test_01484():
+def test_01484() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1484)
 
 
-def test_01485():
+def test_01485() -> None:
     with pytest.raises(TypeError):
         routine(test=1485)
 
 
-# def test_01486():  # FIXME
+# def test_01486() -> None:  # FIXME
 #     assert routine(test=1486)
 
 
-def test_01487():
+def test_01487() -> None:
     with pytest.raises(TypeError):
         routine(test=1487)
 
 
-def test_01488():
+def test_01488() -> None:
     with pytest.raises(ZeroDivisionError):
         routine(test=1488)
 
 
-def test_01489():
+def test_01489() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1489)
 
 
-def test_01490():
+def test_01490() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1490)
 
 
-def test_01491():
+def test_01491() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1491)
 
 
-def test_01492():
+def test_01492() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1492)
 
 
-def test_01493():
+def test_01493() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1493)
 
 
-def test_01494():
+def test_01494() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1494)
 
 
-def test_01495():
+def test_01495() -> None:
     with pytest.raises(NameError):
         routine(test=1495)
 
 
-def test_01496():
+def test_01496() -> None:
     assert routine(test=1496)
 
 
-def test_01497():
+def test_01497() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1497)
 
 
-def test_01498():
+def test_01498() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1498)
 
 
-def test_01499():
+def test_01499() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1499)
 
 
-def test_01500():
+def test_01500() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1500)
 
 
-def test_01501():
+def test_01501() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1501)
 
 
-def test_01502():
+def test_01502() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1502)
 
 
-def test_01503():
+def test_01503() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1503)
 
 
-def test_01504():
+def test_01504() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1504)
 
 
-def test_01505():
+def test_01505() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1505)
 
 
-def test_01506():
+def test_01506() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1506)
 
 
-def test_01507():
+def test_01507() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1507)
 
 
-def test_01508():
+def test_01508() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1508)
 
 
-def test_01509():
+def test_01509() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1509)
 
 
-def test_01510():
+def test_01510() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1510)
 
 
-def test_01511():
+def test_01511() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1511)
 
 
-def test_01512():
+def test_01512() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1512)
 
 
-def test_01513():
+def test_01513() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1513)
 
 
-def test_01514():
+def test_01514() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1514)
 
 
-def test_01515():
+def test_01515() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1515)
 
 
-def test_01516():
+def test_01516() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1516)
 
 
-# def test_01517():  # FIXME
+# def test_01517() -> None:  # FIXME
 #     assert routine(test=1517)
 
 
-def test_01518():
+def test_01518() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1518)
 
 
-def test_01519():
+def test_01519() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1519)
 
 
-def test_01520():
+def test_01520() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1520)
 
 
-def test_01521():
+def test_01521() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1521)
 
 
-def test_01522():
+def test_01522() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1522)
 
 
-def test_01523():
+def test_01523() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1523)
 
 
-def test_01524():
+def test_01524() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1524)
 
 
-def test_01525():
+def test_01525() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1525)
 
 
-def test_01526():
+def test_01526() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1526)
 
 
-def test_01527():
+def test_01527() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1527)
 
 
-def test_01528():
+def test_01528() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1528)
 
 
-def test_01529():
+def test_01529() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1529)
 
 
-def test_01530():
+def test_01530() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1530)
 
 
-def test_01531():
+def test_01531() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1531)
 
 
-def test_01532():
+def test_01532() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1532)
 
 
-def test_01533():
+def test_01533() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1533)
 
 
-def test_01534():
+def test_01534() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1534)
 
 
-def test_01535():
+def test_01535() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1535)
 
 
-def test_01536():
+def test_01536() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1536)
 
 
-def test_01537():
+def test_01537() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1537)
 
 
-def test_01538():
+def test_01538() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1538)
 
 
-# def test_01539():  # FIXME
+# def test_01539() -> None:  # FIXME
 #     assert routine(test=1539)
 
 
-def test_01540():
+def test_01540() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1540)
 
 
-def test_01541():
+def test_01541() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1541)
 
 
-def test_01542():
+def test_01542() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1542)
 
 
-def test_01543():
+def test_01543() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1543)
 
 
-# def test_01544():  # FIXME
+# def test_01544() -> None:  # FIXME
 #     assert routine(test=1544)
 
-# def test_01545():  # FIXME
+# def test_01545() -> None:  # FIXME
 #     assert routine(test=1545)
 
-# def test_01546():  # FIXME
+# def test_01546() -> None:  # FIXME
 #     assert routine(test=1546)
 
-# def test_01547():  # FIXME
+# def test_01547() -> None:  # FIXME
 #     assert routine(test=1547)
 
-# def test_01548():  # FIXME
+# def test_01548() -> None:  # FIXME
 #     assert routine(test=1548)
 
-# def test_01549():  # FIXME
+# def test_01549() -> None:  # FIXME
 #     assert routine(test=1549)
 
-# def test_01550():  # FIXME
+# def test_01550() -> None:  # FIXME
 #     assert routine(test=1550)
 
-# def test_01551():  # FIXME
+# def test_01551() -> None:  # FIXME
 #     assert routine(test=1551)
 
 
-def test_01552():
+def test_01552() -> None:
     assert routine(test=1552)
 
 
-def test_01553():
+def test_01553() -> None:
     assert routine(test=1553)
 
 
-def test_01554():
+def test_01554() -> None:
     assert routine(test=1554)
 
 
-def test_01555():
+def test_01555() -> None:
     assert routine(test=1555)
 
 
-def test_01556():
+def test_01556() -> None:
     assert routine(test=1556)
 
 
-def test_01557():
+def test_01557() -> None:
     assert routine(test=1557)
 
 
-# def test_01558():  # FIXME
+# def test_01558() -> None:  # FIXME
 #     assert routine(test=1558)
 
-# def test_01559():  # FIXME
+# def test_01559() -> None:  # FIXME
 #     assert routine(test=1559)
 
-# def test_01560():  # FIXME
+# def test_01560() -> None:  # FIXME
 #     assert routine(test=1560)
 
 
-def test_01561():
+def test_01561() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1561)
 
 
-# def test_01562():  # FIXME
+# def test_01562() -> None:  # FIXME
 #     assert routine(test=1562)
 
 
-def test_01563():
+def test_01563() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1563)
 
 
-def test_01564():
+def test_01564() -> None:
     with pytest.raises(SyntaxError):
         routine(test=1564)
 
 
-# def test_01565():  # FIXME
+# def test_01565() -> None:  # FIXME
 #     assert routine(test=1565)
 
 
-# def test_01566():  # FIXME
+# def test_01566() -> None:  # FIXME
 #     with pytest.raises(KeyError):
 #         routine(test=1566)
 
 
-# def test_01567():  # FIXME
+# def test_01567() -> None:  # FIXME
 #     assert routine(test=1567)
 
-# def test_01568():  # FIXME
+# def test_01568() -> None:  # FIXME
 #     assert routine(test=1568)
 
-# def test_01569():  # FIXME
+# def test_01569() -> None:  # FIXME
 #     assert routine(test=1569)
 
-# def test_01570():  # FIXME
+# def test_01570() -> None:  # FIXME
 #     assert routine(test=1570)
 
-# def test_01571():  # FIXME
+# def test_01571() -> None:  # FIXME
 #     assert routine(test=1571)
 
-# def test_01572():  # FIXME
+# def test_01572() -> None:  # FIXME
 #     assert routine(test=1572)
 
-# def test_01573():  # FIXME
+# def test_01573() -> None:  # FIXME
 #     assert routine(test=1573)
 
 
-def test_01574():
+def test_01574() -> None:
     assert routine(test=1574)
 
 
-def test_01575():
+def test_01575() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1575)
 
 
-def test_01576():
+def test_01576() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1576)
 
 
-def test_01577():
+def test_01577() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1577)
 
 
-def test_01578():
+def test_01578() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1578)
 
 
-def test_01579():
+def test_01579() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1579)
 
 
-def test_01580():
+def test_01580() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1580)
 
 
-# def test_01581():  # FIXME
+# def test_01581() -> None:  # FIXME
 #     assert routine(test=1581)
 
 
-def test_01582():
+def test_01582() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1582)
 
 
-def test_01583():
+def test_01583() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1583)
 
 
-def test_01584():
+def test_01584() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1584)
 
 
-# def test_01585():  # FIXME
+# def test_01585() -> None:  # FIXME
 #     assert routine(test=1585)
 
 
-def test_01586():
+def test_01586() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1586)
 
 
-# def test_01587():  # FIXME
+# def test_01587() -> None:  # FIXME
 #     assert routine(test=1587)
 
 
-def test_01588():
+def test_01588() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1588)
 
 
-def test_01589():
+def test_01589() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1589)
 
 
-def test_01590():
+def test_01590() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1590)
 
 
-def test_01591():
+def test_01591() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1591)
 
 
-def test_01592():
+def test_01592() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1592)
 
 
-def test_01593():
+def test_01593() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1593)
 
 
-def test_01594():
+def test_01594() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1594)
 
 
-def test_01595():
+def test_01595() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1595)
 
 
-def test_01596():
+def test_01596() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1596)
 
 
-def test_01597():
+def test_01597() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1597)
 
 
-def test_01598():
+def test_01598() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1598)
 
 
-def test_01599():
+def test_01599() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1599)
 
 
-def test_01600():
+def test_01600() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1600)
 
 
-def test_01601():
+def test_01601() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1601)
 
 
-def test_01602():
+def test_01602() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1602)
 
 
-def test_01603():
+def test_01603() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1603)
 
 
-def test_01604():
+def test_01604() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1604)
 
 
-def test_01605():
+def test_01605() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1605)
 
 
-# def test_01606():  # FIXME
+# def test_01606() -> None:  # FIXME
 #     assert routine(test=1606)
 
-# def test_01607():  # FIXME
+# def test_01607() -> None:  # FIXME
 #     assert routine(test=1607)
 
-# def test_01608():  # FIXME
+# def test_01608() -> None:  # FIXME
 #     assert routine(test=1608)
 
-# def test_01609():  # FIXME
+# def test_01609() -> None:  # FIXME
 #     assert routine(test=1609)
 
-# def test_01610():  # FIXME
+# def test_01610() -> None:  # FIXME
 #     assert routine(test=1610)
 
-# def test_01611():  # FIXME
+# def test_01611() -> None:  # FIXME
 #     assert routine(test=1611)
 
-# def test_01612():  # FIXME
+# def test_01612() -> None:  # FIXME
 #     assert routine(test=1612)
 
-# def test_01613():  # FIXME
+# def test_01613() -> None:  # FIXME
 #     assert routine(test=1613)
 
-# def test_01614():  # FIXME
+# def test_01614() -> None:  # FIXME
 #     assert routine(test=1614)
 
-# def test_01615():  # FIXME
+# def test_01615() -> None:  # FIXME
 #     assert routine(test=1615)
 
-# def test_01616():  # FIXME
+# def test_01616() -> None:  # FIXME
 #     assert routine(test=1616)
 
-# def test_01617():  # FIXME
+# def test_01617() -> None:  # FIXME
 #     assert routine(test=1617)
 
-# def test_01618():  # FIXME
+# def test_01618() -> None:  # FIXME
 #     assert routine(test=1618)
 
-# def test_01619():  # FIXME
+# def test_01619() -> None:  # FIXME
 #     assert routine(test=1619)
 
-# def test_01620():  # FIXME
+# def test_01620() -> None:  # FIXME
 #     assert routine(test=1620)
 
-# def test_01621():  # FIXME
+# def test_01621() -> None:  # FIXME
 #     assert routine(test=1621)
 
-# def test_01622():  # FIXME
+# def test_01622() -> None:  # FIXME
 #     assert routine(test=1622)
 
-# def test_01623():  # FIXME
+# def test_01623() -> None:  # FIXME
 #     assert routine(test=1623)
 
-# def test_01624():  # FIXME
+# def test_01624() -> None:  # FIXME
 #     assert routine(test=1624)
 
-# def test_01625():  # FIXME
+# def test_01625() -> None:  # FIXME
 #     assert routine(test=1625)
 
 
-def test_01626():
+def test_01626() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1626)
 
 
-def test_01627():
+def test_01627() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1627)
 
 
-# def test_01628():  # FIXME
+# def test_01628() -> None:  # FIXME
 #     assert routine(test=1628)
 
-# def test_01629():  # FIXME
+# def test_01629() -> None:  # FIXME
 #     assert routine(test=1629)
 
-# def test_01630():  # FIXME
+# def test_01630() -> None:  # FIXME
 #     assert routine(test=1630)
 
 
-def test_01631():
+def test_01631() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1631)
 
 
-# def test_01632():  # FIXME
+# def test_01632() -> None:  # FIXME
 #     assert routine(test=1632)
 
 
-def test_01633():
+def test_01633() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1633)
 
 
-# def test_01634():  # FIXME
+# def test_01634() -> None:  # FIXME
 #     assert routine(test=1634)
 
 
-def test_01635():
+def test_01635() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1635)
 
 
-# def test_01636():  # FIXME
+# def test_01636() -> None:  # FIXME
 #     assert routine(test=1636)
 
-# def test_01637():  # FIXME
+# def test_01637() -> None:  # FIXME
 #     assert routine(test=1637)
 
-# def test_01638():  # FIXME
+# def test_01638() -> None:  # FIXME
 #     assert routine(test=1638)
 
-# def test_01639():  # FIXME
+# def test_01639() -> None:  # FIXME
 #     assert routine(test=1639)
 
-# def test_01640():  # FIXME
+# def test_01640() -> None:  # FIXME
 #     assert routine(test=1640)
 
 
-# def test_01641():  # FIXME
+# def test_01641() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=1641)
 
 
-def test_01642():
+def test_01642() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1642)
 
 
-def test_01643():
+def test_01643() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1643)
 
 
-def test_01644():
+def test_01644() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1644)
 
 
-def test_01645():
+def test_01645() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1645)
 
 
-def test_01646():
+def test_01646() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1646)
 
 
-def test_01647():
+def test_01647() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1647)
 
 
-def test_01648():
+def test_01648() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1648)
 
 
-def test_01649():
+def test_01649() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1649)
 
 
-def test_01650():
+def test_01650() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1650)
 
 
-def test_01651():
+def test_01651() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1651)
 
 
-def test_01652():
+def test_01652() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1652)
 
 
-def test_01653():
+def test_01653() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1653)
 
 
-# def test_01654():  # FIXME
+# def test_01654() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=1654)
 
 
-# def test_01655():  # FIXME
+# def test_01655() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=1655)
 
 
-# def test_01656():  # FIXME
+# def test_01656() -> None:  # FIXME
 #     assert routine(test=1656)
 
 
-# def test_01657():  # FIXME
+# def test_01657() -> None:  # FIXME
 #     with pytest.raises(NotImplementedError):
 #         routine(test=1657)
 
 
-def test_01658():
+def test_01658() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1658)
 
 
-def test_01659():
+def test_01659() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1659)
 
 
-def test_01660():
+def test_01660() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1660)
 
 
-def test_01661():
+def test_01661() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1661)
 
 
-def test_01662():
+def test_01662() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1662)
 
 
-def test_01663():
+def test_01663() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1663)
 
 
-def test_01664():
+def test_01664() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1664)
 
 
-def test_01665():
+def test_01665() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1665)
 
 
-def test_01666():
+def test_01666() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1666)
 
 
-def test_01667():
+def test_01667() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1667)
 
 
-def test_01668():
+def test_01668() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1668)
 
 
-def test_01669():
+def test_01669() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1669)
 
 
-def test_01670():
+def test_01670() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1670)
 
 
-def test_01671():
+def test_01671() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1671)
 
 
-def test_01672():
+def test_01672() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1672)
 
 
-def test_01673():
+def test_01673() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1673)
 
 
-def test_01674():
+def test_01674() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1674)
 
 
-def test_01675():
+def test_01675() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1675)
 
 
-def test_01676():
+def test_01676() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1676)
 
 
-def test_01677():
+def test_01677() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1677)
 
 
-def test_01678():
+def test_01678() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1678)
 
 
-def test_01679():
+def test_01679() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1679)
 
 
-def test_01680():
+def test_01680() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1680)
 
 
-def test_01681():
+def test_01681() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1681)
 
 
-def test_01682():
+def test_01682() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1682)
 
 
-def test_01683():
+def test_01683() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1683)
 
 
-def test_01684():
+def test_01684() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1684)
 
 
-def test_01685():
+def test_01685() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1685)
 
 
-def test_01686():
+def test_01686() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1686)
 
 
-def test_01687():
+def test_01687() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1687)
 
 
-def test_01688():
+def test_01688() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1688)
 
 
-def test_01689():
+def test_01689() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1689)
 
 
-def test_01690():
+def test_01690() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1690)
 
 
-def test_01691():
+def test_01691() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1691)
 
 
-def test_01692():
+def test_01692() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1692)
 
 
-def test_01693():
+def test_01693() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1693)
 
 
-def test_01694():
+def test_01694() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1694)
 
 
-def test_01695():
+def test_01695() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1695)
 
 
-def test_01696():
+def test_01696() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1696)
 
 
-def test_01697():
+def test_01697() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1697)
 
 
-def test_01698():
+def test_01698() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1698)
 
 
-def test_01699():
+def test_01699() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1699)
 
 
-def test_01700():
+def test_01700() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1700)
 
 
-def test_01701():
+def test_01701() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1701)
 
 
-def test_01702():
+def test_01702() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1702)
 
 
-def test_01703():
+def test_01703() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1703)
 
 
-def test_01704():
+def test_01704() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1704)
 
 
-def test_01705():
+def test_01705() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1705)
 
 
-def test_01706():
+def test_01706() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1706)
 
 
-def test_01707():
+def test_01707() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1707)
 
 
-def test_01708():
+def test_01708() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1708)
 
 
-def test_01709():
+def test_01709() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1709)
 
 
-def test_01710():
+def test_01710() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1710)
 
 
-def test_01711():
+def test_01711() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1711)
 
 
-def test_01712():
+def test_01712() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1712)
 
 
-def test_01713():
+def test_01713() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1713)
 
 
-def test_01714():
+def test_01714() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1714)
 
 
-def test_01715():
+def test_01715() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1715)
 
 
-def test_01716():
+def test_01716() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1716)
 
 
-def test_01717():
+def test_01717() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1717)
 
 
-def test_01718():
+def test_01718() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1718)
 
 
-def test_01719():
+def test_01719() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1719)
 
 
-def test_01720():
+def test_01720() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1720)
 
 
-def test_01721():
+def test_01721() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1721)
 
 
-def test_01722():
+def test_01722() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1722)
 
 
-def test_01723():
+def test_01723() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1723)
 
 
-def test_01724():
+def test_01724() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1724)
 
 
-def test_01725():
+def test_01725() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1725)
 
 
-def test_01726():
+def test_01726() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1726)
 
 
-def test_01727():
+def test_01727() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1727)
 
 
-def test_01728():
+def test_01728() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1728)
 
 
-def test_01729():
+def test_01729() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1729)
 
 
-def test_01730():
+def test_01730() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1730)
 
 
-def test_01731():
+def test_01731() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1731)
 
 
-def test_01732():
+def test_01732() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1732)
 
 
-def test_01733():
+def test_01733() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1733)
 
 
-def test_01734():
+def test_01734() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1734)
 
 
-def test_01735():
+def test_01735() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1735)
 
 
-def test_01736():
+def test_01736() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1736)
 
 
-def test_01737():
+def test_01737() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1737)
 
 
-def test_01738():
+def test_01738() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1738)
 
 
-def test_01739():
+def test_01739() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1739)
 
 
-def test_01740():
+def test_01740() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1740)
 
 
-def test_01741():
+def test_01741() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1741)
 
 
-def test_01742():
+def test_01742() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1742)
 
 
-# def test_01743():  # FIXME
+# def test_01743() -> None:  # FIXME
 #     assert routine(test=1743)
 
-# def test_01744():  # FIXME
+# def test_01744() -> None:  # FIXME
 #     assert routine(test=1744)
 
-# def test_01745():  # FIXME
+# def test_01745() -> None:  # FIXME
 #     assert routine(test=1745)
 
 
-def test_01746():
+def test_01746() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1746)
 
 
-# def test_01747():  # FIXME
+# def test_01747() -> None:  # FIXME
 #     assert routine(test=1747)
 
-# def test_01748():  # FIXME
+# def test_01748() -> None:  # FIXME
 #     assert routine(test=1748)
 
-# def test_01749():  # FIXME
+# def test_01749() -> None:  # FIXME
 #     assert routine(test=1749)
 
-# def test_01750():  # FIXME
+# def test_01750() -> None:  # FIXME
 #     assert routine(test=1750)
 
-# def test_01751():  # FIXME
+# def test_01751() -> None:  # FIXME
 #     assert routine(test=1751)
 
-# def test_01752():  # FIXME
+# def test_01752() -> None:  # FIXME
 #     assert routine(test=1752)
 
-# def test_01753():  # FIXME
+# def test_01753() -> None:  # FIXME
 #     assert routine(test=1753)
 
 
-def test_01754():
+def test_01754() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1754)
 
 
-def test_01755():
+def test_01755() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1755)
 
 
-def test_01756():
+def test_01756() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1756)
 
 
-def test_01757():
+def test_01757() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1757)
 
 
-def test_01758():
+def test_01758() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1758)
 
 
-def test_01759():
+def test_01759() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1759)
 
 
-def test_01760():
+def test_01760() -> None:
     assert routine(test=1760)
 
 
-def test_01761():
+def test_01761() -> None:
     assert routine(test=1761)
 
 
-def test_01762():
+def test_01762() -> None:
     assert routine(test=1762)
 
 
-def test_01763():
+def test_01763() -> None:
     assert routine(test=1763)
 
 
-# def test_01764():  # FIXME
+# def test_01764() -> None:  # FIXME
 #     assert routine(test=1764)
 
-# def test_01765():  # FIXME
+# def test_01765() -> None:  # FIXME
 #     assert routine(test=1765)
 
-# def test_01766():  # FIXME
+# def test_01766() -> None:  # FIXME
 #     assert routine(test=1766)
 
-# def test_01767():  # FIXME
+# def test_01767() -> None:  # FIXME
 #     assert routine(test=1767)
 
 
-def test_01768():
+def test_01768() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1768)
 
 
-def test_01769():
+def test_01769() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1769)
 
 
-def test_01770():
+def test_01770() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1770)
 
 
-def test_01771():
+def test_01771() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1771)
 
 
-def test_01772():
+def test_01772() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1772)
 
 
-# def test_01773():  # FIXME
+# def test_01773() -> None:  # FIXME
 #     assert routine(test=1773)
 
-# def test_01774():  # FIXME
+# def test_01774() -> None:  # FIXME
 #     assert routine(test=1774)
 
 
-def test_01775():
+def test_01775() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1775)
 
 
-def test_01776():
+def test_01776() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1776)
 
 
-def test_01777():
+def test_01777() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1777)
 
 
-def test_01778():
+def test_01778() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1778)
 
 
-def test_01779():
+def test_01779() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1779)
 
 
-def test_01780():
+def test_01780() -> None:
     with pytest.raises(NotImplementedError):
         routine(test=1780)
