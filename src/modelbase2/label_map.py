@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 
 from modelbase2.model import Model
-from modelbase2.types import default_if_none
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -309,7 +308,7 @@ class LabelMapper:
         initial_labels: dict[str, int | list[int]] | None = None,
     ) -> Model:
         isotopomers = self.get_isotopomers()
-        initial_labels = default_if_none(initial_labels, {})
+        initial_labels = {} if initial_labels is None else initial_labels
 
         m = Model()
 

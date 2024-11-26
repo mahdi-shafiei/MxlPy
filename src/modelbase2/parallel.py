@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 import pebble
 from tqdm import tqdm
 
-from modelbase2.types import K, Tin, Tout, default_if_none
+from modelbase2.types import K, Tin, Tout
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection, Hashable
@@ -82,7 +82,9 @@ def parallelise(
     results: dict[Tin, Tout]
     if parallel:
         results = {}
-        max_workers = default_if_none(max_workers, multiprocessing.cpu_count())
+        max_workers = (
+            multiprocessing.cpu_count() if max_workers is None else max_workers
+        )
 
         with (
             tqdm(

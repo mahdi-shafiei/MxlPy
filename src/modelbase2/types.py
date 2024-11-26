@@ -60,10 +60,6 @@ def unwrap2[T1, T2](tpl: tuple[T1 | None, T2 | None]) -> tuple[T1, T2]:
     return a, b
 
 
-def default_if_none(el: T | None, default: T) -> T:
-    return default if el is None else el
-
-
 class IntegratorProtocol(Protocol):
     """Interface for integrators"""
 

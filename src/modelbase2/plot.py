@@ -19,7 +19,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from modelbase2.label_map import LabelMapper
 from modelbase2.linear_label_map import LinearLabelMapper
-from modelbase2.types import Array, default_if_none
+from modelbase2.types import Array
 
 type FigAx = tuple[Figure, Axes]
 type FigAxs = tuple[Figure, list[Axes]]
@@ -531,8 +531,8 @@ def shade_protocol(
 
     cmap = colormaps[cmap_name]
     norm = Normalize(
-        vmin=default_if_none(vmin, protocol.min()),
-        vmax=default_if_none(vmax, protocol.max()),
+        vmin=protocol.min() if vmin is None else vmin,
+        vmax=protocol.max() if vmax is None else vmax,
     )
 
     t0 = pd.Timedelta(seconds=0)
@@ -562,7 +562,7 @@ def shade_protocol(
                 labels=protocol,
                 loc="lower right",
                 bbox_to_anchor=(1.0, 0.0),
-                title=default_if_none(cast(str, protocol.name), "protocol"),
+                title="protocol" if protocol.name is None else cast(str, protocol.name),
             )
         )
 

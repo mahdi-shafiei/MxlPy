@@ -154,6 +154,26 @@ def time_course_over_protocol(
     max_workers: int | None = None,
     cache: Cache | None = None,
 ) -> ProtocolByPars:
+    """MC time course
+
+    Returns
+    -------
+    tuple[concentrations, fluxes] using pandas multiindex
+    Both dataframes are of shape (#time_points * #mc_parameters, #variables)
+
+    E.g.
+    p    t     x      y
+    0    0.0   0.1    0.00
+         1.0   0.2    0.01
+         2.0   0.3    0.02
+         3.0   0.4    0.03
+         ...   ...    ...
+    1    0.0   0.1    0.00
+         1.0   0.2    0.01
+         2.0   0.3    0.02
+         3.0   0.4    0.03
+
+    """
     res = parallelise(
         partial(
             _update_parameters_and,
