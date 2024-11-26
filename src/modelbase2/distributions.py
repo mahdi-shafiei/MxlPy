@@ -17,7 +17,7 @@ class Distribution(Protocol):
 
 
 @dataclass
-class Beta(Distribution):
+class Beta:
     a: float
     b: float
     seed: int = 42
@@ -29,7 +29,7 @@ class Beta(Distribution):
 
 
 @dataclass
-class Uniform(Distribution):
+class Uniform:
     lower_bound: float
     upper_bound: float
     seed: int = 42
@@ -41,7 +41,7 @@ class Uniform(Distribution):
 
 
 @dataclass
-class Normal(Distribution):
+class Normal:
     loc: float
     scale: float
     seed: int = 42
@@ -53,7 +53,7 @@ class Normal(Distribution):
 
 
 @dataclass
-class LogNormal(Distribution):
+class LogNormal:
     mean: float
     sigma: float
     seed: int = 42
@@ -65,7 +65,7 @@ class LogNormal(Distribution):
 
 
 @dataclass
-class Skewnorm(Distribution):
+class Skewnorm:
     loc: float
     scale: float
     a: float
