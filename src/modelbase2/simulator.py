@@ -10,7 +10,8 @@ import pandas as pd
 from modelbase2.integrators import DefaultIntegrator
 
 if TYPE_CHECKING:
-    from modelbase2.types import ArrayLike, IntegratorProtocol, ModelProtocol
+    from modelbase2.model import Model
+    from modelbase2.types import ArrayLike, IntegratorProtocol
 
 
 def _normalise_split_results(
@@ -38,7 +39,7 @@ def _normalise_split_results(
     eq=False,
 )
 class Simulator:
-    model: ModelProtocol
+    model: Model
     y0: ArrayLike
     integrator: IntegratorProtocol
     concs: list[pd.DataFrame] | None
@@ -47,7 +48,7 @@ class Simulator:
 
     def __init__(
         self,
-        model: ModelProtocol,
+        model: Model,
         y0: dict[str, float] | None = None,
         integrator: type[IntegratorProtocol] = DefaultIntegrator,
         *,

@@ -22,33 +22,34 @@ from modelbase2.types import ProtocolByPars, SteadyStates, TimeCourseByPars
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from modelbase2.types import Array, ModelProtocol, T
+    from modelbase2.model import Model
+    from modelbase2.types import Array, T
 
 
 def _update_parameters_and(
     pars: pd.Series,
-    fn: Callable[[ModelProtocol], T],
-    model: ModelProtocol,
+    fn: Callable[[Model], T],
+    model: Model,
 ) -> T:
     model.update_parameters(pars.to_dict())
     return fn(model)
 
 
-def _empty_conc_series(model: ModelProtocol) -> pd.Series:
+def _empty_conc_series(model: Model) -> pd.Series:
     return pd.Series(
         data=np.full(shape=len(model.get_variable_names()), fill_value=np.nan),
         index=model.get_variable_names(),
     )
 
 
-def _empty_flux_series(model: ModelProtocol) -> pd.Series:
+def _empty_flux_series(model: Model) -> pd.Series:
     return pd.Series(
         data=np.full(shape=len(model.get_reaction_names()), fill_value=np.nan),
         index=model.get_reaction_names(),
     )
 
 
-def _empty_conc_df(model: ModelProtocol, time_points: Array) -> pd.DataFrame:
+def _empty_conc_df(model: Model, time_points: Array) -> pd.DataFrame:
     return pd.DataFrame(
         data=np.full(
             shape=(len(time_points), len(model.get_variable_names())),
@@ -59,7 +60,7 @@ def _empty_conc_df(model: ModelProtocol, time_points: Array) -> pd.DataFrame:
     )
 
 
-def _empty_flux_df(model: ModelProtocol, time_points: Array) -> pd.DataFrame:
+def _empty_flux_df(model: Model, time_points: Array) -> pd.DataFrame:
     return pd.DataFrame(
         data=np.full(
             shape=(len(time_points), len(model.get_reaction_names())),
@@ -70,12 +71,12 @@ def _empty_flux_df(model: ModelProtocol, time_points: Array) -> pd.DataFrame:
     )
 
 
-def empty_time_point(model: ModelProtocol) -> tuple[pd.Series, pd.Series]:
+def empty_time_point(model: Model) -> tuple[pd.Series, pd.Series]:
     return _empty_conc_series(model), _empty_flux_series(model)
 
 
 def empty_time_course(
-    model: ModelProtocol, time_points: Array
+    model: Model, time_points: Array
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     return _empty_conc_df(model, time_points), _empty_flux_df(model, time_points)
 
@@ -92,7 +93,7 @@ class TimePoint:
 
     def __init__(
         self,
-        model: ModelProtocol,
+        model: Model,
         concs: pd.DataFrame | None,
         fluxes: pd.DataFrame | None,
         idx: int = -1,
@@ -112,7 +113,7 @@ class TimeCourse:
 
     def __init__(
         self,
-        model: ModelProtocol,
+        model: Model,
         time_points: Array,
         concs: pd.DataFrame | None,
         fluxes: pd.DataFrame | None,
@@ -136,7 +137,7 @@ class TimeCourse:
 
 
 def _steady_state_worker(
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float] | None,
     *,
     rel_norm: bool,
@@ -150,7 +151,7 @@ def _steady_state_worker(
 
 
 def _time_course_worker(
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float] | None,
     time_points: Array,
 ) -> TimeCourse:
@@ -163,7 +164,7 @@ def _time_course_worker(
 
 
 def _protocol_worker(
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float] | None,
     protocol: pd.DataFrame,
     time_points_per_step: int = 10,
@@ -192,7 +193,7 @@ def cartesian_product(parameters: dict[str, Array]) -> pd.DataFrame:
 
 
 def parameter_scan_ss(
-    model: ModelProtocol,
+    model: Model,
     parameters: pd.DataFrame,
     y0: dict[str, float] | None = None,
     *,
@@ -226,7 +227,7 @@ def parameter_scan_ss(
 
 
 def parameter_scan_time_series(
-    model: ModelProtocol,
+    model: Model,
     parameters: pd.DataFrame,
     time_points: Array,
     y0: dict[str, float] | None = None,
@@ -258,7 +259,7 @@ def parameter_scan_time_series(
 
 
 def parameter_scan_protocol(
-    model: ModelProtocol,
+    model: Model,
     parameters: pd.DataFrame,
     protocol: pd.DataFrame,
     time_points_per_step: int = 10,

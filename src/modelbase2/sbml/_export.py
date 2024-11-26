@@ -10,7 +10,7 @@ import dill
 import libsbml
 
 from modelbase2.sbml._data import AtomicUnit, Compartment
-from modelbase2.types import Any, ModelProtocol
+from modelbase2.types import Any, Model
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
 RE_LAMBDA_RATE_FUNC = re.compile(r".*(lambda)(.+?):(.*?),")
@@ -201,7 +201,7 @@ def _create_sbml_compartments(
 
 def _create_sbml_variables(
     *,
-    model: ModelProtocol,
+    model: Model,
     sbml_model: libsbml.Model,
 ) -> None:
     """Create the variables for the sbml model.
@@ -220,9 +220,7 @@ def _create_sbml_variables(
         cpd.setHasOnlySubstanceUnits(False)
 
 
-def _create_sbml_derived_variables(
-    *, model: ModelProtocol, sbml_model: libsbml.Model
-) -> None:
+def _create_sbml_derived_variables(*, model: Model, sbml_model: libsbml.Model) -> None:
     for name, dv in model.derived_variables.items():
         sbml_ar = sbml_model.createAssignmentRule()
         sbml_ar.setId(_convert_id_to_sbml(id_=name, prefix="AR"))
@@ -234,7 +232,7 @@ def _create_sbml_derived_variables(
 
 def _create_sbml_parameters(
     *,
-    model: ModelProtocol,
+    model: Model,
     sbml_model: libsbml.Model,
 ) -> None:
     """Create the parameters for the sbml model.
@@ -251,9 +249,7 @@ def _create_sbml_parameters(
         k.setValue(float(value))
 
 
-def _create_sbml_derived_parameters(
-    *, model: ModelProtocol, sbml_model: libsbml.Model
-) -> None:
+def _create_sbml_derived_parameters(*, model: Model, sbml_model: libsbml.Model) -> None:
     for name, dp in model.derived_parameters.items():
         sbml_ar = sbml_model.createAssignmentRule()
         sbml_ar.setId(_convert_id_to_sbml(id_=name, prefix="AR"))
@@ -265,7 +261,7 @@ def _create_sbml_derived_parameters(
 
 def _create_sbml_reactions(
     *,
-    model: ModelProtocol,
+    model: Model,
     sbml_model: libsbml.Model,
 ) -> None:
     """Create the reactions for the sbml model."""
@@ -297,7 +293,7 @@ def _create_sbml_reactions(
 
 
 def _model_to_sbml(
-    model: ModelProtocol,
+    model: Model,
     *,
     model_name: str,
     units: dict[str, AtomicUnit],
@@ -356,7 +352,7 @@ def _default_units(units: dict[str, AtomicUnit] | None) -> dict[str, AtomicUnit]
 
 
 def to_sbml(
-    model: ModelProtocol,
+    model: Model,
     filename: str,
     model_name: str,
     *,

@@ -1,6 +1,6 @@
-from __future__ import annotations
+"""modelbase2 is a package for creating and analysing metabolic models"""
 
-from .types import IntegratorProtocol, ModelProtocol
+from __future__ import annotations
 
 __all__ = [
     "Assimulo",
@@ -11,7 +11,6 @@ __all__ = [
     "LabelMapper",
     "LinearLabelMapper",
     "Model",
-    "ModelProtocol",
     "Scipy",
     "Simulator",
     "TorchSurrogate",
@@ -44,7 +43,7 @@ from .scans import (
 )
 from .simulator import Simulator
 from .surrogates import TorchSurrogate
-from .types import Derived
+from .types import Derived, IntegratorProtocol
 
 with contextlib.suppress(ImportError):
     from .integrators import Assimulo

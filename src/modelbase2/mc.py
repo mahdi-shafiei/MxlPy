@@ -22,11 +22,12 @@ from modelbase2.types import (
 )
 
 if TYPE_CHECKING:
-    from modelbase2.types import Array, ModelProtocol
+    from modelbase2.model import Model
+    from modelbase2.types import Array
 
 
 def _parameter_scan_worker(
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float] | None,
     *,
     parameters: pd.DataFrame,
@@ -42,7 +43,7 @@ def _parameter_scan_worker(
 
 
 def steady_state(
-    model: ModelProtocol,
+    model: Model,
     mc_parameters: pd.DataFrame,
     *,
     y0: dict[str, float] | None = None,
@@ -94,7 +95,7 @@ def steady_state(
 
 
 def time_course(
-    model: ModelProtocol,
+    model: Model,
     time_points: Array,
     mc_parameters: pd.DataFrame,
     y0: dict[str, float] | None = None,
@@ -145,7 +146,7 @@ def time_course(
 
 
 def time_course_over_protocol(
-    model: ModelProtocol,
+    model: Model,
     protocol: pd.DataFrame,
     mc_parameters: pd.DataFrame,
     y0: dict[str, float] | None = None,
@@ -179,7 +180,7 @@ def time_course_over_protocol(
 
 
 def parameter_scan_ss(
-    model: ModelProtocol,
+    model: Model,
     parameters: pd.DataFrame,
     mc_parameters: pd.DataFrame,
     *,
@@ -214,7 +215,7 @@ def parameter_scan_ss(
 
 
 def compound_elasticities(
-    model: ModelProtocol,
+    model: Model,
     variables: list[str],
     concs: dict[str, float],
     mc_parameters: pd.DataFrame,
@@ -246,7 +247,7 @@ def compound_elasticities(
 
 
 def parameter_elasticities(
-    model: ModelProtocol,
+    model: Model,
     parameters: list[str],
     concs: dict[str, float],
     mc_parameters: pd.DataFrame,
@@ -278,7 +279,7 @@ def parameter_elasticities(
 
 
 def response_coefficients(
-    model: ModelProtocol,
+    model: Model,
     parameters: list[str],
     mc_parameters: pd.DataFrame,
     *,

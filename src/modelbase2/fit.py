@@ -17,13 +17,13 @@ from modelbase2.simulator import Simulator
 from modelbase2.types import ArrayLike, Callable, IntegratorProtocol, cast
 
 if TYPE_CHECKING:
-    from modelbase2.types import ModelProtocol
+    from modelbase2.model import Model
 
 
 def _steady_state_residual(
     par_values: ArrayLike,
     data: pd.Series,
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float],
     par_names: list[str],
     integrator: type[IntegratorProtocol],
@@ -47,7 +47,7 @@ def _steady_state_residual(
 def _time_series_residual(
     par_values: ArrayLike,
     data: pd.DataFrame,
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float],
     par_names: list[str],
     integrator: type[IntegratorProtocol],
@@ -69,7 +69,7 @@ def _time_series_residual(
 
 
 def steady_state(
-    model: ModelProtocol,
+    model: Model,
     p0: dict[str, float],
     data: pd.Series,
     y0: dict[str, float] | None = None,
@@ -77,7 +77,7 @@ def steady_state(
         [
             ArrayLike,
             pd.Series,
-            ModelProtocol,
+            Model,
             dict[str, float],
             list[str],
             type[IntegratorProtocol],
@@ -112,7 +112,7 @@ def steady_state(
 
 
 def time_series(
-    model: ModelProtocol,
+    model: Model,
     p0: dict[str, float],
     data: pd.DataFrame,
     y0: dict[str, float] | None = None,
@@ -120,7 +120,7 @@ def time_series(
         [
             ArrayLike,
             pd.DataFrame,
-            ModelProtocol,
+            Model,
             dict[str, float],
             list[str],
             type[IntegratorProtocol],

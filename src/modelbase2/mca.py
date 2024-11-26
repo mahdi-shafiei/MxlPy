@@ -10,7 +10,7 @@ from modelbase2.scans import _steady_state_worker
 from modelbase2.types import ResponseCoefficients
 
 if TYPE_CHECKING:
-    from modelbase2.types import ModelProtocol
+    from modelbase2.model import Model
 
 
 _DISPLACEMENT = 1e-4
@@ -22,7 +22,7 @@ _DISPLACEMENT = 1e-4
 
 
 def variable_elasticities(
-    model: ModelProtocol,
+    model: Model,
     *,
     concs: dict[str, float] | None = None,
     variables: list[str] | None = None,
@@ -58,7 +58,7 @@ def variable_elasticities(
 
 
 def parameter_elasticities(
-    model: ModelProtocol,
+    model: Model,
     parameters: list[str] | None = None,
     concs: dict[str, float] | None = None,
     time: float = 0,
@@ -103,7 +103,7 @@ def parameter_elasticities(
 def _response_coefficient_worker(
     parameter: str,
     *,
-    model: ModelProtocol,
+    model: Model,
     y0: dict[str, float] | None,
     normalized: bool,
     rel_norm: bool,
@@ -141,7 +141,7 @@ def _response_coefficient_worker(
 
 
 def response_coefficients(
-    model: ModelProtocol,
+    model: Model,
     parameters: list[str] | None = None,
     *,
     y0: dict[str, float] | None = None,

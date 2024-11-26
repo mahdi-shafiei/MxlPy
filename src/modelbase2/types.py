@@ -17,12 +17,15 @@ __all__ = [
 # changed between Python versions and I have no interest in
 # fixing it in every file
 from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
-from typing import Any, ParamSpec, Protocol, Self, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast
 
 import numpy as np
 from matplotlib.axes import Axes as Axis
 from matplotlib.figure import Figure
 from numpy.typing import NDArray
+
+if TYPE_CHECKING:
+    from modelbase2.model import Model
 
 type DerivedFn = Callable[..., float]
 type Array = NDArray[np.float64]
@@ -59,70 +62,6 @@ def unwrap2[T1, T2](tpl: tuple[T1 | None, T2 | None]) -> tuple[T1, T2]:
 
 def default_if_none(el: T | None, default: T) -> T:
     return default if el is None else el
-
-
-class ModelProtocol(Protocol):
-    # Parameters
-    def get_parameter_names(self) -> list[str]: ...
-    @property
-    def parameters(self) -> dict[str, float]: ...
-    def update_parameters(self, parameters: dict[str, float]) -> Self: ...
-    @property
-    def derived_parameters(self) -> dict[str, DerivedParameter]: ...
-
-    # Variables
-    def get_variable_names(self) -> list[str]: ...
-    def get_derived_variable_names(self) -> list[str]: ...
-    def get_readout_names(self) -> list[str]: ...
-    @property
-    def derived_variables(self) -> dict[str, DerivedVariable]: ...
-
-    # Reactions
-    def get_reaction_names(self) -> list[str]: ...
-    @property
-    def reactions(self) -> dict[str, Reaction]: ...
-
-    # User-facing
-    def get_args(
-        self,
-        concs: dict[str, float],
-        time: float,
-        *,
-        include_readouts: bool = True,
-    ) -> pd.Series: ...
-    def get_full_concs(
-        self,
-        concs: dict[str, float],
-        time: float,
-        *,
-        include_readouts: bool = True,
-    ) -> pd.Series: ...
-    def get_fluxes(
-        self,
-        concs: dict[str, float],
-        time: float,
-    ) -> pd.Series: ...
-    def get_right_hand_side(
-        self,
-        concs: dict[str, float],
-        time: float,
-    ) -> pd.Series: ...
-    def get_initial_conditions(self) -> dict[str, float]: ...
-
-    # For integration
-    def _get_rhs(self, /, time: float, concs: Array) -> Array: ...
-
-    # Vectorised
-    def _get_args_vectorised(
-        self,
-        concs: pd.DataFrame,
-        *,
-        include_readouts: bool,
-    ) -> pd.DataFrame: ...
-    def _get_fluxes_vectorised(
-        self,
-        args: pd.DataFrame,
-    ) -> pd.DataFrame: ...
 
 
 class IntegratorProtocol(Protocol):
@@ -176,13 +115,13 @@ class Reaction:
     stoichiometry: Mapping[str, float | Derived]
     args: list[str]
 
-    def get_modifiers(self, model: ModelProtocol) -> list[str]:
+    def get_modifiers(self, model: Model) -> list[str]:
         # FIXME: derived parameters?
         exclude = set(model.parameters) | set(self.stoichiometry)
 
         return [k for k in self.args if k not in exclude]
 
-    def is_reversible(self, model: ModelProtocol) -> bool:
+    def is_reversible(self, model: Model) -> bool:
         raise NotImplementedError
 
 

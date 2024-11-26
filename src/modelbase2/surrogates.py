@@ -18,7 +18,7 @@ from modelbase2.parallel import Cache, parallelise
 from modelbase2.scans import _empty_flux_series
 
 if TYPE_CHECKING:
-    from modelbase2.types import ModelProtocol
+    from modelbase2 import Model
 
 DefaultDevice = torch.device("cpu")
 DefaultCache = Cache(Path(".cache"))
@@ -73,7 +73,7 @@ class Approximator(nn.Module):
 
 def _ss_flux(
     params: pd.Series,
-    model: ModelProtocol,
+    model: Model,
 ) -> pd.Series:
     flux = (
         Simulator(model.update_parameters(params.to_dict()))
@@ -86,7 +86,7 @@ def _ss_flux(
 
 
 def create_ss_flux_data(
-    model: ModelProtocol,
+    model: Model,
     parameters: pd.DataFrame,
     cache: Cache | None = DefaultCache,
 ) -> pd.DataFrame:
