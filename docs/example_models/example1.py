@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from modelbase2 import Model, Simulator
+from modelbase2 import Model
 
 
 def filter_stoichiometry(
@@ -10,7 +10,7 @@ def filter_stoichiometry(
     """Only use components that are actually compounds in the model"""
     new: dict[str, float] = {}
     for k, v in stoichiometry.items():
-        if k in model._variables:
+        if k in model._variables:  # noqa: SLF001
             new[k] = v
         elif k not in model._ids:  # noqa: SLF001
             msg = f"Missing component {k}"

@@ -15,3 +15,7 @@ def mass_action_1s_1p(x: float, y: float, kf: float, kr: float) -> float:
 
 def mass_action_2s(x: float, y: float, k: float) -> float:
     return k * x * y
+
+
+def michaelis_menten_1s(s: float, vmax: float, km: float) -> float:
+    return s * vmax / (s + km)
