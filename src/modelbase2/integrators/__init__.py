@@ -6,10 +6,7 @@ It includes support for both Assimulo and Scipy integrators, with Assimulo being
 
 from __future__ import annotations
 
-__all__ = [
-    "Assimulo",
-    "Scipy",
-]
+__all__ = ["DefaultIntegrator"]
 
 
 from .int_scipy import Scipy

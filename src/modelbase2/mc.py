@@ -7,9 +7,11 @@ response coefficient calculations.
 Functions:
     steady_state: Perform Monte Carlo analysis for steady-state simulations
     time_course: Perform Monte Carlo analysis for time-course simulations
-    response_coefficients: Calculate response coefficients using Monte Carlo analysis
+    time_course_over_protocol: Perform Monte Carlo analysis for time-course simulations over a protocol
+    parameter_scan_ss: Perform Monte Carlo analysis for steady-state parameter scans
     compound_elasticities: Calculate compound elasticities using Monte Carlo analysis
     parameter_elasticities: Calculate parameter elasticities using Monte Carlo analysis
+    response_coefficients: Calculate response coefficients using Monte Carlo analysis
 """
 
 from __future__ import annotations
@@ -35,9 +37,21 @@ from modelbase2.types import (
     TimeCourseByPars,
 )
 
+__all__ = ["compound_elasticities", "parameter_elasticities", "parameter_scan_ss", "response_coefficients", "steady_state", "time_course", "time_course_over_protocol"]
+
 if TYPE_CHECKING:
     from modelbase2.model import Model
     from modelbase2.types import Array
+
+__ALL__ = [
+    "steady_state",
+    "time_course",
+    "time_course_over_protocol",
+    "parameter_scan_ss",
+    "compound_elasticities",
+    "parameter_elasticities",
+    "response_coefficients",
+]
 
 
 def _parameter_scan_worker(

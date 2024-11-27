@@ -7,13 +7,14 @@ Functions:
     get_label_scope: Return all label positions that can be reached step by step.
 """
 
+from __future__ import annotations
+
 # def _create_label_scope_seed(
 #     self, *, initial_labels: dict[str, int] | dict[str, list[int]]
 # ) -> dict[str, int]:
 #     """Create initial label scope seed."""
 #     # initialise all compounds with 0 (no label)
 #     labelled_compounds = {compound: 0 for compound in self.get_compounds()}
-
 #     # Set all unlabelled compounds to 1
 #     for name, compound in self.label_compounds.items():
 #         num_labels = compound["num_labels"]

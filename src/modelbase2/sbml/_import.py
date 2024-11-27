@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math  # noqa: F401  # models might need it
 import re
 import warnings
@@ -24,6 +26,8 @@ from modelbase2.sbml._data import (
 from modelbase2.sbml._mathml import parse_sbml_math
 from modelbase2.sbml._name_conversion import _name_to_py
 from modelbase2.sbml._unit_conversion import get_operator_mappings, get_unit_conversion
+
+__all__ = ["INDENT", "OPERATOR_MAPPINGS", "Parser", "UNIT_CONVERSION", "from_sbml"]
 
 UNIT_CONVERSION = get_unit_conversion()
 OPERATOR_MAPPINGS = get_operator_mappings()

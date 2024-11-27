@@ -1,14 +1,6 @@
 from __future__ import annotations
 
-__all__ = [
-    "AtomicUnit",
-    "Compartment",
-    "CompositeUnit",
-    "Compound",
-    "Function",
-    "Parameter",
-    "Reaction",
-]
+__all__ = ["AtomicUnit", "Compartment", "CompositeUnit", "Compound", "Derived", "Function", "Parameter", "Reaction"]
 
 from dataclasses import dataclass
 

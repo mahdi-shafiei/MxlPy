@@ -20,6 +20,11 @@ from modelbase2.integrators import DefaultIntegrator
 from modelbase2.simulator import Simulator
 from modelbase2.types import ArrayLike, Callable, IntegratorProtocol, cast
 
+__all__ = [
+    "steady_state",
+    "time_series",
+]
+
 if TYPE_CHECKING:
     from modelbase2.model import Model
 

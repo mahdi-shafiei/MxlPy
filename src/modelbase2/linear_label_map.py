@@ -7,11 +7,6 @@ through metabolic networks. It provides utilities for:
 - Mapping labels between substrates and products
 - Processing stoichiometric coefficients for label transfer
 
-Private Functions:
-    _generate_isotope_labels: Generate isotopomer names for a compound
-    _unpack_stoichiometries: Split reactions into substrates and products
-    _stoichiometry_to_duplicate_list: Convert stoichiometry to expanded list
-    _map_substrates_to_labelmap: Map substrate labels to product positions
 """
 
 from __future__ import annotations
@@ -20,6 +15,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from modelbase2.model import Derived, Model
+
+__all__ = ["LinearLabelMapper", "neg_one_div", "one_div", "relative_label_flux"]
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

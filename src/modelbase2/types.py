@@ -20,14 +20,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-__all__ = [
-    "Any",
-    "Axis",
-    "Callable",
-    "Figure",
-    "Protocol",
-    "cast",
-]
+__all__ = ["Array", "ArrayLike", "Axes", "Derived", "DerivedFn", "DerivedParameter", "DerivedVariable", "IntegratorProtocol", "McSteadyStates", "Number", "Param", "ProtocolByPars", "Reaction", "Readout", "ResponseCoefficients", "ResponseCoefficientsByPars", "RetType", "SteadyStates", "TimeCourseByPars", "unwrap", "unwrap2"]
 
 # Re-exporting some types here, because their imports have
 # changed between Python versions and I have no interest in

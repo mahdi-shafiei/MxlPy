@@ -26,6 +26,8 @@ from modelbase2.parallel import parallelise
 from modelbase2.scans import _steady_state_worker
 from modelbase2.types import ResponseCoefficients
 
+__all__ = ["parameter_elasticities", "response_coefficients", "variable_elasticities"]
+
 if TYPE_CHECKING:
     from modelbase2.model import Model
 
@@ -63,14 +65,6 @@ def variable_elasticities(
 
     Returns:
         DataFrame with elasticity coefficients (reactions x metabolites)
-
-    Example:
-        >>> elasticities = variable_elasticities(
-        ...     model,
-        ...     concs={"A": 1.0, "B": 2.0},
-        ...     variables=["A", "B"],
-        ...     normalized=True
-        ... )
 
     """
     concs = model.get_initial_conditions() if concs is None else concs

@@ -16,10 +16,6 @@ Each distribution class provides:
     - Optional random number generator (RNG) control
     - Reproducible results via seed parameter
 
-Example:
-    >>> dist = Beta(a=2.0, b=3.0)
-    >>> samples = dist.sample(1000)  # Generate 1000 samples
-
 """
 
 from __future__ import annotations
@@ -32,6 +28,17 @@ import pandas as pd
 from scipy import stats
 
 from modelbase2.types import Array
+
+__all__ = [
+    "Beta",
+    "Distribution",
+    "LogNormal",
+    "Normal",
+    "RNG",
+    "Skewnorm",
+    "Uniform",
+    "sample",
+]
 
 RNG = np.random.default_rng(seed=42)
 

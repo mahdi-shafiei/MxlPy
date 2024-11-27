@@ -24,6 +24,8 @@ from typing import TYPE_CHECKING, Any, cast
 import pebble
 from tqdm import tqdm
 
+__all__ = ["Cache", "parallelise"]
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Collection, Hashable
 

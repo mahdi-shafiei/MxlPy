@@ -3,13 +3,6 @@
 This module provides the core Model class and supporting functionality for representing
 metabolic models, including reactions, variables, parameters and derived quantities.
 
-
-The Model class supports:
-    - Adding/removing reactions and variables
-    - Parameter management
-    - Derived quantity calculations
-    - Model state caching
-    - Import/export functionality
 """
 
 from __future__ import annotations
@@ -29,6 +22,8 @@ from modelbase2.types import (
     Reaction,
     Readout,
 )
+
+__all__ = ["Model", "ModelCache", "SortError"]
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping

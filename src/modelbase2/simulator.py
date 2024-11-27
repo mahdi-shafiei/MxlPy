@@ -19,6 +19,8 @@ import pandas as pd
 
 from modelbase2.integrators import DefaultIntegrator
 
+__all__ = ["Simulator"]
+
 if TYPE_CHECKING:
     from modelbase2.model import Model
     from modelbase2.types import ArrayLike, IntegratorProtocol

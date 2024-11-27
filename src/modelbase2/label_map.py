@@ -10,14 +10,6 @@ isotopomers in metabolic models. It handles:
 Classes:
     LabelMapper: Maps between labeled and unlabeled metabolites to their isotopomers
 
-Public Functions:
-    total_concentration: Calculate total concentration across isotopomers
-
-Examples:
-    >>> mapper = LabelMapper(model)
-    >>> isotopomers = mapper.get_isotopomers()
-    >>> total = total_concentration(0.1, 0.2, 0.3)  # 0.6
-
 """
 
 from __future__ import annotations
@@ -31,6 +23,8 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 
 from modelbase2.model import Model
+
+__all__ = ["LabelMapper", "total_concentration"]
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping

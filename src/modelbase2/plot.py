@@ -15,16 +15,19 @@ Functions:
     plot_label_correlation: Plot the correlation between labels in the given data.
 """
 
+from __future__ import annotations
+
+__all__ = ["FigAx", "FigAxs", "add_grid", "grid_layout", "heatmap", "heatmap_from_2d_idx", "heatmaps_from_2d_idx", "line_autogrouped", "line_mean_std", "lines", "lines_grouped", "lines_mean_std_from_2d_idx", "relative_label_distribution", "rotate_xlabels", "shade_protocol", "two_axes", "violins", "violins_from_2d_idx"]
+
 import itertools as it
 import math
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.collections import QuadMesh
 from matplotlib.colors import (
     LogNorm,
     Normalize,
@@ -35,8 +38,12 @@ from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 
 from modelbase2.label_map import LabelMapper
-from modelbase2.linear_label_map import LinearLabelMapper
-from modelbase2.types import Array
+
+if TYPE_CHECKING:
+    from matplotlib.collections import QuadMesh
+
+    from modelbase2.linear_label_map import LinearLabelMapper
+    from modelbase2.types import Array
 
 type FigAx = tuple[Figure, Axes]
 type FigAxs = tuple[Figure, list[Axes]]
