@@ -103,7 +103,9 @@ def _stoichiometry_to_duplicate_list(stoichiometry: dict[str, int]) -> list[str]
     return long_form
 
 
-def _map_substrates_to_labelmap(substrates: list[str], labelmap: list[int]) -> dict[str, int]:
+def _map_substrates_to_labelmap(
+    substrates: list[str], labelmap: list[int]
+) -> dict[str, int]:
     """Map substrate labels to product label positions.
 
     Args:
@@ -216,7 +218,10 @@ class LinearLabelMapper:
                                   of isotopomer labels for each variable.
 
         """
-        isotopomers = {name: _generate_isotope_labels(name, num) for name, num in self.label_variables.items()}
+        isotopomers = {
+            name: _generate_isotope_labels(name, num)
+            for name, num in self.label_variables.items()
+        }
         return {k: isotopomers[k] for k in variables}
 
     def build_model(
@@ -247,7 +252,10 @@ class LinearLabelMapper:
             A metabolic model with labeled isotopomers and reactions.
 
         """
-        isotopomers = {name: _generate_isotope_labels(name, num) for name, num in self.label_variables.items()}
+        isotopomers = {
+            name: _generate_isotope_labels(name, num)
+            for name, num in self.label_variables.items()
+        }
         variables = {k: 0.0 for iso in isotopomers.values() for k in iso}
         if initial_labels is not None:
             for base_compound, label_positions in initial_labels.items():

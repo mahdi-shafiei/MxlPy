@@ -64,7 +64,18 @@ def v1(
     nadph: float,
 ) -> float:
     """Rubisco reaction."""
-    return (vmax * rubp) / (rubp + km * (1 + (pga / k1_pga) + (fbp / ki_fbp) + (sbp / ki_sbp) + (p / ki_pi) + (nadph / ki_nadph)))
+    return (vmax * rubp) / (
+        rubp
+        + km
+        * (
+            1
+            + (pga / k1_pga)
+            + (fbp / ki_fbp)
+            + (sbp / ki_sbp)
+            + (p / ki_pi)
+            + (nadph / ki_nadph)
+        )
+    )
 
 
 def v3(
@@ -78,7 +89,9 @@ def v3(
     q3: float,
 ) -> float:
     """GAPDH reaction."""
-    return kre * ((nadph * bpga * proton_pool_stroma) - (1 / q3) * (gap * nadp * phosphate_pool))
+    return kre * (
+        (nadph * bpga * proton_pool_stroma) - (1 / q3) * (gap * nadp * phosphate_pool)
+    )
 
 
 def v6(
@@ -122,7 +135,10 @@ def v13(
     ki_adp_atp: float,
 ) -> float:
     """Phosphoribulokinase reaction."""
-    return (vmax * ru5p * atp) / ((ru5p + km_ru5p * (1 + (pga / ki_pga) + (rubp / ki_rubp) + (pi / ki_pi))) * (atp * (1 + (adp / ki_adp_ru5p)) + km_adp * (1 + (adp / ki_adp_atp))))
+    return (vmax * ru5p * atp) / (
+        (ru5p + km_ru5p * (1 + (pga / ki_pga) + (rubp / ki_rubp) + (pi / ki_pi)))
+        * (atp * (1 + (adp / ki_adp_ru5p)) + km_adp * (1 + (adp / ki_adp_atp)))
+    )
 
 
 def v16(
@@ -153,7 +169,13 @@ def starch(
     ka_fbp: float,
 ) -> float:
     """Starch synthesis reaction."""
-    return (vmax * g1p * atp) / ((g1p + km_g1p) * ((1 + (adp / ki_adp)) * (atp + km_atp) + ((km_atp * pi) / (ka_pga * pga + ka_f6p * f6p + ka_fbp * fbp))))
+    return (vmax * g1p * atp) / (
+        (g1p + km_g1p)
+        * (
+            (1 + (adp / ki_adp)) * (atp + km_atp)
+            + ((km_atp * pi) / (ka_pga * pga + ka_f6p * f6p + ka_fbp * fbp))
+        )
+    )
 
 
 def moiety_1(
@@ -184,7 +206,24 @@ def free_orthophosphate(
     phosphate_total: float,
 ) -> float:
     """Free orthophosphate moiety."""
-    return phosphate_total - (pga + 2 * bpga + gap + dhap + 2 * fbp + f6p + g6p + g1p + 2 * sbp + s7p + e4p + x4p + r5p + 2 * rubp + ru5p + atp)
+    return phosphate_total - (
+        pga
+        + 2 * bpga
+        + gap
+        + dhap
+        + 2 * fbp
+        + f6p
+        + g6p
+        + g1p
+        + 2 * sbp
+        + s7p
+        + e4p
+        + x4p
+        + r5p
+        + 2 * rubp
+        + ru5p
+        + atp
+    )
 
 
 def n_export(
@@ -200,7 +239,9 @@ def n_export(
     kdhap: float,
 ) -> float:
     """Export scaling."""
-    return 1 + (1 + (kpxt / pi_ext)) * ((pi / kpi) + (pga / kpga) + (gap / kgap) + (dhap / kdhap))
+    return 1 + (1 + (kpxt / pi_ext)) * (
+        (pi / kpi) + (pga / kpga) + (gap / kgap) + (dhap / kdhap)
+    )
 
 
 parameters = {

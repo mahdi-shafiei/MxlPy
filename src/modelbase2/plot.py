@@ -175,7 +175,11 @@ def _annotate_colormap(
         hm.get_facecolor(),
         strict=True,
     ):
-        val_text = f"{val:.{annotation_style}}" if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1] else f"{val:.0e}"
+        val_text = (
+            f"{val:.{annotation_style}}"
+            if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1]
+            else f"{val:.0e}"
+        )
         ax.text(
             x + 0.5,
             y + 0.5,
@@ -395,9 +399,18 @@ def line_autogrouped(
     grid: bool = True,
 ) -> FigAxs:
     """Plot a series or dataframe with lines grouped by order of magnitude."""
-    group_names = _split_large_groups(_partition_by_order_of_magnitude(s) if isinstance(s, pd.Series) else _partition_by_order_of_magnitude(s.max()), max_size=max_group_size)
+    group_names = _split_large_groups(
+        _partition_by_order_of_magnitude(s)
+        if isinstance(s, pd.Series)
+        else _partition_by_order_of_magnitude(s.max()),
+        max_size=max_group_size,
+    )
 
-    groups: list[pd.Series] | list[pd.DataFrame] = [s.loc[group] for group in group_names] if isinstance(s, pd.Series) else [s.loc[:, group] for group in group_names]
+    groups: list[pd.Series] | list[pd.DataFrame] = (
+        [s.loc[group] for group in group_names]
+        if isinstance(s, pd.Series)
+        else [s.loc[:, group] for group in group_names]
+    )
 
     return lines_grouped(
         groups,
@@ -712,7 +725,9 @@ def relative_label_distribution(
             ax.set_title(name)
             ax.legend()
     else:
-        for ax, (name, isos) in zip(axs, mapper.get_isotopomers(variables).items(), strict=False):
+        for ax, (name, isos) in zip(
+            axs, mapper.get_isotopomers(variables).items(), strict=False
+        ):
             concs.loc[:, isos].plot(ax=ax)
             ax.set_title(name)
             ax.legend([f"C{i+1}" for i in range(len(isos))])

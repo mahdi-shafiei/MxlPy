@@ -92,7 +92,7 @@ reportMissingModuleSource = "none"
 
 [tool.ruff]
 indent-width = 4
-line-length = 200
+line-length = 88
 
 [tool.ruff.lint]
 select = ["ALL"]

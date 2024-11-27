@@ -382,7 +382,9 @@ class Simulator:
         if (args := self.args) is None:
             args = self._get_args_vectorised(concs, params)
 
-        names = self.model.get_variable_names() + self.model.get_derived_variable_names()
+        names = (
+            self.model.get_variable_names() + self.model.get_derived_variable_names()
+        )
         if include_readouts:
             names.extend(self.model.get_readout_names())
         full_concs = [i.loc[:, names] for i in args]

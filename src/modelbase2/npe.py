@@ -165,7 +165,9 @@ def _train_batched(
             optimizer.zero_grad()
             indices = permutation[i : i + batch_size]
 
-            loss = torch.mean(torch.abs(approximator(features[indices]) - targets[indices]))
+            loss = torch.mean(
+                torch.abs(approximator(features[indices]) - targets[indices])
+            )
             loss.backward()
             optimizer.step()
             epoch_loss += loss.detach().numpy()

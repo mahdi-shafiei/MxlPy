@@ -313,32 +313,44 @@ def michaelis_menten(s: float, vmax: float, km: float) -> float:
     return s * vmax / (s + km)
 
 
-def competitive_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+def competitive_inhibition(
+    s: float, i: float, vmax: float, km: float, ki: float
+) -> float:
     """Competitive inhibition."""
     return vmax * s / (s + km * (1 + i / ki))
 
 
-def competitive_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+def competitive_activation(
+    s: float, a: float, vmax: float, km: float, ka: float
+) -> float:
     """Competitive activation."""
     return vmax * s / (s + km * (1 + ka / a))
 
 
-def uncompetitive_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+def uncompetitive_inhibition(
+    s: float, i: float, vmax: float, km: float, ki: float
+) -> float:
     """Uncompetitive inhibition."""
     return vmax * s / (s * (1 + i / ki) + km)
 
 
-def uncompetitive_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+def uncompetitive_activation(
+    s: float, a: float, vmax: float, km: float, ka: float
+) -> float:
     """Uncompetitive activation."""
     return vmax * s / (s * (1 + ka / a) + km)
 
 
-def noncompetitive_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+def noncompetitive_inhibition(
+    s: float, i: float, vmax: float, km: float, ki: float
+) -> float:
     """Noncompetitive inhibition."""
     return vmax * s / ((s + km) * (1 + i / ki))
 
 
-def noncompetitive_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+def noncompetitive_activation(
+    s: float, a: float, vmax: float, km: float, ka: float
+) -> float:
     """Noncompetitive activation."""
     return vmax * s / ((s + km) * (1 + ka / a))
 
@@ -381,7 +393,9 @@ def reversible_uncompetitive_inhibition(
     ki: float,
 ) -> float:
     """Reversible uncompetitive inhibition."""
-    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (1 + (s / kms) + (p / kmp) * (1 + i / ki))
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (
+        1 + (s / kms) + (p / kmp) * (1 + i / ki)
+    )
 
 
 def reversible_noncompetitive_inhibition(
@@ -395,7 +409,9 @@ def reversible_noncompetitive_inhibition(
     ki: float,
 ) -> float:
     """Reversible noncompetitive inhibition."""
-    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / ((1 + s / kms + p / kmp) * (1 + i / ki))
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (
+        (1 + s / kms + p / kmp) * (1 + i / ki)
+    )
 
 
 def reversible_michaelis_menten_keq(
@@ -517,7 +533,15 @@ def random_order_2_2(
 ) -> float:
     """Random-order reaction with two substrates and two products."""
     nominator = vmaxf * a * b / (kia * kmb) - vmaxr * p * q / (kmp * kiq)
-    denominator = 1 + (a / kia) + (b / kib) + (p / kip) + (q / kiq) + (a * b / (kia * kmb)) + (p * q / (kmp * kiq))
+    denominator = (
+        1
+        + (a / kia)
+        + (b / kib)
+        + (p / kip)
+        + (q / kiq)
+        + (a * b / (kia * kmb))
+        + (p * q / (kmp * kiq))
+    )
     return nominator / denominator
 
 
@@ -542,7 +566,9 @@ def ping_pong_3(
     kmc: float,
 ) -> float:
     """Ping-pong reaction with three substrates."""
-    return (vmax * a * b * c) / (a * b * c + (kma * b * c) + (kmb * a * c) + (kmc * a * b))
+    return (vmax * a * b * c) / (
+        a * b * c + (kma * b * c) + (kmb * a * c) + (kmc * a * b)
+    )
 
 
 def ping_pong_4(
@@ -557,7 +583,13 @@ def ping_pong_4(
     kmd: float,
 ) -> float:
     """Ping-pong reaction with four substrates."""
-    return (vmax * a * b * c * d) / (a * b * c * d + (kma * b * c * d) + (kmb * a * c * d) + (kmc * a * b * d) + (kmd * a * b * c))
+    return (vmax * a * b * c * d) / (
+        a * b * c * d
+        + (kma * b * c * d)
+        + (kmb * a * c * d)
+        + (kmc * a * b * d)
+        + (kmd * a * b * c)
+    )
 
 
 ###############################################################################

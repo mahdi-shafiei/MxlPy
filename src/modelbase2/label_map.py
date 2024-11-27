@@ -77,7 +77,10 @@ def _generate_binary_labels(
 
     """
     if num_labels > 0:
-        return [base_name + "__" + "".join(i) for i in it.product(("0", "1"), repeat=num_labels)]
+        return [
+            base_name + "__" + "".join(i)
+            for i in it.product(("0", "1"), repeat=num_labels)
+        ]
     return [base_name]
 
 
@@ -211,7 +214,9 @@ def _create_isotopomer_reactions(
     labelmap: list[int],
     args: list[str],
 ) -> None:
-    base_substrates, base_products = _unpack_stoichiometries(stoichiometries=stoichiometry)
+    base_substrates, base_products = _unpack_stoichiometries(
+        stoichiometries=stoichiometry
+    )
     labels_per_substrate = _get_labels_per_variable(
         label_variables=label_variables,
         compounds=base_substrates,
@@ -224,7 +229,9 @@ def _create_isotopomer_reactions(
     total_product_labels = sum(labels_per_product)
 
     if len(labelmap) - total_substrate_labels < 0:
-        msg = f"Labelmap 'missing' {abs(len(labelmap) - total_substrate_labels)} label(s)"
+        msg = (
+            f"Labelmap 'missing' {abs(len(labelmap) - total_substrate_labels)} label(s)"
+        )
         raise ValueError(msg)
 
     external_labels = _get_external_labels(
@@ -232,19 +239,35 @@ def _create_isotopomer_reactions(
         total_substrate_labels=total_substrate_labels,
     )
 
-    for rate_suffix in ("".join(i) for i in it.product(("0", "1"), repeat=total_substrate_labels)):
+    for rate_suffix in (
+        "".join(i) for i in it.product(("0", "1"), repeat=total_substrate_labels)
+    ):
         rate_suffix += external_labels  # noqa: PLW2901
         # This is the magic
-        product_suffix = _map_substrates_to_products(rate_suffix=rate_suffix, labelmap=labelmap)
-        product_labels = _split_label_string(label=product_suffix, labels_per_compound=labels_per_product)
-        substrate_labels = _split_label_string(label=rate_suffix, labels_per_compound=labels_per_substrate)
+        product_suffix = _map_substrates_to_products(
+            rate_suffix=rate_suffix, labelmap=labelmap
+        )
+        product_labels = _split_label_string(
+            label=product_suffix, labels_per_compound=labels_per_product
+        )
+        substrate_labels = _split_label_string(
+            label=rate_suffix, labels_per_compound=labels_per_substrate
+        )
 
-        new_substrates = _assign_compound_labels(base_compounds=base_substrates, label_suffixes=substrate_labels)
-        new_products = _assign_compound_labels(base_compounds=base_products, label_suffixes=product_labels)
-        new_stoichiometry = _repack_stoichiometries(new_substrates=new_substrates, new_products=new_products)
+        new_substrates = _assign_compound_labels(
+            base_compounds=base_substrates, label_suffixes=substrate_labels
+        )
+        new_products = _assign_compound_labels(
+            base_compounds=base_products, label_suffixes=product_labels
+        )
+        new_stoichiometry = _repack_stoichiometries(
+            new_substrates=new_substrates, new_products=new_products
+        )
         new_rate_name = rate_name + "__" + rate_suffix
 
-        replacements = dict(zip(base_substrates, new_substrates, strict=True)) | dict(zip(base_products, new_products, strict=True))
+        replacements = dict(zip(base_substrates, new_substrates, strict=True)) | dict(
+            zip(base_products, new_products, strict=True)
+        )
 
         model.add_reaction(
             name=new_rate_name,
@@ -285,7 +308,10 @@ class LabelMapper:
             Dict mapping species names to lists of isotopomer names
 
         """
-        return {name: _generate_binary_labels(base_name=name, num_labels=num) for name, num in self.label_variables.items()}
+        return {
+            name: _generate_binary_labels(base_name=name, num_labels=num)
+            for name, num in self.label_variables.items()
+        }
 
     def get_isotopomer_of(self, name: str) -> list[str]:
         """Get all possible isotopomers for a specific species.
@@ -317,7 +343,9 @@ class LabelMapper:
         isotopomers = self.get_isotopomer_of(name=name)
         return [i for i in isotopomers if pattern.match(i)]
 
-    def get_isotopomers_of_at_position(self, name: str, positions: int | list[int]) -> list[str]:
+    def get_isotopomers_of_at_position(
+        self, name: str, positions: int | list[int]
+    ) -> list[str]:
         """Get isotopomers with specific label positions.
 
         Args:
@@ -345,7 +373,9 @@ class LabelMapper:
         for position in positions:
             label_positions[position] = "1"
 
-        return self.get_isotopomers_by_regex(name, f"{name}__{''.join(label_positions)}")
+        return self.get_isotopomers_by_regex(
+            name, f"{name}__{''.join(label_positions)}"
+        )
 
     def get_isotopomers_of_with_n_labels(self, name: str, n_labels: int) -> list[str]:
         """Get all isotopomers of a compound that have exactly n labels.
@@ -363,10 +393,15 @@ class LabelMapper:
 
         """
         label_positions = self.label_variables[name]
-        label_patterns = [["1" if i in positions else "0" for i in range(label_positions)] for positions in it.combinations(range(label_positions), n_labels)]
+        label_patterns = [
+            ["1" if i in positions else "0" for i in range(label_positions)]
+            for positions in it.combinations(range(label_positions), n_labels)
+        ]
         return [f"{name}__{''.join(i)}" for i in label_patterns]
 
-    def build_model(self, initial_labels: dict[str, int | list[int]] | None = None) -> Model:
+    def build_model(
+        self, initial_labels: dict[str, int | list[int]] | None = None
+    ) -> Model:
         """Build new model with labeled species and reactions.
 
         Args:
@@ -401,7 +436,10 @@ class LabelMapper:
                     if isinstance(label_pos, int):
                         label_pos = [label_pos]
 
-                    suffix = "__" + "".join("1" if idx in label_pos else "0" for idx in range(self.label_variables[k]))
+                    suffix = "__" + "".join(
+                        "1" if idx in label_pos else "0"
+                        for idx in range(self.label_variables[k])
+                    )
                     variables[f"{k}{suffix}"] = v
 
         m.add_variables(variables)

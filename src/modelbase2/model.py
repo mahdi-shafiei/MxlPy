@@ -66,7 +66,9 @@ def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetTy
     return wrapper  # type: ignore
 
 
-def _sort_dependencies(available: set[str], elements: list[tuple[str, set[str]]], ctx: str) -> list[str]:
+def _sort_dependencies(
+    available: set[str], elements: list[tuple[str, set[str]]], ctx: str
+) -> list[str]:
     """Sort model elements topologically based on their dependencies.
 
     Args:
@@ -115,13 +117,22 @@ def _sort_dependencies(available: set[str], elements: list[tuple[str, set[str]]]
                     unsorted.append(queue.get_nowait()[0])
                 except Empty:
                     break
-            msg = f"Exceeded max iterations on sorting {ctx}. " "Check if there are circular references.\n" f"Available: {unsorted}\n" f"Order: {order}"
+            msg = (
+                f"Exceeded max iterations on sorting {ctx}. "
+                "Check if there are circular references.\n"
+                f"Available: {unsorted}\n"
+                f"Order: {order}"
+            )
             raise SortError(msg)
     return order
 
 
-def _select_derived_type(model: Model, el: Derived) -> DerivedParameter | DerivedVariable:
-    all_pars = set(model.get_parameter_names()) ^ set(model.get_derived_parameter_names())
+def _select_derived_type(
+    model: Model, el: Derived
+) -> DerivedParameter | DerivedVariable:
+    all_pars = set(model.get_parameter_names()) ^ set(
+        model.get_derived_parameter_names()
+    )
     if set(el.args).issubset(all_pars):
         return DerivedParameter(fn=el.fn, args=el.args)
     return DerivedVariable(fn=el.fn, args=el.args)
@@ -213,7 +224,9 @@ class Model:
                     args=derived.args,
                 )
                 all_parameter_names.add(name)
-                parameter_values[name] = derived.fn(*(parameter_values[i] for i in derived.args))
+                parameter_values[name] = derived.fn(
+                    *(parameter_values[i] for i in derived.args)
+                )
             else:
                 derived_variables[name] = DerivedVariable(
                     fn=derived.fn,
@@ -230,7 +243,9 @@ class Model:
                     dt = _select_derived_type(self, factor)
 
                     if isinstance(dt, DerivedParameter):
-                        d_static[rxn_name] = dt.fn(*(parameter_values[i] for i in factor.args))
+                        d_static[rxn_name] = dt.fn(
+                            *(parameter_values[i] for i in factor.args)
+                        )
                     else:
                         dyn_stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = dt
 
@@ -455,7 +470,9 @@ class Model:
         return self
 
     @_invalidate_cache
-    def make_parameter_dynamic(self, name: str, initial_value: float | None = None) -> Self:
+    def make_parameter_dynamic(
+        self, name: str, initial_value: float | None = None
+    ) -> Self:
         """Converts a parameter to a dynamic variable in the model.
 
         This method removes the specified parameter from the model and adds it as a variable with an optional initial value.
@@ -777,7 +794,9 @@ class Model:
         """
         rxn = self._reactions[name]
         rxn.fn = rxn.fn if fn is None else fn
-        rxn.stoichiometry = rxn.stoichiometry if stoichiometry is None else stoichiometry
+        rxn.stoichiometry = (
+            rxn.stoichiometry if stoichiometry is None else stoichiometry
+        )
         rxn.args = rxn.args if args is None else args
         return self
 
@@ -1000,7 +1019,13 @@ class Model:
     # Get full concs
     ##########################################################################
 
-    def get_full_concs(self, concs: dict[str, float], time: float = 0.0, *, include_readouts: bool = True) -> pd.Series:
+    def get_full_concs(
+        self,
+        concs: dict[str, float],
+        time: float = 0.0,
+        *,
+        include_readouts: bool = True,
+    ) -> pd.Series:
         """Get the full concentrations as a pandas Series.
 
         Args:
@@ -1041,7 +1066,9 @@ class Model:
             fluxes[name] = rxn.fn(*(args[arg] for arg in rxn.args))
 
         for surrogate in self._surrogates.values():
-            fluxes |= surrogate.predict(np.array([args[arg] for arg in surrogate.inputs]))
+            fluxes |= surrogate.predict(
+                np.array([args[arg] for arg in surrogate.inputs])
+            )
         return fluxes
 
     def get_fluxes(self, concs: dict[str, float], time: float = 0.0) -> pd.Series:
@@ -1098,7 +1125,9 @@ class Model:
         # shape of surrogate outputs
         flux_df = pd.DataFrame(fluxes, index=args.index)
         for surrogate in self._surrogates.values():
-            outputs = pd.DataFrame([surrogate.predict(y) for y in args.loc[:, surrogate.inputs].to_numpy()])
+            outputs = pd.DataFrame(
+                [surrogate.predict(y) for y in args.loc[:, surrogate.inputs].to_numpy()]
+            )
             flux_df = pd.concat((flux_df, outputs), axis=1)
         return flux_df
 
@@ -1148,7 +1177,9 @@ class Model:
                 dxdt[k] += n * fluxes[flux]
         return cast(Array, dxdt.to_numpy())
 
-    def get_right_hand_side(self, concs: dict[str, float], time: float = 0.0) -> pd.Series:
+    def get_right_hand_side(
+        self, concs: dict[str, float], time: float = 0.0
+    ) -> pd.Series:
         """Calculate the right-hand side of the differential equations for the model.
 
         Args:

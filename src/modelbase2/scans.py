@@ -139,7 +139,9 @@ def empty_time_point(model: Model) -> tuple[pd.Series, pd.Series]:
     return _empty_conc_series(model), _empty_flux_series(model)
 
 
-def empty_time_course(model: Model, time_points: Array) -> tuple[pd.DataFrame, pd.DataFrame]:
+def empty_time_course(
+    model: Model, time_points: Array
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Create an empty time course for the model over given time points.
 
     Args:
@@ -174,7 +176,13 @@ class TimePoint:
     concs: pd.Series
     fluxes: pd.Series
 
-    def __init__(self, model: Model, concs: pd.DataFrame | None, fluxes: pd.DataFrame | None, idx: int = -1) -> None:
+    def __init__(
+        self,
+        model: Model,
+        concs: pd.DataFrame | None,
+        fluxes: pd.DataFrame | None,
+        idx: int = -1,
+    ) -> None:
         """Initialize the Scan object.
 
         Args:
@@ -217,7 +225,13 @@ class TimeCourse:
     concs: pd.DataFrame
     fluxes: pd.DataFrame
 
-    def __init__(self, model: Model, time_points: Array, concs: pd.DataFrame | None, fluxes: pd.DataFrame | None) -> None:
+    def __init__(
+        self,
+        model: Model,
+        time_points: Array,
+        concs: pd.DataFrame | None,
+        fluxes: pd.DataFrame | None,
+    ) -> None:
         """Initialize the Scan object.
 
         Args:
@@ -268,7 +282,11 @@ def _steady_state_worker(
         TimePoint: Object containing steady-state concentrations and fluxes.
 
     """
-    c, v = Simulator(model, y0=y0).simulate_to_steady_state(rel_norm=rel_norm).get_full_concs_and_fluxes()
+    c, v = (
+        Simulator(model, y0=y0)
+        .simulate_to_steady_state(rel_norm=rel_norm)
+        .get_full_concs_and_fluxes()
+    )
     return TimePoint(model, c, v)
 
 
@@ -288,7 +306,11 @@ def _time_course_worker(
         TimePoint: Object containing steady-state concentrations and fluxes.
 
     """
-    c, v = Simulator(model, y0=y0).simulate(time_points=time_points).get_full_concs_and_fluxes()
+    c, v = (
+        Simulator(model, y0=y0)
+        .simulate(time_points=time_points)
+        .get_full_concs_and_fluxes()
+    )
     return TimeCourse(model, time_points, c, v)
 
 
@@ -381,7 +403,11 @@ def parameter_scan_ss(
     )
     concs = pd.DataFrame({k: v.concs.T for k, v in res.items()}).T
     fluxes = pd.DataFrame({k: v.fluxes.T for k, v in res.items()}).T
-    idx = pd.Index(parameters.iloc[:, 0]) if parameters.shape[1] == 1 else pd.MultiIndex.from_frame(parameters)
+    idx = (
+        pd.Index(parameters.iloc[:, 0])
+        if parameters.shape[1] == 1
+        else pd.MultiIndex.from_frame(parameters)
+    )
     concs.index = idx
     fluxes.index = idx
     return SteadyStates(concs, fluxes, parameters=parameters)

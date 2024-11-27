@@ -168,7 +168,11 @@ def _ss_flux(
         pd.Series: Series containing the steady-state fluxes.
 
     """
-    flux = Simulator(model.update_parameters(params.to_dict())).simulate_to_steady_state().get_fluxes()
+    flux = (
+        Simulator(model.update_parameters(params.to_dict()))
+        .simulate_to_steady_state()
+        .get_fluxes()
+    )
     if flux is None:
         return _empty_flux_series(model)
     return flux.iloc[-1]

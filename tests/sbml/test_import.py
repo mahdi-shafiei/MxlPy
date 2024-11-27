@@ -40,7 +40,9 @@ def get_simulation_settings(path: Path, prefix: str) -> dict:
     return sim_settings
 
 
-def add_constant_species_to_results(model: Model, expected: pd.DataFrame, result: pd.DataFrame) -> pd.DataFrame:
+def add_constant_species_to_results(
+    model: Model, expected: pd.DataFrame, result: pd.DataFrame
+) -> pd.DataFrame:
     """Adds constant species from the expected DataFrame to the result DataFrame.
 
     This function iterates over the columns in the expected DataFrame that are not present in the result DataFrame.
@@ -109,7 +111,9 @@ def routine(test: int) -> bool:
     result = add_constant_species_to_results(m, expected, result)
     # Sort results like expected
     result = result.loc[:, expected.columns]
-    return np.isclose(result, expected, rtol=sim_settings["rtol"], atol=sim_settings["atol"]).all()
+    return np.isclose(
+        result, expected, rtol=sim_settings["rtol"], atol=sim_settings["atol"]
+    ).all()
 
 
 def test_00001() -> None:

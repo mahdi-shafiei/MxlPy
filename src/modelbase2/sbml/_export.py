@@ -276,7 +276,11 @@ def _create_sbml_reactions(
 
         for compound_id, factor in rxn.stoichiometry.items():
             if isinstance(factor, float):
-                sref = sbml_rxn.createReactant() if factor < 0 else sbml_rxn.createProduct()
+                sref = (
+                    sbml_rxn.createReactant()
+                    if factor < 0
+                    else sbml_rxn.createProduct()
+                )
                 sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
                 sref.setStoichiometry(abs(factor))
                 sref.setConstant(False)
@@ -285,7 +289,9 @@ def _create_sbml_reactions(
             sref = sbml_rxn.createModifier()
             sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
 
-        sbml_rxn.createKineticLaw().setMath(libsbml.parseL3Formula(_sbmlify_fn(rxn.fn, rxn.args)))
+        sbml_rxn.createKineticLaw().setMath(
+            libsbml.parseL3Formula(_sbmlify_fn(rxn.fn, rxn.args))
+        )
 
 
 def _model_to_sbml(

@@ -189,7 +189,9 @@ class Skewnorm:
             num: Number of samples to generate
 
         """
-        return cast(Array, stats.skewnorm(self.a, loc=self.loc, scale=self.scale).rvs(num))
+        return cast(
+            Array, stats.skewnorm(self.a, loc=self.loc, scale=self.scale).rvs(num)
+        )
 
 
 def sample(parameters: dict[str, Distribution], n: int) -> pd.DataFrame:

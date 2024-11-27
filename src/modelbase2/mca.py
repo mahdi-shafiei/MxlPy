@@ -80,8 +80,12 @@ def variable_elasticities(
     for var in variables:
         old = concs[var]
 
-        upper = model.get_fluxes(concs=concs | {var: old * (1 + displacement)}, time=time)
-        lower = model.get_fluxes(concs=concs | {var: old * (1 - displacement)}, time=time)
+        upper = model.get_fluxes(
+            concs=concs | {var: old * (1 + displacement)}, time=time
+        )
+        lower = model.get_fluxes(
+            concs=concs | {var: old * (1 - displacement)}, time=time
+        )
 
         elasticity_coef = (upper - lower) / (2 * displacement * old)
         if normalized:
