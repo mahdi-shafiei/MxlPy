@@ -2297,7 +2297,7 @@ packages:
   name: modelbase2
   version: 0.1.0
   path: .
-  sha256: cbb081d06b4d5c0f09c271c654256ae6cd92d9a8671c7042a466e7bd98b18e08
+  sha256: 31cbd12904981b99d832c01518ca86ee6198d56b5989e57d015f1fe739fd9843
   requires_dist:
   - dill>=0.3.9
   - matplotlib>=3.9.2

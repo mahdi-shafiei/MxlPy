@@ -135,6 +135,7 @@ ignore = [
   "S101",  # assert
   "D",  # all of documentation
   "PLR2004", # magic comparisons
+  "SLF",
 ]
 
 [tool.tomlsort]
