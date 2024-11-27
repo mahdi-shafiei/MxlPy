@@ -4,16 +4,19 @@ import ast
 import inspect
 import re
 import textwrap
-from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import cast
+from typing import TYPE_CHECKING, Any, cast
 
 import dill
 import libsbml
 
-from modelbase2.model import Model
 from modelbase2.sbml._data import AtomicUnit, Compartment
-from modelbase2.types import Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from modelbase2.model import Model
+
 
 __all__ = [
     "RE_LAMBDA_ALGEBRAIC_MODULE_FUNC",

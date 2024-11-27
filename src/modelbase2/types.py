@@ -48,15 +48,11 @@ __all__ = [
 # changed between Python versions and I have no interest in
 # fixing it in every file
 from collections.abc import Callable, Iterator, Mapping
-from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, ParamSpec, Protocol, TypeVar, cast
 
 import numpy as np
 from matplotlib.axes import Axes as Axis
-from matplotlib.figure import Figure
 from numpy.typing import NDArray
-
-if TYPE_CHECKING:
-    from modelbase2.model import Model
 
 type DerivedFn = Callable[..., float]
 type Array = NDArray[np.float64]
@@ -67,6 +63,10 @@ RetType = TypeVar("RetType")
 
 Axes = NDArray[Axis]  # type: ignore
 ArrayLike = NDArray[np.float64] | list[float]
+
+
+if TYPE_CHECKING:
+    from modelbase2.model import Model
 
 
 def unwrap[T](el: T | None) -> T:
@@ -89,6 +89,18 @@ def unwrap[T](el: T | None) -> T:
 
 
 def unwrap2[T1, T2](tpl: tuple[T1 | None, T2 | None]) -> tuple[T1, T2]:
+    """Unwraps a tuple of optional values, raising an error if either of them is None.
+
+    Args:
+        tpl: The value to unwrap.
+
+    Returns:
+        The unwrapped values if it is not None.
+
+    Raises:
+        ValueError: If the provided value is None.
+
+    """
     a, b = tpl
     if a is None or b is None:
         msg = "Unexpected None"
@@ -97,13 +109,19 @@ def unwrap2[T1, T2](tpl: tuple[T1 | None, T2 | None]) -> tuple[T1, T2]:
 
 
 class IntegratorProtocol(Protocol):
+    """Protocol for numerical integrators."""
+
     def __init__(
         self,
         rhs: Callable,
         y0: ArrayLike,
-    ) -> None: ...
+    ) -> None:
+        """Initialise the integrator."""
+        ...
 
-    def reset(self) -> None: ...
+    def reset(self) -> None:
+        """Reset the integrator."""
+        ...
 
     def integrate(
         self,
@@ -111,158 +129,200 @@ class IntegratorProtocol(Protocol):
         t_end: float | None = None,
         steps: int | None = None,
         time_points: ArrayLike | None = None,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]: ...
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        """Integrate the system."""
+        ...
 
     def integrate_to_steady_state(
         self,
         *,
         tolerance: float,
         rel_norm: bool,
-    ) -> tuple[float | None, ArrayLike | None]: ...
+    ) -> tuple[float | None, ArrayLike | None]:
+        """Integrate the system to steady state."""
+        ...
 
 
 @dataclass(slots=True)
 class Derived:
+    """Container for a derived value."""
+
     fn: DerivedFn
     args: list[str]
 
 
 @dataclass(slots=True)
 class DerivedVariable:
+    """Container for a derived variable."""
+
     fn: DerivedFn
     args: list[str]
 
 
 @dataclass(slots=True)
 class DerivedParameter:
+    """Container for a derived parameter."""
+
     fn: DerivedFn
     args: list[str]
 
 
 @dataclass(slots=True)
 class Reaction:
+    """Container for a reaction."""
+
     fn: DerivedFn
     stoichiometry: Mapping[str, float | Derived]
     args: list[str]
 
     def get_modifiers(self, model: Model) -> list[str]:
-        # FIXME: derived parameters?
-        exclude = set(model.parameters) | set(self.stoichiometry)
+        """Get the modifiers of the reaction."""
+        include = set(model.variables)
+        exclude = set(self.stoichiometry)
 
-        return [k for k in self.args if k not in exclude]
-
-    def is_reversible(self, model: Model) -> bool:
-        raise NotImplementedError
+        return [k for k in self.args if k in include and k not in exclude]
 
 
 @dataclass(slots=True)
 class Readout:
+    """Container for a readout."""
+
     fn: DerivedFn
     args: list[str]
 
 
 @dataclass(slots=True)
 class ResponseCoefficients:
+    """Container for response coefficients."""
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux response coefficients."""
         return iter((self.concs, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
+        """Return the response coefficients as a DataFrame."""
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
 @dataclass(slots=True)
 class ResponseCoefficientsByPars:
+    """Container for response coefficients by parameter."""
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux response coefficients."""
         return iter((self.concs, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
+        """Return the response coefficients as a DataFrame."""
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
 @dataclass(slots=True)
 class SteadyStates:
+    """Container for steady states."""
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux steady states."""
         return iter((self.concs, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
+        """Return the steady states as a DataFrame."""
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
 @dataclass(slots=True)
 class McSteadyStates:
+    """Container for Monte Carlo steady states."""
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
     mc_parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux steady states."""
         return iter((self.concs, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
+        """Return the steady states as a DataFrame."""
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
 @dataclass(slots=True)
 class TimeCourseByPars:
+    """Container for time courses by parameter."""
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux time courses."""
         return iter((self.concs, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
+        """Return the time courses as a DataFrame."""
         return pd.concat((self.concs, self.fluxes), axis=1)
 
     def get_by_name(self, name: str) -> pd.DataFrame:
+        """Get time courses by name."""
         return self.results[name].unstack().T
 
     def get_agg_per_time(self, agg: str | Callable) -> pd.DataFrame:
+        """Get aggregated time courses."""
         mean = cast(pd.DataFrame, self.results.unstack(level=1).agg(agg, axis=0))
         return cast(pd.DataFrame, mean.unstack().T)
 
     def get_agg_per_run(self, agg: str | Callable) -> pd.DataFrame:
+        """Get aggregated time courses."""
         mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
         return cast(pd.DataFrame, mean.unstack().T)
 
 
 @dataclass(slots=True)
 class ProtocolByPars:
+    """Container for protocols by parameter."""
+
     concs: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
     protocol: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux protocols."""
         return iter((self.concs, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
+        """Return the protocols as a DataFrame."""
         return pd.concat((self.concs, self.fluxes), axis=1)
 
     def get_by_name(self, name: str) -> pd.DataFrame:
+        """Get concentration or flux by name."""
         return self.results[name].unstack().T
 
     def get_agg_per_time(self, agg: str | Callable) -> pd.DataFrame:
+        """Get aggregated concentration or flux."""
         mean = cast(pd.DataFrame, self.results.unstack(level=1).agg(agg, axis=0))
         return cast(pd.DataFrame, mean.unstack().T)
 
     def get_agg_per_run(self, agg: str | Callable) -> pd.DataFrame:
+        """Get aggregated concentration or flux."""
         mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
         return cast(pd.DataFrame, mean.unstack().T)

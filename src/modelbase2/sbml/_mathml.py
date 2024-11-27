@@ -73,7 +73,7 @@ __all__ = [
     "parse_sbml_math",
 ]
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ._name_conversion import _name_to_py
 from ._unit_conversion import get_ast_types
@@ -686,6 +686,6 @@ def _handle_ast_node(node: ASTNode, func_arguments: list[str]) -> str:
 
 
 def parse_sbml_math(node: ASTNode) -> tuple[str, list[str]]:
-    func_arguments = []
+    func_arguments: list[Any] = []
     body = _handle_ast_node(node=node, func_arguments=func_arguments)
     return body, sorted(set(func_arguments))

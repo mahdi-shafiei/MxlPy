@@ -4,10 +4,9 @@ import math  # noqa: F401  # models might need it
 import re
 import warnings
 from collections import defaultdict
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 import libsbml
 import numpy as np  # noqa: F401  # models might need it
@@ -26,6 +25,9 @@ from modelbase2.sbml._data import (
 from modelbase2.sbml._mathml import parse_sbml_math
 from modelbase2.sbml._name_conversion import _name_to_py
 from modelbase2.sbml._unit_conversion import get_operator_mappings, get_unit_conversion
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 __all__ = ["INDENT", "OPERATOR_MAPPINGS", "Parser", "UNIT_CONVERSION", "from_sbml"]
 
