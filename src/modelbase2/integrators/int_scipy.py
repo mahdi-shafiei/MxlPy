@@ -116,7 +116,6 @@ class Scipy:
         rel_norm: bool,
         step_size: int = 100,
         max_steps: int = 1000,
-        integrator: str = "lsoda",
     ) -> tuple[float | None, ArrayLike | None]:
         """Integrate the ODE system to steady state.
 
@@ -133,12 +132,7 @@ class Scipy:
         """
         self.reset()
         integ = spi.ode(self.rhs)
-        integ.set_integrator(
-            name=integrator,
-            step_size=step_size,
-            max_steps=max_steps,
-            integrator=integrator,
-        )
+        integ.set_integrator(name="lsoda")
         integ.set_initial_value(self.y0)
         t = self.t0 + step_size
         y1 = copy.deepcopy(self.y0)

@@ -10,7 +10,8 @@ Functions:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from functools import partial
+from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
 import pandas as pd
@@ -18,7 +19,7 @@ from scipy.optimize import minimize
 
 from modelbase2.integrators import DefaultIntegrator
 from modelbase2.simulator import Simulator
-from modelbase2.types import ArrayLike, Callable, IntegratorProtocol, cast
+from modelbase2.types import Array, ArrayLike, Callable, IntegratorProtocol, cast
 
 __all__ = [
     "steady_state",
@@ -28,13 +29,63 @@ __all__ = [
 if TYPE_CHECKING:
     from modelbase2.model import Model
 
+type ResidualFn = Callable[[Array], Array]
+
+
+type MinimizeFn = Callable[[ResidualFn, dict[str, float]], dict[str, float]]
+
+
+class SteadyStateResidualFn(Protocol):
+    def __call__(
+        self,
+        par_values: Array,
+        # This will be filled out by partial
+        par_names: list[str],
+        data: pd.Series,
+        model: Model,
+        y0: dict[str, float],
+        integrator: type[IntegratorProtocol],
+    ) -> float: ...
+
+
+class TimeSeriesResidualFn(Protocol):
+    def __call__(
+        self,
+        par_values: Array,
+        # This will be filled out by partial
+        par_names: list[str],
+        data: pd.DataFrame,
+        model: Model,
+        y0: dict[str, float],
+        integrator: type[IntegratorProtocol],
+    ) -> float: ...
+
+
+def _default_minimize_fn(
+    residual_fn: ResidualFn,
+    p0: dict[str, float],
+) -> dict[str, float]:
+    return dict(
+        zip(
+            p0,
+            minimize(
+                residual_fn,
+                x0=list(p0.values()),
+                bounds=[(1e-12, 1e6) for _ in range(len(p0))],
+                method="L-BFGS-B",
+            ).x,
+            strict=True,
+        )
+    )
+
 
 def _steady_state_residual(
-    par_values: ArrayLike,
+    par_values: Array,
+    # This will be filled out by partial
+    par_names: list[str],
     data: pd.Series,
     model: Model,
     y0: dict[str, float],
-    par_names: list[str],
     integrator: type[IntegratorProtocol],
 ) -> float:
     """Calculate residual error between model steady state and experimental data.
@@ -53,7 +104,15 @@ def _steady_state_residual(
     """
     c_ss, v_ss = (
         Simulator(
-            model.update_parameters(dict(zip(par_names, par_values, strict=True))),
+            model.update_parameters(
+                dict(
+                    zip(
+                        par_names,
+                        par_values,
+                        strict=True,
+                    )
+                )
+            ),
             y0=y0,
             integrator=integrator,
         )
@@ -69,10 +128,11 @@ def _steady_state_residual(
 
 def _time_series_residual(
     par_values: ArrayLike,
+    # This will be filled out by partial
+    par_names: list[str],
     data: pd.DataFrame,
     model: Model,
     y0: dict[str, float],
-    par_names: list[str],
     integrator: type[IntegratorProtocol],
 ) -> float:
     """Calculate residual error between model time course and experimental data.
@@ -110,17 +170,8 @@ def steady_state(
     p0: dict[str, float],
     data: pd.Series,
     y0: dict[str, float] | None = None,
-    residual_fn: Callable[
-        [
-            ArrayLike,
-            pd.Series,
-            Model,
-            dict[str, float],
-            list[str],
-            type[IntegratorProtocol],
-        ],
-        float,
-    ] = _steady_state_residual,
+    minimize_fn: MinimizeFn = _default_minimize_fn,
+    residual_fn: SteadyStateResidualFn = _steady_state_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
     """Fit model parameters to steady-state experimental data.
@@ -130,6 +181,7 @@ def steady_state(
         data: Experimental steady state data as pandas Series
         p0: Initial parameter guesses as {parameter_name: value}
         y0: Initial conditions as {species_name: value}
+        minimize_fn: Function to minimize fitting error (default: _default_minimize_fn)
         residual_fn: Function to calculate fitting error (default: _steady_state_residual)
         integrator: ODE integrator class (default: DefaultIntegrator)
 
@@ -141,24 +193,22 @@ def steady_state(
 
     """
     par_names = list(p0.keys())
-    x0 = list(p0.values())
 
     # Copy to restore
     p_orig = model.parameters
 
-    res = dict(
-        zip(
-            par_names,
-            minimize(
-                residual_fn,
-                x0=x0,
-                args=(data, model, y0, par_names, integrator),
-                bounds=[(1e-12, 1e6) for _ in range(len(p0))],
-                method="L-BFGS-B",
-            ).x,
-            strict=True,
-        )
+    fn = cast(
+        ResidualFn,
+        partial(
+            residual_fn,
+            data=data,
+            model=model,
+            y0=y0,
+            par_names=par_names,
+            integrator=integrator,
+        ),
     )
+    res = minimize_fn(fn, p0)
 
     # Restore
     model.update_parameters(p_orig)
@@ -170,17 +220,8 @@ def time_series(
     p0: dict[str, float],
     data: pd.DataFrame,
     y0: dict[str, float] | None = None,
-    residual_fn: Callable[
-        [
-            ArrayLike,
-            pd.DataFrame,
-            Model,
-            dict[str, float],
-            list[str],
-            type[IntegratorProtocol],
-        ],
-        float,
-    ] = _time_series_residual,
+    minimize_fn: MinimizeFn = _default_minimize_fn,
+    residual_fn: TimeSeriesResidualFn = _time_series_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
     """Fit model parameters to time-series experimental data.
@@ -190,6 +231,7 @@ def time_series(
         data: Experimental time series data as pandas DataFrame
         p0: Initial parameter guesses as {parameter_name: value}
         y0: Initial conditions as {species_name: value}
+        minimize_fn: Function to minimize fitting error (default: _default_minimize_fn)
         residual_fn: Function to calculate fitting error (default: _time_series_residual)
         integrator: ODE integrator class (default: DefaultIntegrator)
 
@@ -201,21 +243,31 @@ def time_series(
 
     """
     par_names = list(p0.keys())
-    x0 = list(p0.values())
     p_orig = model.parameters
 
-    res = dict(
-        zip(
-            par_names,
-            minimize(
-                residual_fn,
-                x0=x0,
-                args=(data, model, y0, par_names, integrator),
-                bounds=[(1e-12, 1e6) for _ in range(len(p0))],
-                method="L-BFGS-B",
-            ).x,
-            strict=True,
-        )
+    fn = cast(
+        ResidualFn,
+        partial(
+            residual_fn,
+            data=data,
+            model=model,
+            y0=y0,
+            par_names=par_names,
+            integrator=integrator,
+        ),
     )
+
+    fn = cast(
+        ResidualFn,
+        partial(
+            residual_fn,
+            data=data,
+            model=model,
+            y0=y0,
+            par_names=par_names,
+            integrator=integrator,
+        ),
+    )
+    res = minimize_fn(fn, p0)
     model.update_parameters(p_orig)
     return res
