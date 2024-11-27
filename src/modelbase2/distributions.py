@@ -49,11 +49,16 @@ class Distribution(Protocol):
     All distribution classes must implement the sample() method.
     """
 
-    def sample(self, num: int) -> Array:
+    def sample(
+        self,
+        num: int,
+        rng: np.random.Generator | None = None,
+    ) -> Array:
         """Generate random samples from the distribution.
 
         Args:
             num: Number of samples to generate
+            rng: Random number generator
 
         Returns:
             Array of random samples
@@ -69,13 +74,11 @@ class Beta:
     Args:
         a: Alpha shape parameter (>0)
         b: Beta shape parameter (>0)
-        seed: Random seed for reproducibility
 
     """
 
     a: float
     b: float
-    seed: int = 42
 
     def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
         """Generate random samples from the beta distribution.
@@ -97,13 +100,11 @@ class Uniform:
     Args:
         lower_bound: Minimum value
         upper_bound: Maximum value
-        seed: Random seed for reproducibility
 
     """
 
     lower_bound: float
     upper_bound: float
-    seed: int = 42
 
     def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
         """Generate random samples from the uniform distribution.
@@ -125,13 +126,11 @@ class Normal:
     Args:
         loc: Mean of the distribution
         scale: Standard deviation
-        seed: Random seed for reproducibility
 
     """
 
     loc: float
     scale: float
-    seed: int = 42
 
     def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
         """Generate random samples from the normal distribution.
@@ -159,7 +158,6 @@ class LogNormal:
 
     mean: float
     sigma: float
-    seed: int = 42
 
     def sample(self, num: int, rng: np.random.Generator | None = None) -> Array:
         """Generate random samples from the log-normal distribution.
@@ -189,11 +187,16 @@ class Skewnorm:
     scale: float
     a: float
 
-    def sample(self, num: int) -> Array:
+    def sample(
+        self,
+        num: int,
+        rng: np.random.Generator | None = None,  # noqa: ARG002
+    ) -> Array:
         """Generate random samples from the skewed normal distribution.
 
         Args:
             num: Number of samples to generate
+            rng: The random generator arguemnt is unused but required for API compatibility
 
         """
         return cast(
@@ -201,15 +204,33 @@ class Skewnorm:
         )
 
 
-def sample(parameters: dict[str, Distribution], n: int) -> pd.DataFrame:
+def sample(
+    parameters: dict[str, Distribution],
+    n: int,
+    rng: np.random.Generator | None = None,
+) -> pd.DataFrame:
     """Generate samples from the specified distributions.
 
     Args:
         parameters: Dictionary mapping parameter names to distribution objects.
         n: Number of samples to generate.
+        rng: Random number generator.
 
     Returns:
         pd.DataFrame: DataFrame containing the generated samples.
 
     """
-    return pd.DataFrame({k: v.sample(n) for k, v in parameters.items()})
+    return pd.DataFrame({k: v.sample(n, rng) for k, v in parameters.items()})
+
+
+if __name__ == "__main__":
+    _ = sample(
+        {
+            "beta": Beta(a=1.0, b=1.0),
+            "uniform": Uniform(lower_bound=0.0, upper_bound=1.0),
+            "normal": Normal(loc=1.0, scale=0.1),
+            "log_normal": LogNormal(mean=1.0, sigma=0.1),
+            "skewnorm": Skewnorm(loc=1.0, scale=0.1, a=5.0),
+        },
+        n=1,
+    )
