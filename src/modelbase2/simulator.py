@@ -471,3 +471,47 @@ class Simulator:
         if (res := self.get_concs()) is None:
             return None
         return dict(res.iloc[-1])
+
+    def update_parameter(self, parameter: str, value: float) -> Self:
+        """
+        Updates the value of a specified parameter in the model.
+
+        Args:
+            parameter: The name of the parameter to update.
+            value: The new value to set for the parameter.
+        """
+        self.model.update_parameter(parameter, value)
+        return self
+
+    def update_parameters(self, parameters: dict[str, float]) -> Self:
+        """
+        Updates the model parameters with the provided dictionary of parameters.
+
+        Args:
+            parameters: A dictionary where the keys are parameter names
+                        and the values are the new parameter values.
+        """
+        self.model.update_parameters(parameters)
+        return self
+
+    def scale_parameter(self, parameter: str, factor: float) -> Self:
+        """
+        Scales the value of a specified parameter in the model.
+
+        Args:
+            parameter: The name of the parameter to scale.
+            factor: The factor by which to scale the parameter.
+        """
+        self.model.scale_parameter(parameter, factor)
+        return self
+
+    def scale_parameters(self, parameters: dict[str, float]) -> Self:
+        """
+        Scales the values of specified parameters in the model.
+
+        Args:
+            parameters: A dictionary where the keys are parameter names
+                        and the values are the scaling factors.
+        """
+        self.model.scale_parameters(parameters)
+        return self
