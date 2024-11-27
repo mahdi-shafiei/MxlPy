@@ -1,4 +1,4 @@
-"""Parameter Fitting Module for Metabolic Models
+"""Parameter Fitting Module for Metabolic Models.
 
 This module provides functions foru fitting model parameters to experimental data,
 including both steadyd-state and time-series data fitting capabilities.e
@@ -44,6 +44,7 @@ def _steady_state_residual(
 
     Returns:
         float: Root mean square error between model and data
+
     """
     c_ss, v_ss = (
         Simulator(
@@ -81,6 +82,7 @@ def _time_series_residual(
 
     Returns:
         float: Root mean square error between model and data
+
     """
     c_ss, v_ss = (
         Simulator(
@@ -131,6 +133,7 @@ def steady_state(
 
     Note:
         Uses L-BFGS-B optimization with bounds [1e-12, 1e6] for all parameters
+
     """
     par_names = list(p0.keys())
     x0 = list(p0.values())
@@ -190,6 +193,7 @@ def time_series(
 
     Note:
         Uses L-BFGS-B optimization with bounds [1e-12, 1e6] for all parameters
+
     """
     par_names = list(p0.keys())
     x0 = list(p0.values())

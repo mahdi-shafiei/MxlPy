@@ -1,4 +1,4 @@
-"""Monte Carlo Analysis (MC) Module for Metabolic Models
+"""Monte Carlo Analysis (MC) Module for Metabolic Models.
 
 This module provides functions for performing Monte Carlo analysis on metabolic models.
 It includes functionality for steady-state and time-course simulations, as well as
@@ -52,8 +52,7 @@ def _parameter_scan_worker(
     This function executes a parameter scan for steady state solutions for a given model
     and parameter combinations. It's designed to be used as a worker in parallel processing.
 
-    Parameters
-    ----------
+    Args:
     model : Model
         The model object to analyze
     y0 : dict[str, float] | None
@@ -64,10 +63,11 @@ def _parameter_scan_worker(
     rel_norm : bool
         Whether to use relative normalization in the steady state calculations
 
-    Returns
+    Returns:
     -------
     SteadyStates
         Object containing the steady state solutions for the given parameter combinations
+
     """
     return scans.parameter_scan_ss(
         model,
@@ -87,7 +87,7 @@ def steady_state(
     cache: Cache | None = None,
     rel_norm: bool = True,
 ) -> SteadyStates:
-    """MC time course
+    """MC time course.
 
     Returns
     -------
@@ -138,7 +138,7 @@ def time_course(
     max_workers: int | None = None,
     cache: Cache | None = None,
 ) -> TimeCourseByPars:
-    """MC time course
+    """MC time course.
 
     Returns
     -------
@@ -190,7 +190,7 @@ def time_course_over_protocol(
     max_workers: int | None = None,
     cache: Cache | None = None,
 ) -> ProtocolByPars:
-    """MC time course
+    """MC time course.
 
     Returns
     -------
@@ -245,6 +245,21 @@ def parameter_scan_ss(
     cache: Cache | None = None,
     rel_norm: bool = False,
 ) -> McSteadyStates:
+    """Parameter scan of mc distributed steady states.
+
+    Args:
+        model: The model to analyze
+        parameters: DataFrame containing parameter combinations to scan over
+        mc_parameters: DataFrame containing Monte Carlo parameter sets
+        y0: Initial conditions for the solver
+        max_workers: Maximum number of workers for parallel processing
+        cache: Cache object for storing results
+        rel_norm: Whether to use relative normalization in the steady state calculations
+
+    Returns:
+        McSteadyStates: Object containing the steady state solutions for the given parameter
+
+    """
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -282,6 +297,23 @@ def compound_elasticities(
     normalized: bool = True,
     displacement: float = 1e-4,
 ) -> pd.DataFrame:
+    """Calculate compound elasticities using Monte Carlo analysis.
+
+    Args:
+        model: The model to analyze
+        variables: List of variables for which to calculate elasticities
+        concs: Dictionary of concentrations for the model
+        mc_parameters: DataFrame containing Monte Carlo parameter sets
+        time: Time point for the analysis
+        cache: Cache object for storing results
+        max_workers: Maximum number of workers for parallel processing
+        normalized: Whether to use normalized elasticities
+        displacement: Displacement for finite difference calculations
+
+    Returns:
+        pd.DataFrame: DataFrame containing the compound elasticities for the given variables
+
+    """
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -314,6 +346,23 @@ def parameter_elasticities(
     normalized: bool = True,
     displacement: float = 1e-4,
 ) -> pd.DataFrame:
+    """Calculate parameter elasticities using Monte Carlo analysis.
+
+    Args:
+        model: The model to analyze
+        parameters: List of parameters for which to calculate elasticities
+        concs: Dictionary of concentrations for the model
+        mc_parameters: DataFrame containing Monte Carlo parameter sets
+        time: Time point for the analysis
+        cache: Cache object for storing results
+        max_workers: Maximum number of workers for parallel processing
+        normalized: Whether to use normalized elasticities
+        displacement: Displacement for finite difference calculations
+
+    Returns:
+        pd.DataFrame: DataFrame containing the parameter elasticities for the given variables
+
+    """
     res = parallelise(
         partial(
             _update_parameters_and,
@@ -347,6 +396,24 @@ def response_coefficients(
     max_workers: int | None = None,
     rel_norm: bool = False,
 ) -> ResponseCoefficientsByPars:
+    """Calculate response coefficients using Monte Carlo analysis.
+
+    Args:
+        model: The model to analyze
+        parameters: List of parameters for which to calculate elasticities
+        mc_parameters: DataFrame containing Monte Carlo parameter sets
+        y0: Initial conditions for the solver
+        cache: Cache object for storing results
+        normalized: Whether to use normalized elasticities
+        displacement: Displacement for finite difference calculations
+        disable_tqdm: Whether to disable the tqdm progress bar
+        max_workers: Maximum number of workers for parallel processing
+        rel_norm: Whether to use relative normalization in the steady state calculations
+
+    Returns:
+        ResponseCoefficientsByPars: Object containing the response coefficients for the given parameters
+
+    """
     res = parallelise(
         fn=partial(
             _update_parameters_and,

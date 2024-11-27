@@ -1,4 +1,4 @@
-"""Types Module
+"""Types Module.
 
 This module provides type definitions and utility types for use throughout the project.
 It includes type aliases for arrays, numbers, and callable functions, as well as re-exports
@@ -55,8 +55,7 @@ ArrayLike = NDArray[np.float64] | list[float]
 
 
 def unwrap[T](el: T | None) -> T:
-    """
-    Unwraps an optional value, raising an error if the value is None.
+    """Unwraps an optional value, raising an error if the value is None.
 
     Args:
         el: The value to unwrap. It can be of type T or None.
@@ -66,6 +65,7 @@ def unwrap[T](el: T | None) -> T:
 
     Raises:
         ValueError: If the provided value is None.
+
     """
     if el is None:
         msg = "Unexpected None"

@@ -1,4 +1,4 @@
-"""Simulation Module
+"""Simulation Module.
 
 This module provides classes and functions for simulating metabolic models.
 It includes functionality for running simulations, normalizing results, and
@@ -28,8 +28,7 @@ def _normalise_split_results(
     results: list[pd.DataFrame],
     normalise: float | ArrayLike,
 ) -> list[pd.DataFrame]:
-    """
-    Normalize split results by a given factor or array.
+    """Normalize split results by a given factor or array.
 
     Args:
         results: List of DataFrames containing the results to normalize.
@@ -37,6 +36,7 @@ def _normalise_split_results(
 
     Returns:
         list[pd.DataFrame]: List of normalized DataFrames.
+
     """
     if isinstance(normalise, int | float):
         return [i / normalise for i in results]
@@ -59,8 +59,7 @@ def _normalise_split_results(
     eq=False,
 )
 class Simulator:
-    """
-    Simulator class for running simulations on a metabolic model.
+    """Simulator class for running simulations on a metabolic model.
 
     Attributes:
         model: Model instance to simulate.
@@ -69,6 +68,7 @@ class Simulator:
         concs: List of DataFrames containing concentration results.
         args: List of DataFrames containing argument values.
         simulation_parameters: List of dictionaries containing simulation parameters.
+
     """
 
     model: Model
@@ -86,6 +86,19 @@ class Simulator:
         *,
         test_run: bool = True,
     ) -> None:
+        """Initialize the Simulator.
+
+        Args:
+            model (Model): The model to be simulated.
+            y0 (dict[str, float] | None, optional): Initial conditions for the model variables.
+                If None, the initial conditions are obtained from the model. Defaults to None.
+            integrator (type[IntegratorProtocol], optional): The integrator to use for the simulation.
+                Defaults to DefaultIntegrator.
+            test_run (bool, optional): If True, performs a test run to ensure the model's methods
+                (get_full_concs, get_fluxes, get_right_hand_side) work correctly with the initial conditions.
+                Defaults to True.
+
+        """
         self.model = model
         y0 = model.get_initial_conditions() if y0 is None else y0
         self.y0 = [y0[k] for k in model.get_variable_names()]
@@ -107,12 +120,12 @@ class Simulator:
         results: pd.DataFrame,
         skipfirst: bool,
     ) -> None:
-        """
-        Save simulation results.
+        """Save simulation results.
 
         Args:
             results: DataFrame containing the simulation results.
             skipfirst: Whether to skip the first row of results.
+
         """
         if self.concs is None:
             self.concs = [results]
@@ -126,9 +139,7 @@ class Simulator:
         self.simulation_parameters.append(self.model.parameters)
 
     def clear_results(self) -> None:
-        """
-        Clear simulation results.
-        """
+        """Clear simulation results."""
         self.concs = None
         self.args = None
         self.simulation_parameters = None
@@ -141,8 +152,7 @@ class Simulator:
         steps: int | None = None,
         time_points: ArrayLike | None = None,
     ) -> Self:
-        """
-        Simulate the model.
+        """Simulate the model.
 
         You can either supply only a terminal time point, or additionally also the
         number of steps or exact time points for which values should be returned.
@@ -154,6 +164,7 @@ class Simulator:
 
         Returns:
             Self: The Simulator instance with updated results.
+
         """
         if steps is not None and time_points is not None:
             warnings.warn(
@@ -206,19 +217,18 @@ class Simulator:
         *,
         rel_norm: bool = False,
     ) -> Self:
-        """
-        Simulate the model to steady state.
+        """Simulate the model to steady state.
 
         You can either supply only a terminal time point, or additionally also the
         number of steps or exact time points for which values should be returned.
 
         Args:
-            t_end: Terminal time point for the simulation.
-            steps: Number of steps for the simulation.
-            time_points: Exact time points for which values should be returned.
+            tolerance: Tolerance for the steady-state calculation.
+            rel_norm: Whether to use relative norm for the steady-state calculation.
 
         Returns:
             Self: The Simulator instance with updated results.
+
         """
         time, results = self.integrator.integrate_to_steady_state(
             tolerance=tolerance,
@@ -243,6 +253,16 @@ class Simulator:
         protocol: pd.DataFrame,
         time_points_per_step: int = 10,
     ) -> Self:
+        """Simulate the model over a given protocol.
+
+        Args:
+            protocol: DataFrame containing the protocol.
+            time_points_per_step: Number of time points per step.
+
+        Returns:
+            The Simulator instance with updated results.
+
+        """
         for t_end, pars in protocol.iterrows():
             t_end = cast(pd.Timedelta, t_end)
             self.model.update_parameters(pars.to_dict())
@@ -298,11 +318,11 @@ class Simulator:
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> None | pd.DataFrame | list[pd.DataFrame]:
-        """
-        Get the concentration results.
+        """Get the concentration results.
 
         Returns:
             pd.DataFrame: DataFrame of concentrations.
+
         """
         if self.concs is None:
             return None
@@ -349,11 +369,11 @@ class Simulator:
         concatenated: bool = True,
         include_readouts: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
-        """
-        Get the full concentration results, including derived quantities.
+        """Get the full concentration results, including derived quantities.
 
         Returns:
             pd.DataFrame: DataFrame of full concentrations.
+
         """
         if (concs := self.concs) is None:
             return None
@@ -362,9 +382,7 @@ class Simulator:
         if (args := self.args) is None:
             args = self._get_args_vectorised(concs, params)
 
-        names = (
-            self.model.get_variable_names() + self.model.get_derived_variable_names()
-        )
+        names = self.model.get_variable_names() + self.model.get_derived_variable_names()
         if include_readouts:
             names.extend(self.model.get_readout_names())
         full_concs = [i.loc[:, names] for i in args]
@@ -407,11 +425,11 @@ class Simulator:
         normalise: float | ArrayLike | None = None,
         concatenated: bool = True,
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
-        """
-        Get the flux results.
+        """Get the flux results.
 
         Returns:
             pd.DataFrame: DataFrame of fluxes.
+
         """
         if (concs := self.concs) is None:
             return None
@@ -434,9 +452,13 @@ class Simulator:
             return pd.concat(fluxes, axis=0)
         return fluxes
 
-    def get_concs_and_fluxes(
-        self,
-    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+    def get_concs_and_fluxes(self) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+        """Get the concentrations and fluxes.
+
+        Returns:
+            tuple[pd.DataFrame, pd.DataFrame]: Tuple of concentrations and fluxes.
+
+        """
         return self.get_concs(), self.get_fluxes()
 
     def get_full_concs_and_fluxes(
@@ -444,17 +466,26 @@ class Simulator:
         *,
         include_readouts: bool = True,
     ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+        """Get the full concentrations and fluxes.
+
+        Args:
+            include_readouts: Whether to include readouts in the results.
+
+        Returns:
+            Full concentrations and fluxes
+
+        """
         return (
             self.get_full_concs(include_readouts=include_readouts),
             self.get_fluxes(),
         )
 
     def get_results(self) -> pd.DataFrame | None:
-        """
-        Get the combined results of concentrations and fluxes.
+        """Get the combined results of concentrations and fluxes.
 
         Returns:
             pd.DataFrame: Combined DataFrame of concentrations and fluxes.
+
         """
         c, v = self.get_concs_and_fluxes()
         if c is None or v is None:
@@ -462,56 +493,58 @@ class Simulator:
         return pd.concat((c, v), axis=1)
 
     def get_full_results(self) -> pd.DataFrame | None:
+        """Get the combined full results of concentrations and fluxes."""
         c, v = self.get_full_concs_and_fluxes()
         if c is None or v is None:
             return None
         return pd.concat((c, v), axis=1)
 
     def get_new_y0(self) -> dict[str, float] | None:
+        """Get the new initial conditions after the simulation."""
         if (res := self.get_concs()) is None:
             return None
         return dict(res.iloc[-1])
 
     def update_parameter(self, parameter: str, value: float) -> Self:
-        """
-        Updates the value of a specified parameter in the model.
+        """Updates the value of a specified parameter in the model.
 
         Args:
             parameter: The name of the parameter to update.
             value: The new value to set for the parameter.
+
         """
         self.model.update_parameter(parameter, value)
         return self
 
     def update_parameters(self, parameters: dict[str, float]) -> Self:
-        """
-        Updates the model parameters with the provided dictionary of parameters.
+        """Updates the model parameters with the provided dictionary of parameters.
 
         Args:
             parameters: A dictionary where the keys are parameter names
                         and the values are the new parameter values.
+
         """
         self.model.update_parameters(parameters)
         return self
 
     def scale_parameter(self, parameter: str, factor: float) -> Self:
-        """
-        Scales the value of a specified parameter in the model.
+        """Scales the value of a specified parameter in the model.
 
         Args:
             parameter: The name of the parameter to scale.
             factor: The factor by which to scale the parameter.
+
         """
         self.model.scale_parameter(parameter, factor)
         return self
 
     def scale_parameters(self, parameters: dict[str, float]) -> Self:
-        """
-        Scales the values of specified parameters in the model.
+        """Scales the values of specified parameters in the model.
 
         Args:
             parameters: A dictionary where the keys are parameter names
                         and the values are the scaling factors.
+
         """
         self.model.scale_parameters(parameters)
         return self

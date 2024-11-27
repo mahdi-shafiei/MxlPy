@@ -1,4 +1,4 @@
-"""Plotting Utilities Module
+"""Plotting Utilities Module.
 
 This module provides functions and classes for creating various plots and visualizations
 for metabolic models. It includes functionality for plotting heatmaps, time courses,
@@ -64,6 +64,20 @@ def _relative_luminance(color: Array) -> float:
 
 
 def _get_norm(vmin: float, vmax: float) -> Normalize:
+    """Get a suitable normalization object for the given data.
+
+    Uses a logarithmic scale for values greater than 1000 or less than -1000,
+    a symmetrical logarithmic scale for values less than or equal to 0,
+    and a linear scale for all other values.
+
+    Args:
+        vmin: Minimum value of the data.
+        vmax: Maximum value of the data.
+
+    Returns:
+        Normalize: A normalization object for the given data.
+
+    """
     if vmax < 1000 and vmin > -1000:  # noqa: PLR2004
         norm = Normalize(vmin=vmin, vmax=vmax)
     elif vmin <= 0:
@@ -74,11 +88,13 @@ def _get_norm(vmin: float, vmax: float) -> Normalize:
 
 
 def _norm_with_zero_center(df: pd.DataFrame) -> Normalize:
+    """Get a normalization object with zero-centered values for the given data."""
     v = max(abs(df.min().min()), abs(df.max().max()))
     return _get_norm(vmin=-v, vmax=v)
 
 
 def _partition_by_order_of_magnitude(s: pd.Series) -> list[list[str]]:
+    """Partition a series into groups based on the order of magnitude of the values."""
     return [
         i.to_list()
         for i in np.floor(np.log10(s)).to_frame(name=0).groupby(0)[0].groups.values()  # type: ignore
@@ -86,6 +102,7 @@ def _partition_by_order_of_magnitude(s: pd.Series) -> list[list[str]]:
 
 
 def _split_large_groups[T](groups: list[list[T]], max_size: int) -> list[list[T]]:
+    """Split groups larger than the given size into smaller groups."""
     return list(
         it.chain(
             *(
@@ -104,6 +121,7 @@ def _split_large_groups[T](groups: list[list[T]], max_size: int) -> list[list[T]
 
 
 def _default_color(ax: Axes, color: str | None) -> str:
+    """Get a default color for the given axis."""
     return f"C{len(ax.lines)}" if color is None else color
 
 
@@ -113,6 +131,15 @@ def _default_labels(
     ylabel: str | None = None,
     zlabel: str | None = None,
 ) -> None:
+    """Set default labels for the given axis.
+
+    Args:
+        ax: matplotlib Axes
+        xlabel: Label for the x-axis.
+        ylabel: Label for the y-axis.
+        zlabel: Label for the z-axis.
+
+    """
     ax.set_xlabel("Add a label / unit" if xlabel is None else xlabel)
     ax.set_ylabel("Add a label / unit" if ylabel is None else ylabel)
     if isinstance(ax, Axes3D):
@@ -126,6 +153,16 @@ def _annotate_colormap(
     annotation_style: str,
     hm: QuadMesh,
 ) -> None:
+    """Annotate a heatmap with the values of the data.
+
+    Args:
+        df: Dataframe to annotate.
+        ax: Axes to annotate.
+        sci_annotation_bounds: Bounds for scientific notation.
+        annotation_style: Style for the annotations.
+        hm: QuadMesh object of the heatmap.
+
+    """
     hm.update_scalarmappable()  # So that get_facecolor is an array
     xpos, ypos = np.meshgrid(
         np.arange(len(df.columns)),
@@ -138,10 +175,7 @@ def _annotate_colormap(
         hm.get_facecolor(),
         strict=True,
     ):
-        if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1]:
-            val_text = f"{val:.{annotation_style}}"
-        else:
-            val_text = f"{val:.0e}"
+        val_text = f"{val:.{annotation_style}}" if sci_annotation_bounds[0] < abs(val) <= sci_annotation_bounds[1] else f"{val:.0e}"
         ax.text(
             x + 0.5,
             y + 0.5,
@@ -153,6 +187,7 @@ def _annotate_colormap(
 
 
 def add_grid(ax: Axes) -> Axes:
+    """Add a grid to the given axis."""
     ax.grid(visible=True)
     ax.set_axisbelow(b=True)
     return ax
@@ -163,6 +198,17 @@ def rotate_xlabels(
     rotation: float = 45,
     ha: Literal["left", "center", "right"] = "right",
 ) -> Axes:
+    """Rotate the x-axis labels of the given axis.
+
+    Args:
+        ax: Axis to rotate the labels of.
+        rotation: Rotation angle in degrees (default: 45).
+        ha: Horizontal alignment of the labels (default
+
+    Returns:
+        Axes object for object chaining
+
+    """
     for label in ax.get_xticklabels():
         label.set_rotation(rotation)
         label.set_horizontalalignment(ha)
@@ -180,6 +226,17 @@ def _default_fig_ax(
     grid: bool,
     figsize: tuple[float, float] | None = None,
 ) -> FigAx:
+    """Create a figure and axes if none are provided.
+
+    Args:
+        ax: Axis to use for the plot.
+        grid: Whether to add a grid to the plot.
+        figsize: Size of the figure (default: None).
+
+    Returns:
+        Figure and Axes objects for the plot.
+
+    """
     if ax is None:
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
     else:
@@ -196,10 +253,25 @@ def _default_fig_axs(
     ncols: int,
     nrows: int,
     figsize: tuple[float, float] | None,
+    grid: bool,
     sharex: bool,
     sharey: bool,
-    grid: bool,
 ) -> FigAxs:
+    """Create a figure and multiple axes if none are provided.
+
+    Args:
+        axs: Axes to use for the plot.
+        ncols: Number of columns for the plot.
+        nrows: Number of rows for the plot.
+        figsize: Size of the figure (default: None).
+        grid: Whether to add a grid to the plot.
+        sharex: Whether to share the x-axis between the axes.
+        sharey: Whether to share the y-axis between the axes.
+
+    Returns:
+        Figure and Axes objects for the plot.
+
+    """
     if axs is None or len(axs) == 0:
         fig, axs_array = plt.subplots(
             nrows=nrows,
@@ -227,6 +299,7 @@ def two_axes(
     sharey: bool = False,
     grid: bool = False,
 ) -> FigAxs:
+    """Create a figure with two axes."""
     return _default_fig_axs(
         None,
         ncols=2,
@@ -248,6 +321,7 @@ def grid_layout(
     sharey: bool = False,
     grid: bool = True,
 ) -> tuple[Figure, list[Axes]]:
+    """Create a grid layout for the given number of groups."""
     n_cols = min(n_groups, n_cols)
     n_rows = math.ceil(n_groups / n_cols)
     figsize = (n_cols * col_width, n_rows * row_height)
@@ -274,6 +348,7 @@ def lines(
     ax: Axes | None = None,
     grid: bool = True,
 ) -> FigAx:
+    """Plot multiple lines on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
     ax.plot(x)
     ax.legend(x.columns)
@@ -290,6 +365,7 @@ def lines_grouped(
     sharey: bool = False,
     grid: bool = True,
 ) -> FigAxs:
+    """Plot multiple groups of lines on separate axes."""
     fig, axs = grid_layout(
         len(groups),
         n_cols=n_cols,
@@ -318,19 +394,10 @@ def line_autogrouped(
     max_group_size: int = 6,
     grid: bool = True,
 ) -> FigAxs:
-    if isinstance(s, pd.Series):
-        group_names = _partition_by_order_of_magnitude(s)
-    else:
-        group_names = _partition_by_order_of_magnitude(s.max())
+    """Plot a series or dataframe with lines grouped by order of magnitude."""
+    group_names = _split_large_groups(_partition_by_order_of_magnitude(s) if isinstance(s, pd.Series) else _partition_by_order_of_magnitude(s.max()), max_size=max_group_size)
 
-    group_names = _split_large_groups(group_names, max_size=max_group_size)
-
-    groups: list[pd.Series] | list[pd.DataFrame]
-
-    if isinstance(s, pd.Series):
-        groups = [s.loc[group] for group in group_names]
-    else:
-        groups = [s.loc[:, group] for group in group_names]
+    groups: list[pd.Series] | list[pd.DataFrame] = [s.loc[group] for group in group_names] if isinstance(s, pd.Series) else [s.loc[:, group] for group in group_names]
 
     return lines_grouped(
         groups,
@@ -350,6 +417,7 @@ def line_mean_std(
     alpha: float = 0.2,
     grid: bool = True,
 ) -> FigAx:
+    """Plot the mean and standard deviation using a line and fill."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
     color = _default_color(ax=ax, color=color)
 
@@ -378,6 +446,7 @@ def lines_mean_std_from_2d_idx(
     alpha: float = 0.2,
     grid: bool = True,
 ) -> FigAx:
+    """Plot the mean and standard deviation of a 2D indexed dataframe."""
     if len(cast(pd.MultiIndex, df.index).levels) != 2:  # noqa: PLR2004
         msg = "MultiIndex must have exactly two levels"
         raise ValueError(msg)
@@ -408,6 +477,7 @@ def heatmap(
     sci_annotation_bounds: tuple[float, float] = (0.01, 100),
     annotation_style: str = "2g",
 ) -> tuple[Figure, Axes, QuadMesh]:
+    """Plot a heatmap of the given data."""
     fig, ax = _default_fig_ax(
         ax=ax,
         figsize=(
@@ -448,6 +518,7 @@ def heatmap_from_2d_idx(
     variable: str,
     ax: Axes | None = None,
 ) -> FigAx:
+    """Plot a heatmap of a 2D indexed dataframe."""
     if len(cast(pd.MultiIndex, df.index).levels) != 2:  # noqa: PLR2004
         msg = "MultiIndex must have exactly two levels"
         raise ValueError(msg)
@@ -485,6 +556,7 @@ def heatmaps_from_2d_idx(
     sharex: bool = True,
     sharey: bool = False,
 ) -> FigAxs:
+    """Plot multiple heatmaps of a 2D indexed dataframe."""
     idx = cast(pd.MultiIndex, df.index)
 
     fig, axs = grid_layout(
@@ -507,6 +579,7 @@ def violins(
     ax: Axes | None = None,
     grid: bool = True,
 ) -> FigAx:
+    """Plot multiple violins on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
     sns.violinplot(df, ax=ax)
     return fig, ax
@@ -521,6 +594,7 @@ def violins_from_2d_idx(
     sharey: bool = False,
     grid: bool = True,
 ) -> FigAxs:
+    """Plot multiple violins of a 2D indexed dataframe."""
     if len(cast(pd.MultiIndex, df.index).levels) != 2:  # noqa: PLR2004
         msg = "MultiIndex must have exactly two levels"
         raise ValueError(msg)
@@ -558,6 +632,7 @@ def shade_protocol(
     alpha: float = 0.5,
     add_legend: bool = True,
 ) -> None:
+    """Shade the given protocol on the given axis."""
     from matplotlib import colormaps
     from matplotlib.colors import Normalize
     from matplotlib.legend import Legend
@@ -617,6 +692,7 @@ def relative_label_distribution(
     sharey: bool = False,
     grid: bool = True,
 ) -> FigAxs:
+    """Plot the relative distribution of labels in the given data."""
     variables = list(mapper.label_variables) if subset is None else subset
     fig, axs = grid_layout(
         n_groups=len(variables),
@@ -636,9 +712,7 @@ def relative_label_distribution(
             ax.set_title(name)
             ax.legend()
     else:
-        for ax, (name, isos) in zip(
-            axs, mapper.get_isotopomers(variables).items(), strict=False
-        ):
+        for ax, (name, isos) in zip(axs, mapper.get_isotopomers(variables).items(), strict=False):
             concs.loc[:, isos].plot(ax=ax)
             ax.set_title(name)
             ax.legend([f"C{i+1}" for i in range(len(isos))])

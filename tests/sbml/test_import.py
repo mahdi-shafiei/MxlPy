@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from modelbase2 import Simulator
-from modelbase2.model import Model
 from modelbase2.sbml._import import Parser
 
+if TYPE_CHECKING:
+    from modelbase2.model import Model
+
 try:
-    import assimulo  # type: ignore
+    import assimulo  # type: ignore  # noqa: F401
 
     ASSIMULO_FLAG = True
 except ImportError:
@@ -37,14 +40,25 @@ def get_simulation_settings(path: Path, prefix: str) -> dict:
     return sim_settings
 
 
-def add_constant_species_to_results(
-    m: Model, expected: pd.DataFrame, result: pd.DataFrame
-) -> pd.DataFrame:
-    """If a species is constant we don't include it in the results.
-    Since SBML does, we need to manually add it.
+def add_constant_species_to_results(model: Model, expected: pd.DataFrame, result: pd.DataFrame) -> pd.DataFrame:
+    """Adds constant species from the expected DataFrame to the result DataFrame.
+
+    This function iterates over the columns in the expected DataFrame that are not present in the result DataFrame.
+    For each missing column, it retrieves the corresponding species value from the model and creates a new Series
+    with that constant value, matching the length of the expected DataFrame. The new Series is then concatenated
+    to the result DataFrame.
+
+    Args:
+        model: The model from which to retrieve the constant species values.
+        expected: The DataFrame containing the expected results, including constant species.
+        result: The DataFrame to which the constant species will be added.
+
+    Returns:
+        pd.DataFrame: The updated result DataFrame with the constant species added.
+
     """
     for name in expected.columns.difference(result.columns):
-        species = m.get_parameter(name)
+        species = model.get_parameter(name)
         species = pd.Series(
             np.ones(len(expected.index)) * species,
             index=expected.index,
@@ -95,9 +109,7 @@ def routine(test: int) -> bool:
     result = add_constant_species_to_results(m, expected, result)
     # Sort results like expected
     result = result.loc[:, expected.columns]
-    return np.isclose(
-        result, expected, rtol=sim_settings["rtol"], atol=sim_settings["atol"]
-    ).all()
+    return np.isclose(result, expected, rtol=sim_settings["rtol"], atol=sim_settings["atol"]).all()
 
 
 def test_00001() -> None:

@@ -1,3 +1,8 @@
+"""SBML support for modelbase2.
+
+Allows importing and exporting metabolic models in SBML format.
+"""
+
 from __future__ import annotations
 
 __all__ = [

@@ -1,4 +1,4 @@
-"""Metabolic Control Analysis (MCA) Module
+"""Metabolic Control Analysis (MCA) Module.
 
 Provides functions for analyzing control and regulation in metabolic networks through:
 - Elasticity coefficients (variable and parameter)
@@ -71,8 +71,8 @@ def variable_elasticities(
         ...     variables=["A", "B"],
         ...     normalized=True
         ... )
-    """
 
+    """
     concs = model.get_initial_conditions() if concs is None else concs
     variables = model.get_variable_names() if variables is None else variables
     elasticities = {}
@@ -80,12 +80,8 @@ def variable_elasticities(
     for var in variables:
         old = concs[var]
 
-        upper = model.get_fluxes(
-            concs=concs | {var: old * (1 + displacement)}, time=time
-        )
-        lower = model.get_fluxes(
-            concs=concs | {var: old * (1 - displacement)}, time=time
-        )
+        upper = model.get_fluxes(concs=concs | {var: old * (1 + displacement)}, time=time)
+        lower = model.get_fluxes(concs=concs | {var: old * (1 - displacement)}, time=time)
 
         elasticity_coef = (upper - lower) / (2 * displacement * old)
         if normalized:
@@ -109,11 +105,14 @@ def parameter_elasticities(
     Args:
         model: Metabolic model instance
         parameters: List of parameters to analyze. Uses all if None
+        concs: Initial concentrations {metabolite: value}. Uses model defaults if None
+        time: Time point for evaluation
         normalized: Whether to normalize coefficients
         displacement: Relative perturbation size
 
     Returns:
         DataFrame with parameter elasticities (reactions x parameters)
+
     """
     concs = model.get_initial_conditions() if concs is None else concs
     parameters = model.get_parameter_names() if parameters is None else parameters
@@ -175,6 +174,7 @@ def _response_coefficient_worker(
         tuple[pd.Series, pd.Series]: Tuple containing:
             - Series of concentration response coefficients
             - Series of flux response coefficients
+
     """
     old = model.parameters[parameter]
 
@@ -224,13 +224,19 @@ def response_coefficients(
     Args:
         model: Metabolic model instance
         parameters: Parameters to analyze. Uses all if None
+        y0: Initial conditions as a dictionary {species: value}
         normalized: Whether to normalize coefficients
         displacement: Relative perturbation size
+        disable_tqdm: Disable progress bar
+        parallel: Whether to parallelize the computation
+        max_workers: Maximum number of workers
+        rel_norm: Whether to use relative normalization
 
     Returns:
         ResponseCoefficients object containing:
         - Flux response coefficients
         - Concentration response coefficients
+
     """
     parameters = model.get_parameter_names() if parameters is None else parameters
 

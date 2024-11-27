@@ -1,4 +1,4 @@
-"""Neural Network Parameter Estimation (NPE) Module
+"""Neural Network Parameter Estimation (NPE) Module.
 
 This module provides classes and functions for training neural network models to estimate
 parameters in metabolic models. It includes functionality for both steady-state and
@@ -34,7 +34,20 @@ DefaultCache = Cache(Path(".cache"))
 
 
 class DefaultSSAproximator(nn.Module):
+    """Default neural network model for steady-state approximation."""
+
     def __init__(self, n_inputs: int, n_outputs: int) -> None:
+        """Initializes the neural network with the specified number of inputs and outputs.
+
+        Args:
+            n_inputs (int): The number of input features.
+            n_outputs (int): The number of output features.
+
+        The network consists of three fully connected layers with ReLU activations in between.
+        The weights of the linear layers are initialized with a normal distribution (mean=0, std=0.1),
+        and the biases are initialized to zero.
+
+        """
         super().__init__()
 
         self.net = nn.Sequential(
@@ -51,11 +64,22 @@ class DefaultSSAproximator(nn.Module):
                 nn.init.constant_(m.bias, val=0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the neural network."""
         return self.net(x)
 
 
 class DefaultTimeSeriesApproximator(nn.Module):
+    """Default neural network model for time-series approximation."""
+
     def __init__(self, n_inputs: int, n_outputs: int, n_hidden: int) -> None:
+        """Initializes the neural network model.
+
+        Args:
+            n_inputs (int): Number of input features.
+            n_outputs (int): Number of output features.
+            n_hidden (int): Number of hidden units in the LSTM layer.
+
+        """
         super().__init__()
 
         self.n_hidden = n_hidden
@@ -67,6 +91,7 @@ class DefaultTimeSeriesApproximator(nn.Module):
         nn.init.constant_(self.to_out.bias, val=0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the neural network."""
         # lstm_out, (hidden_state, cell_state)
         _, (hn, _) = self.lstm(x)
         return self.to_out(hn[-1])  # Use last hidden state
@@ -74,17 +99,23 @@ class DefaultTimeSeriesApproximator(nn.Module):
 
 @dataclass(kw_only=True)
 class AbstractEstimator:
+    """Abstract class for parameter estimation using neural networks."""
+
     parameter_names: list[str]
 
     @abstractmethod
-    def predict(self, features: pd.DataFrame) -> pd.DataFrame: ...
+    def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Predict the target values for the given features."""
 
 
 @dataclass(kw_only=True)
 class TorchSSEstimator(AbstractEstimator):
+    """Estimator for steady state data using PyTorch models."""
+
     model: torch.nn.Module
 
     def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Predict the target values for the given features."""
         with torch.no_grad():
             pred = self.model(torch.tensor(features.to_numpy(), dtype=torch.float32))
             return pd.DataFrame(pred, columns=self.parameter_names)
@@ -92,9 +123,12 @@ class TorchSSEstimator(AbstractEstimator):
 
 @dataclass(kw_only=True)
 class TorchTimeSeriesEstimator(AbstractEstimator):
+    """Estimator for time series data using PyTorch models."""
+
     model: torch.nn.Module
 
     def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+        """Predict the target values for the given features."""
         idx = cast(pd.MultiIndex, features.index)
         features_ = torch.Tensor(
             np.swapaxes(
@@ -131,9 +165,7 @@ def _train_batched(
             optimizer.zero_grad()
             indices = permutation[i : i + batch_size]
 
-            loss = torch.mean(
-                torch.abs(approximator(features[indices]) - targets[indices])
-            )
+            loss = torch.mean(torch.abs(approximator(features[indices]) - targets[indices]))
             loss.backward()
             optimizer.step()
             epoch_loss += loss.detach().numpy()
@@ -185,6 +217,7 @@ def train_torch_ss_estimator(
 
     Returns:
         tuple[TorchTimeSeriesEstimator, pd.Series]: Trained estimator and loss history
+
     """
     if approximator is None:
         approximator = DefaultSSAproximator(
@@ -246,6 +279,7 @@ def train_torch_time_series_estimator(
 
     Returns:
         tuple[TorchTimeSeriesEstimator, pd.Series]: Trained estimator and loss history
+
     """
     if approximator is None:
         approximator = DefaultTimeSeriesApproximator(

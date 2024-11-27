@@ -117,9 +117,8 @@ def _convert_id_to_sbml(id_: str, prefix: str) -> str:
 def _create_sbml_document() -> libsbml.SBMLDocument:
     """Create an sbml document, into which sbml information can be written.
 
-    Returns
-    -------
-    doc : libsbml.Document
+    Returns:
+        doc : libsbml.Document
 
     """
     # SBML namespaces
@@ -142,13 +141,15 @@ def _create_sbml_model(
 ) -> libsbml.Model:
     """Create an sbml model.
 
-    Parameters
-    ----------
-    doc : libsbml.Document
+    Args:
+        model_name: Name of the model.
+        doc: libsbml.Document
+        extent_units: Units for the extent of reactions.
+        substance_units: Units for the amount of substances.
+        time_units: Units for time.
 
-    Returns
-    -------
-    sbml_model : libsbml.Model
+    Returns:
+        sbml_model : libsbml.Model
 
     """
     name = f"{model_name}_{datetime.now(UTC).date().strftime('%Y-%m-%d')}"
@@ -170,9 +171,9 @@ def _create_sbml_units(
 ) -> None:
     """Create sbml units out of the meta_info.
 
-    Parameters
-    ----------
-    sbml_model : libsbml.Model
+    Args:
+        units: Dictionary of units to use in the SBML file.
+        sbml_model : libsbml Model
 
     """
     for unit_id, unit in units.items():
@@ -207,9 +208,9 @@ def _create_sbml_variables(
 ) -> None:
     """Create the variables for the sbml model.
 
-    Parameters
-    ----------
-    sbml_model : libsbml.Model
+    Args:
+        model: Model instance to export.
+        sbml_model : libsbml.Model
 
     """
     for variable_id in model.get_variable_names():
@@ -238,9 +239,9 @@ def _create_sbml_parameters(
 ) -> None:
     """Create the parameters for the sbml model.
 
-    Parameters
-    ----------
-    sbml_model : libsbml.Model
+    Args:
+        model: Model instance to export.
+        sbml_model : libsbml.Model
 
     """
     for parameter_id, value in model.parameters.items():
@@ -275,11 +276,7 @@ def _create_sbml_reactions(
 
         for compound_id, factor in rxn.stoichiometry.items():
             if isinstance(factor, float):
-                sref = (
-                    sbml_rxn.createReactant()
-                    if factor < 0
-                    else sbml_rxn.createProduct()
-                )
+                sref = sbml_rxn.createReactant() if factor < 0 else sbml_rxn.createProduct()
                 sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
                 sref.setStoichiometry(abs(factor))
                 sref.setConstant(False)
@@ -288,9 +285,7 @@ def _create_sbml_reactions(
             sref = sbml_rxn.createModifier()
             sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
 
-        sbml_rxn.createKineticLaw().setMath(
-            libsbml.parseL3Formula(_sbmlify_fn(rxn.fn, rxn.args))
-        )
+        sbml_rxn.createKineticLaw().setMath(libsbml.parseL3Formula(_sbmlify_fn(rxn.fn, rxn.args)))
 
 
 def _model_to_sbml(
@@ -363,8 +358,7 @@ def to_sbml(
     substance_units: str = "mole",
     time_units: str = "second",
 ) -> str | None:
-    """
-    Export a metabolic model to an SBML file.
+    """Export a metabolic model to an SBML file.
 
     Args:
         model: Model instance to export.
@@ -378,6 +372,7 @@ def to_sbml(
 
     Returns:
         str | None: None if the export is successful.
+
     """
     doc = _model_to_sbml(
         model=model,

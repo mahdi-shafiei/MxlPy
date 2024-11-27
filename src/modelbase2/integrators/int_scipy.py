@@ -1,3 +1,5 @@
+"""Scipy integrator for solving ODEs."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -20,8 +22,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class Scipy:
-    """
-    Scipy integrator for solving ODEs.
+    """Scipy integrator for solving ODEs.
 
     Attributes:
         rhs: Right-hand side function of the ODE.
@@ -36,6 +37,7 @@ class Scipy:
         reset: Reset the integrator.
         integrate: Integrate the ODE system.
         integrate_to_steady_state: Integrate the ODE system to steady state.
+
     """
 
     rhs: Callable
@@ -46,9 +48,16 @@ class Scipy:
     _y0_orig: ArrayLike = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        """Create copy of initial state.
+
+        This method creates a copy of the initial state `y0` and stores it in the `_y0_orig` attribute.
+        This is useful for preserving the original initial state for future reference or reset operations.
+
+        """
         self._y0_orig = self.y0.copy()
 
     def reset(self) -> None:
+        """Reset the integrator."""
         self.t0 = 0
         self.y0 = self._y0_orig.copy()
 
@@ -59,8 +68,7 @@ class Scipy:
         steps: int | None = None,
         time_points: ArrayLike | None = None,
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
-        """
-        Integrate the ODE system.
+        """Integrate the ODE system.
 
         Args:
             t_end: Terminal time point for the integration.
@@ -69,6 +77,7 @@ class Scipy:
 
         Returns:
             tuple[ArrayLike | None, ArrayLike | None]: Tuple containing the time points and the integrated values.
+
         """
         if time_points is not None:
             if time_points[0] != 0:
@@ -109,16 +118,18 @@ class Scipy:
         max_steps: int = 1000,
         integrator: str = "lsoda",
     ) -> tuple[float | None, ArrayLike | None]:
-        """
-        Integrate the ODE system to steady state.
+        """Integrate the ODE system to steady state.
 
         Args:
             tolerance: Tolerance for determining steady state.
             rel_norm: Whether to use relative normalization.
-            t_max: Maximum time point for the integration (default: 1,000,000,000).
+            step_size: Step size for the integration (default: 100).
+            max_steps: Maximum number of steps for the integration (default: 1,000).
+            integrator: Name of the integrator to use (default: "lsoda").
 
         Returns:
             tuple[float | None, ArrayLike | None]: Tuple containing the final time point and the integrated values at steady state.
+
         """
         self.reset()
         integ = spi.ode(self.rhs)

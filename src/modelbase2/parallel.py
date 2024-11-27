@@ -1,4 +1,4 @@
-"""Parallel Execution Module
+"""Parallel Execution Module.
 
 This module provides functions and classes for parallel execution and caching of
 computation results. It includes functionality for parallel processing and result
@@ -44,14 +44,14 @@ def _pickle_save(file: Path, data: Any) -> None:
 
 @dataclass
 class Cache:
-    """
-    Cache class for storing and retrieving computation results.
+    """Cache class for storing and retrieving computation results.
 
     Attributes:
         tmp_dir: Directory to store cache files.
         name_fn: Function to generate file names from keys.
         load_fn: Function to load data from files.
         save_fn: Function to save data to files.
+
     """
 
     tmp_dir: Path = Path(".cache")
@@ -65,8 +65,7 @@ def _load_or_run[K: Hashable, Tin, Tout](
     fn: Callable[[Tin], Tout],
     cache: Cache | None,
 ) -> tuple[K, Tout]:
-    """
-    Load data from cache or execute function and save result.
+    """Load data from cache or execute function and save result.
 
     Args:
         inp: Tuple containing a key and input value.
@@ -75,6 +74,7 @@ def _load_or_run[K: Hashable, Tin, Tout](
 
     Returns:
         tuple[K, Tout]: Tuple containing the key and the result of the function.
+
     """
     k, v = inp
     if cache is None:
@@ -99,8 +99,7 @@ def parallelise[K: Hashable, Tin, Tout](
     disable_tqdm: bool = False,
     tqdm_desc: str | None = None,
 ) -> dict[Tin, Tout]:
-    """
-    Execute a function in parallel over a collection of inputs.
+    """Execute a function in parallel over a collection of inputs.
 
     Args:
         fn: Function to execute in parallel. Takes a single input and returns a result.
@@ -114,6 +113,7 @@ def parallelise[K: Hashable, Tin, Tout](
 
     Returns:
         dict[Tin, Tout]: Dictionary mapping inputs to their corresponding outputs.
+
     """
     if cache is not None:
         cache.tmp_dir.mkdir(parents=True, exist_ok=True)

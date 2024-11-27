@@ -227,7 +227,7 @@ class Parser:
         warnings.warn(f"Skipping rate rule {rule.getId()}", stacklevel=1)
 
     def parse_rules(self, sbml_model: libsbml.Model) -> None:
-        """Parse rules and separate them by type"""
+        """Parse rules and separate them by type."""
         for rule in sbml_model.getListOfRules():
             if rule.element_name == "algebraicRule":
                 self._parse_algebraic_rule(rule=rule)
@@ -242,7 +242,7 @@ class Parser:
     def _parse_local_parameters(
         self, reaction_id: str, kinetic_law: libsbml.KineticLaw
     ) -> dict[str, str]:
-        """Parse local parameters"""
+        """Parse local parameters."""
         parameters_to_update = {}
         for parameter in kinetic_law.getListOfLocalParameters():
             old_id = _name_to_py(parameter.getId())
@@ -392,13 +392,13 @@ def _translate(sbml: Parser) -> Model:
 
 
 def from_sbml(file: Path | str) -> Model:
-    """
-    Import a metabolic model from an SBML file.
+    """Import a metabolic model from an SBML file.
 
     Args:
         file: Path to the SBML file to import.
 
     Returns:
         Model: Imported model instance.
+
     """
     return _translate(Parser().parse(file=file))

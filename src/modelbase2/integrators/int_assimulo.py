@@ -1,3 +1,5 @@
+"""Assimulo integrator for solving ODEs."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,8 +23,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class Assimulo:
-    """
-    Assimulo integrator for solving ODEs.
+    """Assimulo integrator for solving ODEs.
 
     Attributes:
         rhs: Right-hand side function of the ODE.
@@ -35,6 +36,7 @@ class Assimulo:
 
     Methods:
         integrate: Integrate the ODE system.
+
     """
 
     rhs: Callable
@@ -46,6 +48,15 @@ class Assimulo:
     verbosity: Literal[50, 40, 30, 20, 10] = 50
 
     def __post_init__(self) -> None:
+        """Post-initialization method for setting up the CVode integrator with the provided parameters.
+
+        This method initializes the CVode integrator with an explicit problem defined by the
+        right-hand side function (`self.rhs`) and the initial conditions (`self.y0`). It also
+        sets various integrator options such as absolute tolerance (`self.atol`), relative
+        tolerance (`self.rtol`), maximum number of error test failures (`self.maxnef`), maximum
+        number of convergence failures (`self.maxncf`), and verbosity level (`self.verbosity`).
+
+        """
         self.integrator = CVode(Explicit_Problem(self.rhs, self.y0))
         self.integrator.atol = self.atol
         self.integrator.rtol = self.rtol
@@ -54,6 +65,7 @@ class Assimulo:
         self.integrator.verbosity = self.verbosity
 
     def reset(self) -> None:
+        """Reset the integrator."""
         self.integrator.reset()
 
     def integrate(
@@ -63,15 +75,16 @@ class Assimulo:
         steps: int | None = None,
         time_points: ArrayLike | None = None,
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
-        """
-        Integrate the ODE system.
+        """Integrate the ODE system.
 
         Args:
             t_end: Terminal time point for the integration.
             steps: Number of steps for the integration.
+            time_points: Time points for the integration.
 
         Returns:
             np.ndarray: Array of integrated values.
+
         """
         if steps is None:
             steps = 0
@@ -87,8 +100,7 @@ class Assimulo:
         rel_norm: bool,
         t_max: float = 1_000_000_000,
     ) -> tuple[float | None, ArrayLike | None]:
-        """
-        Integrate the ODE system to steady state.
+        """Integrate the ODE system to steady state.
 
         Args:
             tolerance: Tolerance for determining steady state.
@@ -97,6 +109,7 @@ class Assimulo:
 
         Returns:
             tuple[float | None, ArrayLike | None]: Tuple containing the final time point and the integrated values at steady state.
+
         """
         self.reset()
 

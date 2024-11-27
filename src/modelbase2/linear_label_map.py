@@ -1,4 +1,4 @@
-"""Linear Label Mapping Module for Metabolic Models
+"""Linear Label Mapping Module for Metabolic Models.
 
 This module implements linear label mapping functionality for tracking isotope labels
 through metabolic networks. It provides utilities for:
@@ -43,6 +43,7 @@ def _generate_isotope_labels(base_name: str, num_labels: int) -> list[str]:
     Example:
         >>> _generate_isotope_labels("Glucose", 2)
         ['Glucose__0', 'Glucose__1']
+
     """
     if num_labels > 0:
         return [f"{base_name}__{i}" for i in range(num_labels)]
@@ -67,6 +68,7 @@ def _unpack_stoichiometries(
     Example:
         >>> _unpack_stoichiometries({"A": -1, "B": 2})
         ({"A": 1}, {"B": 2})
+
     """
     substrates = {}
     products = {}
@@ -93,6 +95,7 @@ def _stoichiometry_to_duplicate_list(stoichiometry: dict[str, int]) -> list[str]
     Example:
         >>> _stoichiometry_to_duplicate_list({"A": 2, "B": 1})
         ['A', 'A', 'B']
+
     """
     long_form: list[str] = []
     for k, v in stoichiometry.items():
@@ -100,9 +103,7 @@ def _stoichiometry_to_duplicate_list(stoichiometry: dict[str, int]) -> list[str]
     return long_form
 
 
-def _map_substrates_to_labelmap(
-    substrates: list[str], labelmap: list[int]
-) -> dict[str, int]:
+def _map_substrates_to_labelmap(substrates: list[str], labelmap: list[int]) -> dict[str, int]:
     """Map substrate labels to product label positions.
 
     Args:
@@ -115,6 +116,7 @@ def _map_substrates_to_labelmap(
     Example:
         >>> _map_substrates_to_labelmap(['A', 'B'], [1, 0])
         {'A': 1, 'B': 0}
+
     """
     return {substrates[i]: labelmap[i] for i in range(len(substrates))}
 
@@ -142,6 +144,7 @@ def _add_label_influx_or_efflux(
 
     Raises:
         ValueError: If the labelmap length is less than the number of substrates
+
     """
     # Add label outfluxes
     if (diff := len(substrates) - len(products)) > 0:
@@ -159,21 +162,23 @@ def _add_label_influx_or_efflux(
 
 
 def relative_label_flux(label_percentage: float, v_ss: float) -> float:
+    """Calculate relative label flux based on label percentage and steady-state flux."""
     return label_percentage * v_ss
 
 
 def one_div(y: float) -> float:
+    """Calculate 1/y."""
     return 1 / y
 
 
 def neg_one_div(y: float) -> float:
+    """Calculate -1/y."""
     return -1 / y
 
 
 @dataclass(slots=True)
 class LinearLabelMapper:
-    """
-    A class to map linear labels for a given model and build a model with isotopomers.
+    """A class to map linear labels for a given model and build a model with isotopomers.
 
     Attributes:
         model (Model): The model to which the labels are mapped.
@@ -187,6 +192,7 @@ class LinearLabelMapper:
         build_model(
             initial_labels: dict[str, int | list[int]] | None = None
             Builds and returns a model with the given concentrations, fluxes, external label, and initial labels.
+
     """
 
     model: Model
@@ -194,8 +200,7 @@ class LinearLabelMapper:
     label_maps: dict[str, list[int]] = field(default_factory=dict)
 
     def get_isotopomers(self, variables: list[str]) -> dict[str, list[str]]:
-        """
-        Generate a dictionary of isotopomers for the given variables.
+        """Generate a dictionary of isotopomers for the given variables.
 
         This method creates a dictionary where the keys are the variable names
         provided in the `variables` list, and the values are lists of isotopomer
@@ -209,11 +214,9 @@ class LinearLabelMapper:
             dict[str, list[str]]: A dictionary where the keys are the variable names
                                   from the `variables` list, and the values are lists
                                   of isotopomer labels for each variable.
+
         """
-        isotopomers = {
-            name: _generate_isotope_labels(name, num)
-            for name, num in self.label_variables.items()
-        }
+        isotopomers = {name: _generate_isotope_labels(name, num) for name, num in self.label_variables.items()}
         return {k: isotopomers[k] for k in variables}
 
     def build_model(
@@ -223,11 +226,10 @@ class LinearLabelMapper:
         external_label: float = 1.0,
         initial_labels: dict[str, int | list[int]] | None = None,
     ) -> Model:
-        """
-        Build a metabolic model with labeled isotopomers and reactions.
+        """Build a metabolic model with labeled isotopomers and reactions.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         concs : pd.Series
             A pandas Series containing concentration values for metabolites.
         fluxes : pd.Series
@@ -239,15 +241,13 @@ class LinearLabelMapper:
             Keys are compound names, and values are either a single integer or a list of integers
             indicating the positions to be labeled. Default is None.
 
-        Returns:
-        --------
+        Returns
+        -------
         Model
             A metabolic model with labeled isotopomers and reactions.
+
         """
-        isotopomers = {
-            name: _generate_isotope_labels(name, num)
-            for name, num in self.label_variables.items()
-        }
+        isotopomers = {name: _generate_isotope_labels(name, num) for name, num in self.label_variables.items()}
         variables = {k: 0.0 for iso in isotopomers.values() for k in iso}
         if initial_labels is not None:
             for base_compound, label_positions in initial_labels.items():

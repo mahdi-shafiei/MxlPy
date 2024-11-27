@@ -1,4 +1,4 @@
-"""Label Scope Module
+"""Label Scope Module.
 
 This module provides functions for creating and managing label scopes in metabolic models.
 It includes functionality for initializing label scopes and retrieving reachable label positions.

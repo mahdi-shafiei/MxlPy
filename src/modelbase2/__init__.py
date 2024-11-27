@@ -1,4 +1,4 @@
-"""modelbase2: A Python Package for Metabolic Modeling and Analysis
+"""modelbase2: A Python Package for Metabolic Modeling and Analysis.
 
 This package provides tools for creating, simulating and analyzing metabolic models
 with features including:
