@@ -85,8 +85,7 @@ def _relative_luminance(color: Array) -> float:
     )
 
     # L = 0.2126 * R + 0.7152 * G + 0.0722 * B
-    rel_luminance: Array = np.matmul(rsrgb, [0.2126, 0.7152, 0.0722])
-    return rel_luminance[0]
+    return np.matmul(rsrgb, [0.2126, 0.7152, 0.0722])[0]
 
 
 def _get_norm(vmin: float, vmax: float) -> Normalize:

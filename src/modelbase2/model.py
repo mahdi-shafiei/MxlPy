@@ -17,8 +17,6 @@ import pandas as pd
 from modelbase2.types import (
     Array,
     Derived,
-    DerivedParameter,
-    DerivedVariable,
     Reaction,
     Readout,
 )
@@ -33,7 +31,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
     from modelbase2.surrogates import AbstractSurrogate
-    from modelbase2.types import Callable, DerivedFn, Param, RetType
+    from modelbase2.types import Callable, Param, RateFn, RetType
 
 
 class SortError(Exception):
@@ -126,17 +124,6 @@ def _sort_dependencies(
     return order
 
 
-def _select_derived_type(
-    model: Model, el: Derived
-) -> DerivedParameter | DerivedVariable:
-    all_pars = set(model.get_parameter_names()) ^ set(
-        model.get_derived_parameter_names()
-    )
-    if set(el.args).issubset(all_pars):
-        return DerivedParameter(fn=el.fn, args=el.args)
-    return DerivedVariable(fn=el.fn, args=el.args)
-
-
 @dataclass(slots=True)
 class ModelCache:
     """ModelCache is a class that stores various model-related data structures.
@@ -154,10 +141,10 @@ class ModelCache:
 
     var_names: list[str]
     parameter_values: dict[str, float]
-    derived_parameters: dict[str, DerivedParameter]
-    derived_variables: dict[str, DerivedVariable]
+    derived_parameter_names: list[str]
+    derived_variable_names: list[str]
     stoich_by_cpds: dict[str, dict[str, float]]
-    dyn_stoich_by_cpds: dict[str, dict[str, DerivedVariable]]
+    dyn_stoich_by_cpds: dict[str, dict[str, Derived]]
     dxdt: pd.Series
 
 
@@ -213,41 +200,35 @@ class Model:
         )
 
         # Split derived into parameters and variables
-        derived_variables: dict[str, DerivedVariable] = {}
-        derived_parameters: dict[str, DerivedParameter] = {}
+        derived_variable_names: list[str] = []
+        derived_parameter_names: list[str] = []
         for name in derived_order:
             derived = self._derived[name]
             if all(i in all_parameter_names for i in derived.args):
-                derived_parameters[name] = DerivedParameter(
-                    fn=derived.fn,
-                    args=derived.args,
-                )
                 all_parameter_names.add(name)
+                derived_parameter_names.append(name)
                 parameter_values[name] = derived.fn(
                     *(parameter_values[i] for i in derived.args)
                 )
             else:
-                derived_variables[name] = DerivedVariable(
-                    fn=derived.fn,
-                    args=derived.args,
-                )
+                derived_variable_names.append(name)
 
         stoich_by_compounds: dict[str, dict[str, float]] = {}
-        dyn_stoich_by_compounds: dict[str, dict[str, DerivedVariable]] = {}
+        dyn_stoich_by_compounds: dict[str, dict[str, Derived]] = {}
+
         for rxn_name, rxn in self._reactions.items():
             for cpd_name, factor in rxn.stoichiometry.items():
                 d_static = stoich_by_compounds.setdefault(cpd_name, {})
 
                 if isinstance(factor, Derived):
-                    dt = _select_derived_type(self, factor)
-
-                    if isinstance(dt, DerivedParameter):
-                        d_static[rxn_name] = dt.fn(
+                    if all(i in all_parameter_names for i in factor.args):
+                        d_static[rxn_name] = factor.fn(
                             *(parameter_values[i] for i in factor.args)
                         )
                     else:
-                        dyn_stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = dt
-
+                        dyn_stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = (
+                            factor
+                        )
                 else:
                     d_static[rxn_name] = factor
 
@@ -264,8 +245,8 @@ class Model:
             parameter_values=parameter_values,
             stoich_by_cpds=stoich_by_compounds,
             dyn_stoich_by_cpds=dyn_stoich_by_compounds,
-            derived_variables=derived_variables,
-            derived_parameters=derived_parameters,
+            derived_variable_names=derived_variable_names,
+            derived_parameter_names=derived_parameter_names,
             dxdt=dxdt,
         )
         return self._cache
@@ -621,7 +602,7 @@ class Model:
     ##########################################################################
 
     @property
-    def derived_variables(self) -> dict[str, DerivedVariable]:
+    def derived_variables(self) -> dict[str, Derived]:
         """Returns a dictionary of derived variables.
 
         Returns:
@@ -632,26 +613,28 @@ class Model:
         """
         if (cache := self._cache) is None:
             cache = self._create_cache()
-        return cache.derived_variables
+        derived = self._derived
+        return {k: derived[k] for k in cache.derived_variable_names}
 
     @property
-    def derived_parameters(self) -> dict[str, DerivedParameter]:
+    def derived_parameters(self) -> dict[str, Derived]:
         """Returns a dictionary of derived parameters.
 
         Returns:
-            dict[str, DerivedParameter]: A dictionary where the keys are
-            parameter names and the values are DerivedParameter objects.
+            A dictionary where the keys are
+            parameter names and the values are Derived.
 
         """
         if (cache := self._cache) is None:
             cache = self._create_cache()
-        return cache.derived_parameters
+        derived = self._derived
+        return {k: derived[k] for k in cache.derived_parameter_names}
 
     @_invalidate_cache
     def add_derived(
         self,
         name: str,
-        fn: DerivedFn,
+        fn: RateFn,
         args: list[str],
     ) -> Self:
         """Adds a derived attribute to the model.
@@ -690,7 +673,7 @@ class Model:
     def update_derived(
         self,
         name: str,
-        fn: DerivedFn | None = None,
+        fn: RateFn | None = None,
         args: list[str] | None = None,
     ) -> Self:
         """Updates the derived function and its arguments for a given name.
@@ -742,7 +725,7 @@ class Model:
     def add_reaction(
         self,
         name: str,
-        fn: DerivedFn,
+        fn: RateFn,
         stoichiometry: Mapping[str, float | Derived],
         args: list[str],
     ) -> Self:
@@ -775,7 +758,7 @@ class Model:
     def update_reaction(
         self,
         name: str,
-        fn: DerivedFn | None,
+        fn: RateFn | None,
         stoichiometry: dict[str, float | Derived] | None,
         args: list[str] | None,
     ) -> Self:
@@ -844,7 +827,7 @@ class Model:
     # Think of something like NADPH / (NADP + NADPH) as a proxy for energy state
     ##########################################################################
 
-    def add_readout(self, name: str, function: DerivedFn, args: list[str]) -> Self:
+    def add_readout(self, name: str, function: RateFn, args: list[str]) -> Self:
         """Adds a readout to the model.
 
         Args:
@@ -939,7 +922,9 @@ class Model:
         args = cache.parameter_values | concs
         args["time"] = time
 
-        for name, dv in cache.derived_variables.items():
+        derived = self._derived
+        for name in cache.derived_variable_names:
+            dv = derived[name]
             args[name] = dv.fn(*(args[arg] for arg in dv.args))
 
         if include_readouts:
@@ -1006,7 +991,9 @@ class Model:
         args = pd.concat((concs, pars_df), axis=1)
         args["time"] = args.index
 
-        for name, dv in cache.derived_variables.items():
+        derived = self._derived
+        for name in cache.derived_variable_names:
+            dv = derived[name]
             args[name] = dv.fn(*args.loc[:, dv.args].to_numpy().T)
 
         if include_readouts:

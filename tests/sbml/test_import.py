@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 
 from modelbase2 import Simulator
-from modelbase2.sbml._import import Parser
+from modelbase2.sbml import from_sbml
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
@@ -70,17 +70,16 @@ def add_constant_species_to_results(
     return result
 
 
-def get_files(test: int) -> tuple[Parser, dict, pd.DataFrame]:
+def get_files(test: int) -> tuple[Model, dict, pd.DataFrame]:
     prefix = f"{test:05d}"
     path = ASSET_PATH / prefix
     sim_settings = get_simulation_settings(path=path, prefix=prefix)
     expected = pd.read_csv(path / f"{prefix}-results.csv", index_col=0)
-    parser = Parser(file=path / f"{prefix}-sbml-l3v2.xml")
-    return parser, sim_settings, expected
+    return from_sbml(file=path / f"{prefix}-sbml-l3v2.xml"), sim_settings, expected
 
 
 def add_dummy_compound(m: Model, y0: dict[str, float]) -> None:
-    m.add_compound("dummy")
+    m.add_variable("dummy")
     m.add_reaction(
         "dummy",
         lambda: 0,
@@ -92,10 +91,9 @@ def add_dummy_compound(m: Model, y0: dict[str, float]) -> None:
 
 
 def routine(test: int) -> bool:
-    parser, sim_settings, expected = get_files(test=test)
-    m, y0 = parser.build_model_from_sbml()
+    m, sim_settings, expected = get_files(test=test)
     if len(m.stoichiometries) == 0:
-        add_dummy_compound(m, y0)
+        add_dummy_compound(m)
 
     # Make them a bit harder, such that we guarantee we are getting the required ones
     sim_kwargs = {
@@ -103,7 +101,6 @@ def routine(test: int) -> bool:
         "rtol": sim_settings["rtol"] / 100,
     }
     s = Simulator(m)
-    s.initialise(y0)
     s.simulate(time_points=expected.index, **sim_kwargs)
     result = s.get_full_results()
     if result is None:

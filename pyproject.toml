@@ -134,6 +134,7 @@ ignore = [
 "tests/*" = [
   "S101",  # assert
   "D",  # all of documentation
+  "PLR2004", # magic comparisons
 ]
 
 [tool.tomlsort]

@@ -25,14 +25,12 @@ __all__ = [
     "ArrayLike",
     "Axes",
     "Derived",
-    "DerivedFn",
-    "DerivedParameter",
-    "DerivedVariable",
     "IntegratorProtocol",
     "McSteadyStates",
     "Number",
     "Param",
     "ProtocolByPars",
+    "RateFn",
     "Reaction",
     "Readout",
     "ResponseCoefficients",
@@ -54,7 +52,7 @@ import numpy as np
 from matplotlib.axes import Axes as Axis
 from numpy.typing import NDArray
 
-type DerivedFn = Callable[..., float]
+type RateFn = Callable[..., float]
 type Array = NDArray[np.float64]
 type Number = float | list[float] | Array
 
@@ -147,23 +145,7 @@ class IntegratorProtocol(Protocol):
 class Derived:
     """Container for a derived value."""
 
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
-class DerivedVariable:
-    """Container for a derived variable."""
-
-    fn: DerivedFn
-    args: list[str]
-
-
-@dataclass(slots=True)
-class DerivedParameter:
-    """Container for a derived parameter."""
-
-    fn: DerivedFn
+    fn: RateFn
     args: list[str]
 
 
@@ -171,7 +153,7 @@ class DerivedParameter:
 class Reaction:
     """Container for a reaction."""
 
-    fn: DerivedFn
+    fn: RateFn
     stoichiometry: Mapping[str, float | Derived]
     args: list[str]
 
@@ -187,7 +169,7 @@ class Reaction:
 class Readout:
     """Container for a readout."""
 
-    fn: DerivedFn
+    fn: RateFn
     args: list[str]
 
 
