@@ -1,3 +1,5 @@
+"""Calvin cycle model from Poolman et al. 2000."""
+
 from __future__ import annotations
 
 from modelbase2 import Model
@@ -9,6 +11,7 @@ def rapid_equilibrium_1_1(
     kre: float,
     q: float,
 ) -> float:
+    """Rapid equilibrium reaction with 1 substrate and 1 product."""
     return kre * (s1 - p1 / q)
 
 
@@ -19,6 +22,7 @@ def rapid_equilibrium_2_1(
     kre: float,
     q: float,
 ) -> float:
+    """Rapid equilibrium reaction with 2 substrates and 1 product."""
     return kre * (s1 * s2 - p1 / q)
 
 
@@ -30,6 +34,7 @@ def rapid_equilibrium_2_2(
     kre: float,
     q: float,
 ) -> float:
+    """Rapid equilibrium reaction with 2 substrates and 2 products."""
     return kre * (s1 * s2 - (p1 * p2) / q)
 
 
@@ -39,6 +44,7 @@ def v_out(
     vmax_efflux: float,
     k_efflux: float,
 ) -> float:
+    """Efflux reaction."""
     return (vmax_efflux * s1) / (n_total * k_efflux)
 
 
@@ -57,18 +63,8 @@ def v1(
     ki_nadph: float,
     nadph: float,
 ) -> float:
-    return (vmax * rubp) / (
-        rubp
-        + km
-        * (
-            1
-            + (pga / k1_pga)
-            + (fbp / ki_fbp)
-            + (sbp / ki_sbp)
-            + (p / ki_pi)
-            + (nadph / ki_nadph)
-        )
-    )
+    """Rubisco reaction."""
+    return (vmax * rubp) / (rubp + km * (1 + (pga / k1_pga) + (fbp / ki_fbp) + (sbp / ki_sbp) + (p / ki_pi) + (nadph / ki_nadph)))
 
 
 def v3(
@@ -81,9 +77,8 @@ def v3(
     kre: float,
     q3: float,
 ) -> float:
-    return kre * (
-        (nadph * bpga * proton_pool_stroma) - (1 / q3) * (gap * nadp * phosphate_pool)
-    )
+    """GAPDH reaction."""
+    return kre * ((nadph * bpga * proton_pool_stroma) - (1 / q3) * (gap * nadp * phosphate_pool))
 
 
 def v6(
@@ -95,6 +90,7 @@ def v6(
     ki_f6p: float,
     ki_pi: float,
 ) -> float:
+    """FBPase reaction."""
     return (vmax * fbp) / (fbp + km * (1 + (f6p / ki_f6p) + (pi / ki_pi)))
 
 
@@ -105,6 +101,7 @@ def v9(
     km: float,
     ki_pi: float,
 ) -> float:
+    """SBPase reaction."""
     return (vma * sbp) / (sbp + km * (1 + (pi / ki_pi)))
 
 
@@ -124,10 +121,8 @@ def v13(
     ki_adp_ru5p: float,
     ki_adp_atp: float,
 ) -> float:
-    return (vmax * ru5p * atp) / (
-        (ru5p + km_ru5p * (1 + (pga / ki_pga) + (rubp / ki_rubp) + (pi / ki_pi)))
-        * (atp * (1 + (adp / ki_adp_ru5p)) + km_adp * (1 + (adp / ki_adp_atp)))
-    )
+    """Phosphoribulokinase reaction."""
+    return (vmax * ru5p * atp) / ((ru5p + km_ru5p * (1 + (pga / ki_pga) + (rubp / ki_rubp) + (pi / ki_pi))) * (atp * (1 + (adp / ki_adp_ru5p)) + km_adp * (1 + (adp / ki_adp_atp))))
 
 
 def v16(
@@ -137,6 +132,7 @@ def v16(
     km_adp: float,
     km_pi: float,
 ) -> float:
+    """ATP synthase reaction."""
     return (vmax * adp * pi) / ((adp + km_adp) * (pi + km_pi))
 
 
@@ -156,20 +152,16 @@ def starch(
     ka_f6p: float,
     ka_fbp: float,
 ) -> float:
-    return (vmax * g1p * atp) / (
-        (g1p + km_g1p)
-        * (
-            (1 + (adp / ki_adp)) * (atp + km_atp)
-            + ((km_atp * pi) / (ka_pga * pga + ka_f6p * f6p + ka_fbp * fbp))
-        )
-    )
+    """Starch synthesis reaction."""
+    return (vmax * g1p * atp) / ((g1p + km_g1p) * ((1 + (adp / ki_adp)) * (atp + km_atp) + ((km_atp * pi) / (ka_pga * pga + ka_f6p * f6p + ka_fbp * fbp))))
 
 
 def moiety_1(
-    atp: float,
-    ap_total: float,
+    x: float,
+    x_total: float,
 ) -> float:
-    return ap_total - atp
+    """General moiety reaction."""
+    return x_total - x
 
 
 def free_orthophosphate(
@@ -191,24 +183,8 @@ def free_orthophosphate(
     atp: float,
     phosphate_total: float,
 ) -> float:
-    return phosphate_total - (
-        pga
-        + 2 * bpga
-        + gap
-        + dhap
-        + 2 * fbp
-        + f6p
-        + g6p
-        + g1p
-        + 2 * sbp
-        + s7p
-        + e4p
-        + x4p
-        + r5p
-        + 2 * rubp
-        + ru5p
-        + atp
-    )
+    """Free orthophosphate moiety."""
+    return phosphate_total - (pga + 2 * bpga + gap + dhap + 2 * fbp + f6p + g6p + g1p + 2 * sbp + s7p + e4p + x4p + r5p + 2 * rubp + ru5p + atp)
 
 
 def n_export(
@@ -223,9 +199,8 @@ def n_export(
     kgap: float,
     kdhap: float,
 ) -> float:
-    return 1 + (1 + (kpxt / pi_ext)) * (
-        (pi / kpi) + (pga / kpga) + (gap / kgap) + (dhap / kdhap)
-    )
+    """Export scaling."""
+    return 1 + (1 + (kpxt / pi_ext)) * ((pi / kpi) + (pga / kpga) + (gap / kgap) + (dhap / kdhap))
 
 
 parameters = {
@@ -312,6 +287,7 @@ variables = {
 
 
 def get_model() -> Model:
+    """Calvin cycle model from Poolman et al. 2000."""
     model = Model()
     model.add_parameters(parameters)
     model.add_variables(variables)

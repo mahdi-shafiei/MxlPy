@@ -1,3 +1,5 @@
+"""Example models of linear chains of reactions."""
+
 from __future__ import annotations
 
 from modelbase2 import Model
@@ -6,6 +8,7 @@ from .shared import constant, mass_action_1s, michaelis_menten_1s
 
 
 def get_linear_chain_1v() -> Model:
+    """Linear chain of reactions with one variable."""
     return (
         Model()
         .add_variables({"x": 1.0})
@@ -26,6 +29,7 @@ def get_linear_chain_1v() -> Model:
 
 
 def get_linear_chain_2v() -> Model:
+    """Linear chain of reactions with two variables."""
     return (
         Model()
         .add_variables({"x": 1.0, "y": 1.0})
@@ -47,6 +51,7 @@ def get_linear_chain_2v() -> Model:
 
 
 def get_lin_chain_two_circles() -> Model:
+    """Linear chain of reactions with two circles."""
     return (
         Model()
         .add_variables({"x1": 1.0, "x2": 1.0, "x3": 1.0, "x4": 1.0})

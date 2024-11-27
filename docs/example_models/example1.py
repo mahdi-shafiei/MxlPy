@@ -1,3 +1,5 @@
+"""Example model 1."""
+
 from __future__ import annotations
 
 from modelbase2 import Model
@@ -7,7 +9,13 @@ def filter_stoichiometry(
     model: Model,
     stoichiometry: dict[str, float],
 ) -> dict[str, float]:
-    """Only use components that are actually compounds in the model"""
+    """Only use components that are actually compounds in the model.
+
+    Args:
+        model: Metabolic model instance
+        stoichiometry: Stoichiometry dictionary {component: value}
+
+    """
     new: dict[str, float] = {}
     ids = model.ids
     variables = model.variables
@@ -21,6 +29,7 @@ def filter_stoichiometry(
 
 
 def constant(x: float) -> float:
+    """Constant function."""
     return x
 
 
@@ -32,10 +41,12 @@ def michaelis_menten_2s(
     km2: float,
     ki1: float,
 ) -> float:
+    """Michaelis-Menten equation for two substrates."""
     return vmax * s1 * s2 / (ki1 * km2 + km2 * s1 + km1 * s2 + s1 * s2)
 
 
 def get_example1() -> Model:
+    """Example model 1."""
     model = Model()
     model.add_variables({"x2": 0.0, "x3": 0.0})
     model.add_parameters(

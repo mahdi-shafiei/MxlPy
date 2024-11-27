@@ -1,3 +1,5 @@
+"""Collection of rate functions for enzyme kinetics."""
+
 from __future__ import annotations
 
 __all__ = [
@@ -38,14 +40,6 @@ __all__ = [
     "reversible_mass_action_4_2",
     "reversible_mass_action_4_3",
     "reversible_mass_action_4_4",
-    "reversible_mass_action_variable_1",
-    "reversible_mass_action_variable_2",
-    "reversible_mass_action_variable_3",
-    "reversible_mass_action_variable_4",
-    "reversible_mass_action_variable_5",
-    "reversible_mass_action_variable_6",
-    "reversible_mass_action_variable_7",
-    "reversible_mass_action_variable_8",
     "reversible_michaelis_menten",
     "reversible_michaelis_menten_keq",
     "reversible_noncompetitive_inhibition",
@@ -62,6 +56,7 @@ from operator import mul
 
 
 def constant(k: float) -> float:
+    """Constant function."""
     return k
 
 
@@ -71,22 +66,27 @@ def constant(k: float) -> float:
 
 
 def mass_action_1(s1: float, k_fwd: float) -> float:
+    """Mass action equation for one substrate."""
     return k_fwd * s1
 
 
 def mass_action_2(s1: float, s2: float, k_fwd: float) -> float:
+    """Mass action equation for two substrates."""
     return k_fwd * s1 * s2
 
 
 def mass_action_3(s1: float, s2: float, s3: float, k_fwd: float) -> float:
+    """Mass action equation for three substrates."""
     return k_fwd * s1 * s2 * s3
 
 
 def mass_action_4(s1: float, s2: float, s3: float, s4: float, k_fwd: float) -> float:
+    """Mass action equation for four substrates."""
     return k_fwd * s1 * s2 * s3 * s4
 
 
 def mass_action_variable(*args: float) -> float:
+    """Mass action equation for variable number of substrates."""
     return reduce(mul, args, 1)
 
 
@@ -101,6 +101,7 @@ def reversible_mass_action_1_1(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for one substrate and one product."""
     return k_fwd * s1 - k_bwd * p1
 
 
@@ -111,6 +112,7 @@ def reversible_mass_action_2_1(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for two substrates and one product."""
     return k_fwd * s1 * s2 - k_bwd * p1
 
 
@@ -122,6 +124,7 @@ def reversible_mass_action_3_1(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for three substrates and one product."""
     return k_fwd * s1 * s2 * s3 - k_bwd * p1
 
 
@@ -134,6 +137,7 @@ def reversible_mass_action_4_1(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for four substrates and one product."""
     return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1
 
 
@@ -144,6 +148,7 @@ def reversible_mass_action_1_2(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for one substrate and two products."""
     return k_fwd * s1 - k_bwd * p1 * p2
 
 
@@ -155,6 +160,7 @@ def reversible_mass_action_2_2(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for two substrates and two products."""
     return k_fwd * s1 * s2 - k_bwd * p1 * p2
 
 
@@ -167,6 +173,7 @@ def reversible_mass_action_3_2(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for three substrates and two products."""
     return k_fwd * s1 * s2 * s3 - k_bwd * p1 * p2
 
 
@@ -180,6 +187,7 @@ def reversible_mass_action_4_2(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for four substrates and two products."""
     return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1 * p2
 
 
@@ -191,6 +199,7 @@ def reversible_mass_action_1_3(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for one substrate and three products."""
     return k_fwd * s1 - k_bwd * p1 * p2 * p3
 
 
@@ -203,6 +212,7 @@ def reversible_mass_action_2_3(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for two substrates and three products."""
     return k_fwd * s1 * s2 - k_bwd * p1 * p2 * p3
 
 
@@ -216,6 +226,7 @@ def reversible_mass_action_3_3(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for three substrates and three products."""
     return k_fwd * s1 * s2 * s3 - k_bwd * p1 * p2 * p3
 
 
@@ -230,6 +241,7 @@ def reversible_mass_action_4_3(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for four substrates and three products."""
     return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1 * p2 * p3
 
 
@@ -242,6 +254,7 @@ def reversible_mass_action_1_4(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for one substrate and four products."""
     return k_fwd * s1 - k_bwd * p1 * p2 * p3 * p4
 
 
@@ -255,6 +268,7 @@ def reversible_mass_action_2_4(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for two substrates and four products."""
     return k_fwd * s1 * s2 - k_bwd * p1 * p2 * p3 * p4
 
 
@@ -269,6 +283,7 @@ def reversible_mass_action_3_4(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for three substrates and four products."""
     return k_fwd * s1 * s2 * s3 - k_bwd * p1 * p2 * p3 * p4
 
 
@@ -284,63 +299,8 @@ def reversible_mass_action_4_4(
     k_fwd: float,
     k_bwd: float,
 ) -> float:
+    """Reversible mass action equation for four substrates and four products."""
     return k_fwd * s1 * s2 * s3 * s4 - k_bwd * p1 * p2 * p3 * p4
-
-
-def reversible_mass_action_variable_1(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:1]
-    products = metabolites[1:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_2(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:2]
-    products = metabolites[2:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_3(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:3]
-    products = metabolites[3:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_4(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:4]
-    products = metabolites[4:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_5(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:5]
-    products = metabolites[5:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_6(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:6]
-    products = metabolites[6:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_7(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:7]
-    products = metabolites[7:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
-
-
-def reversible_mass_action_variable_8(*args: float) -> float:
-    *metabolites, k_fwd, k_bwd = args
-    substrates = metabolites[:8]
-    products = metabolites[8:]
-    return k_fwd * reduce(mul, substrates, 1) - k_bwd * reduce(mul, products, 1)
 
 
 ###############################################################################
@@ -349,50 +309,47 @@ def reversible_mass_action_variable_8(*args: float) -> float:
 
 
 def michaelis_menten(s: float, vmax: float, km: float) -> float:
+    """Irreversible Michaelis-Menten equation for one substrate."""
     return s * vmax / (s + km)
 
 
-def competitive_inhibition(
-    s: float, i: float, vmax: float, km: float, ki: float
-) -> float:
+def competitive_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+    """Competitive inhibition."""
     return vmax * s / (s + km * (1 + i / ki))
 
 
-def competitive_activation(
-    s: float, a: float, vmax: float, km: float, ka: float
-) -> float:
+def competitive_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+    """Competitive activation."""
     return vmax * s / (s + km * (1 + ka / a))
 
 
-def uncompetitive_inhibition(
-    s: float, i: float, vmax: float, km: float, ki: float
-) -> float:
+def uncompetitive_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+    """Uncompetitive inhibition."""
     return vmax * s / (s * (1 + i / ki) + km)
 
 
-def uncompetitive_activation(
-    s: float, a: float, vmax: float, km: float, ka: float
-) -> float:
+def uncompetitive_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+    """Uncompetitive activation."""
     return vmax * s / (s * (1 + ka / a) + km)
 
 
-def noncompetitive_inhibition(
-    s: float, i: float, vmax: float, km: float, ki: float
-) -> float:
+def noncompetitive_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+    """Noncompetitive inhibition."""
     return vmax * s / ((s + km) * (1 + i / ki))
 
 
-def noncompetitive_activation(
-    s: float, a: float, vmax: float, km: float, ka: float
-) -> float:
+def noncompetitive_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+    """Noncompetitive activation."""
     return vmax * s / ((s + km) * (1 + ka / a))
 
 
 def mixed_inhibition(s: float, i: float, vmax: float, km: float, ki: float) -> float:
+    """Mixed inhibition."""
     return vmax * s / (s * (1 + i / ki) + km * (1 + i / ki))
 
 
 def mixed_activation(s: float, a: float, vmax: float, km: float, ka: float) -> float:
+    """Mixed activation."""
     return vmax * s / (s * (1 + ka / a) + km * (1 + ka / a))
 
 
@@ -409,6 +366,7 @@ def reversible_michaelis_menten(
     kms: float,
     kmp: float,
 ) -> float:
+    """Reversible Michaelis-Menten equation for one substrate and one product."""
     return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (1 + s / kms + p / kmp)
 
 
@@ -422,9 +380,8 @@ def reversible_uncompetitive_inhibition(
     kmp: float,
     ki: float,
 ) -> float:
-    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (
-        1 + (s / kms) + (p / kmp) * (1 + i / ki)
-    )
+    """Reversible uncompetitive inhibition."""
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (1 + (s / kms) + (p / kmp) * (1 + i / ki))
 
 
 def reversible_noncompetitive_inhibition(
@@ -437,9 +394,8 @@ def reversible_noncompetitive_inhibition(
     kmp: float,
     ki: float,
 ) -> float:
-    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / (
-        (1 + s / kms + p / kmp) * (1 + i / ki)
-    )
+    """Reversible noncompetitive inhibition."""
+    return (vmax_fwd * s / kms - vmax_bwd * p / kmp) / ((1 + s / kms + p / kmp) * (1 + i / ki))
 
 
 def reversible_michaelis_menten_keq(
@@ -450,6 +406,7 @@ def reversible_michaelis_menten_keq(
     kmp: float,
     keq: float,
 ) -> float:
+    """Reversible Michaelis-Menten equation for one substrate and one product."""
     return vmax_fwd / kms * (s - p / keq) / (1 + s / kms + p / kmp)
 
 
@@ -463,6 +420,7 @@ def reversible_uncompetitive_inhibition_keq(
     ki: float,
     keq: float,
 ) -> float:
+    """Reversible uncompetitive inhibition."""
     return vmax_fwd / kms * (s - p / keq) / (1 + (s / kms) + (p / kmp) * (1 + i / ki))
 
 
@@ -476,6 +434,7 @@ def reversible_noncompetitive_inhibition_keq(
     ki: float,
     keq: float,
 ) -> float:
+    """Reversible noncompetitive inhibition."""
     return vmax_fwd / kms * (s - p / keq) / ((1 + s / kms + p / kmp) * (1 + i / ki))
 
 
@@ -492,6 +451,7 @@ def ordered_2(
     kmb: float,
     kia: float,
 ) -> float:
+    """Ordered Bi Bi reaction."""
     return vmax * a * b / (a * b + kmb * a + kma * b + kia * kmb)
 
 
@@ -511,6 +471,7 @@ def ordered_2_2(
     kip: float,
     kiq: float,
 ) -> float:
+    """Ordered Bi Bi reaction."""
     nominator = vmaxf * a * b / (kia * kmb) - vmaxr * p * q / (kmp * kiq)
     denominator = (
         1
@@ -536,6 +497,7 @@ def random_order_2(
     kmb: float,
     kia: float,
 ) -> float:
+    """Random-order reaction with two substrates."""
     return vmax * a * b / (a * b + kmb * a + kma * b + kia * kmb)
 
 
@@ -553,16 +515,9 @@ def random_order_2_2(
     kip: float,
     kiq: float,
 ) -> float:
+    """Random-order reaction with two substrates and two products."""
     nominator = vmaxf * a * b / (kia * kmb) - vmaxr * p * q / (kmp * kiq)
-    denominator = (
-        1
-        + (a / kia)
-        + (b / kib)
-        + (p / kip)
-        + (q / kiq)
-        + (a * b / (kia * kmb))
-        + (p * q / (kmp * kiq))
-    )
+    denominator = 1 + (a / kia) + (b / kib) + (p / kip) + (q / kiq) + (a * b / (kia * kmb)) + (p * q / (kmp * kiq))
     return nominator / denominator
 
 
@@ -573,6 +528,7 @@ def ping_pong_2(
     kma: float,
     kmb: float,
 ) -> float:
+    """Ping-pong reaction with two substrates."""
     return vmax * a * b / (a * b + kma * b + kmb * a)
 
 
@@ -585,9 +541,8 @@ def ping_pong_3(
     kmb: float,
     kmc: float,
 ) -> float:
-    return (vmax * a * b * c) / (
-        a * b * c + (kma * b * c) + (kmb * a * c) + (kmc * a * b)
-    )
+    """Ping-pong reaction with three substrates."""
+    return (vmax * a * b * c) / (a * b * c + (kma * b * c) + (kmb * a * c) + (kmc * a * b))
 
 
 def ping_pong_4(
@@ -601,13 +556,8 @@ def ping_pong_4(
     kmc: float,
     kmd: float,
 ) -> float:
-    return (vmax * a * b * c * d) / (
-        a * b * c * d
-        + (kma * b * c * d)
-        + (kmb * a * c * d)
-        + (kmc * a * b * d)
-        + (kmd * a * b * c)
-    )
+    """Ping-pong reaction with four substrates."""
+    return (vmax * a * b * c * d) / (a * b * c * d + (kma * b * c * d) + (kmb * a * c * d) + (kmc * a * b * d) + (kmd * a * b * c))
 
 
 ###############################################################################
@@ -616,7 +566,8 @@ def ping_pong_4(
 
 
 def hill(s: float, vmax: float, kd: float, n: float) -> float:
-    return vmax * s**n / (kd + s**n)  # type: ignore  # for some reason mypy sees this as any oO
+    """Hill equation."""
+    return vmax * s**n / (kd + s**n)
 
 
 ###############################################################################

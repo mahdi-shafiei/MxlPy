@@ -1,3 +1,10 @@
+"""Example models.
+
+This package provides functions for retrieving various predefined metabolic models.
+It includes models for example systems, linear chains, and specific metabolic pathways.
+
+"""
+
 from __future__ import annotations
 
 from .example1 import get_example1

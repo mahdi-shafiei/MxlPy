@@ -1,9 +1,12 @@
+"""Upper glycolysis model developed by Klipp et al. (2005)."""
+
 from modelbase2 import Model
 
 from .shared import constant, mass_action_1s, mass_action_1s_1p, mass_action_2s
 
 
 def get_model() -> Model:
+    """Upper glycolysis model developed by Klipp et al. (2005)."""
     m = Model()
     m.add_parameters(
         {
