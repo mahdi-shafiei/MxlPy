@@ -15,7 +15,17 @@ Functions:
 
 from __future__ import annotations
 
-__all__ = ["AbstractEstimator", "DefaultCache", "DefaultDevice", "DefaultSSAproximator", "DefaultTimeSeriesApproximator", "TorchSSEstimator", "TorchTimeSeriesEstimator", "train_torch_ss_estimator", "train_torch_time_series_estimator"]
+__all__ = [
+    "AbstractEstimator",
+    "DefaultCache",
+    "DefaultDevice",
+    "DefaultSSAproximator",
+    "DefaultTimeSeriesApproximator",
+    "TorchSSEstimator",
+    "TorchTimeSeriesEstimator",
+    "train_torch_ss_estimator",
+    "train_torch_time_series_estimator",
+]
 
 from abc import abstractmethod
 from dataclasses import dataclass

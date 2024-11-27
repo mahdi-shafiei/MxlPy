@@ -17,7 +17,26 @@ Functions:
 
 from __future__ import annotations
 
-__all__ = ["FigAx", "FigAxs", "add_grid", "grid_layout", "heatmap", "heatmap_from_2d_idx", "heatmaps_from_2d_idx", "line_autogrouped", "line_mean_std", "lines", "lines_grouped", "lines_mean_std_from_2d_idx", "relative_label_distribution", "rotate_xlabels", "shade_protocol", "two_axes", "violins", "violins_from_2d_idx"]
+__all__ = [
+    "FigAx",
+    "FigAxs",
+    "add_grid",
+    "grid_layout",
+    "heatmap",
+    "heatmap_from_2d_idx",
+    "heatmaps_from_2d_idx",
+    "line_autogrouped",
+    "line_mean_std",
+    "lines",
+    "lines_grouped",
+    "lines_mean_std_from_2d_idx",
+    "relative_label_distribution",
+    "rotate_xlabels",
+    "shade_protocol",
+    "two_axes",
+    "violins",
+    "violins_from_2d_idx",
+]
 
 import itertools as it
 import math

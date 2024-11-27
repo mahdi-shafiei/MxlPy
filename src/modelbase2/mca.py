@@ -26,7 +26,11 @@ from modelbase2.parallel import parallelise
 from modelbase2.scans import _steady_state_worker
 from modelbase2.types import ResponseCoefficients
 
-__all__ = ["parameter_elasticities", "response_coefficients", "variable_elasticities"]
+__all__ = [
+    "parameter_elasticities",
+    "response_coefficients",
+    "variable_elasticities",
+]
 
 if TYPE_CHECKING:
     from modelbase2.model import Model

@@ -24,13 +24,13 @@ import numpy as np
 
 from modelbase2.model import Model
 
-__all__ = ["LabelMapper", "total_concentration"]
+__all__ = ["LabelMapper"]
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-def total_concentration(*args: float) -> float:
+def _total_concentration(*args: float) -> float:
     """Calculate sum of isotopomer concentrations.
 
     Args:
@@ -441,7 +441,7 @@ class LabelMapper:
         for base_name, label_names in isotopomers.items():
             m.add_derived(
                 name=f"{base_name}__total",
-                fn=total_concentration,
+                fn=_total_concentration,
                 args=label_names,
             )
 

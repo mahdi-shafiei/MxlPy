@@ -37,7 +37,15 @@ from modelbase2.types import (
     TimeCourseByPars,
 )
 
-__all__ = ["compound_elasticities", "parameter_elasticities", "parameter_scan_ss", "response_coefficients", "steady_state", "time_course", "time_course_over_protocol"]
+__all__ = [
+    "compound_elasticities",
+    "parameter_elasticities",
+    "parameter_scan_ss",
+    "response_coefficients",
+    "steady_state",
+    "time_course",
+    "time_course_over_protocol",
+]
 
 if TYPE_CHECKING:
     from modelbase2.model import Model

@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from modelbase2.model import Derived, Model
 
-__all__ = ["LinearLabelMapper", "neg_one_div", "one_div", "relative_label_flux"]
+__all__ = ["LinearLabelMapper"]
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -160,17 +160,17 @@ def _add_label_influx_or_efflux(
     return substrates, products
 
 
-def relative_label_flux(label_percentage: float, v_ss: float) -> float:
+def _relative_label_flux(label_percentage: float, v_ss: float) -> float:
     """Calculate relative label flux based on label percentage and steady-state flux."""
     return label_percentage * v_ss
 
 
-def one_div(y: float) -> float:
+def _one_div(y: float) -> float:
     """Calculate 1/y."""
     return 1 / y
 
 
-def neg_one_div(y: float) -> float:
+def _neg_one_div(y: float) -> float:
     """Calculate -1/y."""
     return -1 / y
 
@@ -280,10 +280,10 @@ class LinearLabelMapper:
 
                 m.add_reaction(
                     name=f"{rxn_name}__{i}",
-                    fn=relative_label_flux,
+                    fn=_relative_label_flux,
                     stoichiometry={
-                        substrate: Derived(neg_one_div, [substrate.split("__")[0]]),
-                        product: Derived(one_div, [product.split("__")[0]]),
+                        substrate: Derived(_neg_one_div, [substrate.split("__")[0]]),
+                        product: Derived(_one_div, [product.split("__")[0]]),
                     },
                     args=[substrate, rxn_name],
                 )

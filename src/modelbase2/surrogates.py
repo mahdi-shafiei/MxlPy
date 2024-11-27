@@ -33,7 +33,15 @@ from modelbase2 import Simulator
 from modelbase2.parallel import Cache, parallelise
 from modelbase2.scans import _empty_flux_series
 
-__all__ = ["AbstractSurrogate", "Approximator", "DefaultCache", "DefaultDevice", "TorchSurrogate", "create_ss_flux_data", "train_torch_surrogate"]
+__all__ = [
+    "AbstractSurrogate",
+    "Approximator",
+    "DefaultCache",
+    "DefaultDevice",
+    "TorchSurrogate",
+    "create_ss_flux_data",
+    "train_torch_surrogate",
+]
 
 if TYPE_CHECKING:
     from modelbase2 import Model

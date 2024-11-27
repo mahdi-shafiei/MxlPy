@@ -15,7 +15,14 @@ from modelbase2.model import Model
 from modelbase2.sbml._data import AtomicUnit, Compartment
 from modelbase2.types import Any
 
-__all__ = ["RE_LAMBDA_ALGEBRAIC_MODULE_FUNC", "RE_LAMBDA_FUNC", "RE_LAMBDA_RATE_FUNC", "RE_TO_SBML", "SBML_DOT", "to_sbml"]
+__all__ = [
+    "RE_LAMBDA_ALGEBRAIC_MODULE_FUNC",
+    "RE_LAMBDA_FUNC",
+    "RE_LAMBDA_RATE_FUNC",
+    "RE_TO_SBML",
+    "SBML_DOT",
+    "to_sbml",
+]
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
 RE_LAMBDA_RATE_FUNC = re.compile(r".*(lambda)(.+?):(.*?),")

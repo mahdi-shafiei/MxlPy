@@ -23,7 +23,11 @@ from modelbase2.types import (
     Readout,
 )
 
-__all__ = ["Model", "ModelCache", "SortError"]
+__all__ = [
+    "Model",
+    "ModelCache",
+    "SortError",
+]
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
