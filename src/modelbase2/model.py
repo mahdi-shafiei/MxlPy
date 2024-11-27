@@ -403,7 +403,7 @@ class Model:
         """
         if name not in self._parameters:
             msg = f"'{name}' not found in parameters"
-            raise NameError(msg)
+            raise KeyError(msg)
         self._parameters[name] = value
         return self
 
@@ -559,6 +559,9 @@ class Model:
             Self: The instance of the model with the updated variable.
 
         """
+        if name not in self._variables:
+            msg = f"'{name}' not found in variables"
+            raise KeyError(msg)
         self._variables[name] = initial_condition
         return self
 
@@ -648,6 +651,7 @@ class Model:
             Self: The instance of the model with the added derived attribute.
 
         """
+        self._insert_id(name=name, ctx="derived")
         self._derived[name] = Derived(fn, args)
         return self
 
@@ -758,9 +762,9 @@ class Model:
     def update_reaction(
         self,
         name: str,
-        fn: RateFn | None,
-        stoichiometry: dict[str, float | Derived] | None,
-        args: list[str] | None,
+        fn: RateFn | None = None,
+        stoichiometry: Mapping[str, float | Derived] | None = None,
+        args: list[str] | None = None,
     ) -> Self:
         """Updates the properties of an existing reaction in the model.
 
@@ -890,6 +894,20 @@ class Model:
         self._surrogates[name] = surrogate
         return self
 
+    def update_surrogate(self, name: str, surrogate: AbstractSurrogate) -> Self:
+        """Update a surrogate model in the model."""
+        if name not in self._surrogates:
+            msg = f"Surrogate '{name}' not found in model"
+            raise KeyError(msg)
+        self._surrogates[name] = surrogate
+        return self
+
+    def remove_surrogate(self, name: str) -> Self:
+        """Remove a surrogate model from the model."""
+        self._remove_id(name=name)
+        self._surrogates.pop(name)
+        return self
+
     ##########################################################################
     # Get args
     ##########################################################################
@@ -963,7 +981,7 @@ class Model:
         self,
         concs: pd.DataFrame,
         *,
-        include_readouts: bool,
+        include_readouts: bool = False,
     ) -> pd.DataFrame:
         """Generate a DataFrame containing time series arguments for model evaluation.
 

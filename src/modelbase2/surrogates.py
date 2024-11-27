@@ -72,6 +72,16 @@ class AbstractSurrogate:
 
 
 @dataclass(kw_only=True)
+class MockSurrogate(AbstractSurrogate):
+    def predict(
+        self,
+        y: np.ndarray,
+    ) -> dict[str, float]:
+        """Predict outputs based on input data."""
+        return dict(zip(self.stoichiometries, y, strict=True))
+
+
+@dataclass(kw_only=True)
 class TorchSurrogate(AbstractSurrogate):
     """Surrogate model using PyTorch.
 
