@@ -140,6 +140,8 @@ def _select_derived_type(
 class ModelCache:
     var_names: list[str]
     parameter_values: dict[str, float]
+    derived_parameters: dict[str, DerivedParameter]
+    derived_variables: dict[str, DerivedVariable]
     stoich_by_cpds: dict[str, dict[str, float]]
     dyn_stoich_by_cpds: dict[str, dict[str, DerivedVariable]]
     dxdt: pd.Series
@@ -149,9 +151,8 @@ class ModelCache:
 class Model:
     _ids: dict[str, str] = field(default_factory=dict)
     _variables: dict[str, float] = field(default_factory=dict)
-    _derived_variables: dict[str, DerivedVariable] = field(default_factory=dict)
     _parameters: dict[str, float] = field(default_factory=dict)
-    _derived_parameters: dict[str, DerivedParameter] = field(default_factory=dict)
+    _derived: dict[str, Derived] = field(default_factory=dict)
     _readouts: dict[str, Readout] = field(default_factory=dict)
     _reactions: dict[str, Reaction] = field(default_factory=dict)
     _surrogates: dict[str, AbstractSurrogate] = field(default_factory=dict)
@@ -162,9 +163,35 @@ class Model:
     ###########################################################################
 
     def _create_cache(self) -> ModelCache:
-        parameter_values = self._parameters.copy()
-        for name, dp in self._derived_parameters.items():
-            parameter_values[name] = dp.fn(*(parameter_values[i] for i in dp.args))
+        parameter_values: dict[str, float] = self._parameters.copy()
+        all_parameter_names: set[str] = set(parameter_values)
+
+        # Sort derived
+        derived_order = _sort_dependencies(
+            available=set(self._parameters) | set(self._variables) | {"time"},
+            elements=[(k, set(v.args)) for k, v in self._derived.items()],
+            ctx="derived",
+        )
+
+        # Split derived into parameters and variables
+        derived_variables: dict[str, DerivedVariable] = {}
+        derived_parameters: dict[str, DerivedParameter] = {}
+        for name in derived_order:
+            derived = self._derived[name]
+            if all(i in all_parameter_names for i in derived.args):
+                derived_parameters[name] = DerivedParameter(
+                    fn=derived.fn,
+                    args=derived.args,
+                )
+                all_parameter_names.add(name)
+                parameter_values[name] = derived.fn(
+                    *(parameter_values[i] for i in derived.args)
+                )
+            else:
+                derived_variables[name] = DerivedVariable(
+                    fn=derived.fn,
+                    args=derived.args,
+                )
 
         stoich_by_compounds: dict[str, dict[str, float]] = {}
         dyn_stoich_by_compounds: dict[str, dict[str, DerivedVariable]] = {}
@@ -198,6 +225,8 @@ class Model:
             parameter_values=parameter_values,
             stoich_by_cpds=stoich_by_compounds,
             dyn_stoich_by_cpds=dyn_stoich_by_compounds,
+            derived_variables=derived_variables,
+            derived_parameters=derived_parameters,
             dxdt=dxdt,
         )
         return self._cache
@@ -205,6 +234,10 @@ class Model:
     ###########################################################################
     # Ids
     ###########################################################################
+
+    @property
+    def ids(self) -> dict[str, str]:
+        return self._ids.copy()
 
     def _insert_id(self, *, name: str, ctx: str) -> None:
         if name == "time":
@@ -290,6 +323,10 @@ class Model:
     # Variables
     ##########################################################################
 
+    @property
+    def variables(self) -> dict[str, float]:
+        return self._variables.copy()
+
     @_invalidate_cache
     def add_variable(
         self,
@@ -359,31 +396,15 @@ class Model:
 
     @property
     def derived_variables(self) -> dict[str, DerivedVariable]:
-        return copy.deepcopy(self._derived_variables)
+        if (cache := self._cache) is None:
+            cache = self._create_cache()
+        return cache.derived_variables
 
     @property
     def derived_parameters(self) -> dict[str, DerivedParameter]:
-        return copy.deepcopy(self._derived_parameters)
-
-    def _sort_derived_parameters(self) -> None:
-        order = _sort_dependencies(
-            available=set(self._parameters),
-            elements=[(k, set(v.args)) for k, v in self._derived_parameters.items()],
-            ctx="derived parameters",
-        )
-        # NOTE: this assumes dicts stay sorted by insertion order. Might break
-        # in a future python release
-        self._derived_parameters = {k: self._derived_parameters[k] for k in order}
-
-    def _sort_derived_variables(self) -> None:
-        order = _sort_dependencies(
-            available=set(self._parameters) | set(self._variables) | {"time"},
-            elements=[(k, set(v.args)) for k, v in self._derived_variables.items()],
-            ctx="derived variables",
-        )
-        # NOTE: this assumes dicts stay sorted by insertion order. Might break
-        # in a future python release
-        self._derived_variables = {k: self._derived_variables[k] for k in order}
+        if (cache := self._cache) is None:
+            cache = self._create_cache()
+        return cache.derived_parameters
 
     @_invalidate_cache
     def add_derived(
@@ -391,26 +412,15 @@ class Model:
         name: str,
         fn: DerivedFn,
         args: list[str],
-        *,
-        sort_derived: bool = True,
     ) -> Self:
-        if all(i in self._parameters for i in args):
-            self._insert_id(name=name, ctx="derived parameter")
-            self._derived_parameters[name] = DerivedParameter(fn, args)
-            if sort_derived:
-                self._sort_derived_parameters()
-        else:
-            self._insert_id(name=name, ctx="derived variable")
-            self._derived_variables[name] = DerivedVariable(fn, args)
-            if sort_derived:
-                self._sort_derived_variables()
+        self._derived[name] = Derived(fn, args)
         return self
 
     def get_derived_parameter_names(self) -> list[str]:
-        return list(self._derived_parameters)
+        return list(self.derived_parameters)
 
     def get_derived_variable_names(self) -> list[str]:
-        return list(self._derived_variables)
+        return list(self.derived_variables)
 
     @_invalidate_cache
     def update_derived(
@@ -418,37 +428,16 @@ class Model:
         name: str,
         fn: DerivedFn | None = None,
         args: list[str] | None = None,
-        *,
-        sort_derived: bool = True,
     ) -> Self:
-        if (der := self._derived_parameters.get(name)) is not None:
-            der.fn = der.fn if fn is None else fn
-            der.args = der.args if args is None else args
-            self._derived_parameters[name] = der
-            if sort_derived:
-                self._sort_derived_parameters()
-        elif (dv := self._derived_variables.get(name)) is not None:
-            dv.fn = dv.fn if fn is None else fn
-            dv.args = dv.args if args is None else args
-            self._derived_variables[name] = dv
-            if sort_derived:
-                self._sort_derived_variables()
-        else:
-            msg = f"Unknown derived parameter / variable: {name}"
-            raise KeyError(msg)
+        der = self._derived[name]
+        der.fn = der.fn if fn is None else fn
+        der.args = der.args if args is None else args
         return self
 
     @_invalidate_cache
-    def remove_derived(self, name: str, *, sort_derived: bool = True) -> Self:
+    def remove_derived(self, name: str) -> Self:
         self._remove_id(name=name)
-        if name in self._derived_parameters:
-            self._derived_parameters.pop(name)
-            if sort_derived:
-                self._sort_derived_parameters()
-        else:
-            self._derived_variables.pop(name)
-            if sort_derived:
-                self._sort_derived_variables()
+        self._derived.pop(name)
         return self
 
     ###########################################################################
@@ -570,7 +559,7 @@ class Model:
         args = cache.parameter_values | concs
         args["time"] = time
 
-        for name, dv in self._derived_variables.items():
+        for name, dv in cache.derived_variables.items():
             args[name] = dv.fn(*(args[arg] for arg in dv.args))
 
         if include_readouts:
@@ -615,7 +604,7 @@ class Model:
         args = pd.concat((concs, pars_df), axis=1)
         args["time"] = args.index
 
-        for name, dv in self._derived_variables.items():
+        for name, dv in cache.derived_variables.items():
             args[name] = dv.fn(*args.loc[:, dv.args].to_numpy().T)
 
         if include_readouts:

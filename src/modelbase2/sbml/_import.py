@@ -366,7 +366,6 @@ def _translate(sbml: Parser) -> Model:
             k,
             fn=_handle_fn(k, body=v.body, args=v.args),
             args=v.args,
-            sort_derived=False,
         )
 
     # Globally create functions. Yes, this sucks
@@ -376,7 +375,7 @@ def _translate(sbml: Parser) -> Model:
     # Calculate initial assignments
     # FIXME: probably will need to sort these ...
     for k, v in sbml.initial_assignment.items():
-        args = m._get_args(m._variables, include_readouts=False)  # noqa: SLF001
+        args = m.get_args(m.variables, include_readouts=False)
         fn = _handle_fn(k, body=v.body, args=v.args)
         m.update_variable(k, fn(*(args[arg] for arg in v.args)))
 

@@ -9,10 +9,12 @@ def filter_stoichiometry(
 ) -> dict[str, float]:
     """Only use components that are actually compounds in the model"""
     new: dict[str, float] = {}
+    ids = model.ids
+    variables = model.variables
     for k, v in stoichiometry.items():
-        if k in model._variables:  # noqa: SLF001
+        if k in variables:
             new[k] = v
-        elif k not in model._ids:  # noqa: SLF001
+        elif k not in ids:
             msg = f"Missing component {k}"
             raise KeyError(msg)
     return new

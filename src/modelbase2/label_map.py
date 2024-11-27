@@ -409,13 +409,13 @@ class LabelMapper:
 
         m = Model()
 
-        m.add_parameters(self.model._parameters.copy())  # noqa: SLF001
+        m.add_parameters(self.model.parameters)
 
-        for name, dp in self.model._derived_parameters.items():  # noqa: SLF001
+        for name, dp in self.model.derived_parameters.items():
             m.add_derived(name, fn=dp.fn, args=dp.args)
 
         variables: dict[str, float] = {}
-        for k, v in self.model._variables.items():  # noqa: SLF001
+        for k, v in self.model.variables.items():
             if (isos := isotopomers.get(k)) is None:
                 variables[k] = v
             else:
@@ -443,14 +443,14 @@ class LabelMapper:
                 args=label_names,
             )
 
-        for name, dv in self.model._derived_variables.items():  # noqa: SLF001
+        for name, dv in self.model.derived_variables.items():
             m.add_derived(
                 name,
                 fn=dv.fn,
                 args=[f"{i}__total" if i in isotopomers else i for i in dv.args],
             )
 
-        for rxn_name, rxn in self.model._reactions.items():  # noqa: SLF001
+        for rxn_name, rxn in self.model.reactions.items():
             if (label_map := self.label_maps.get(rxn_name)) is None:
                 m.add_reaction(
                     rxn_name,
