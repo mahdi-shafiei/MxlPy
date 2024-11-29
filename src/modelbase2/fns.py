@@ -12,9 +12,7 @@ __all__ = [
     "mass_action_2s_1p",
     "michaelis_menten_1s",
     "michaelis_menten_2s",
-    "michaelis_menten_2s_ping_pong",
     "michaelis_menten_3s",
-    "michaelis_menten_3s_ping_pong",
     "minus",
     "moiety_1s",
     "moiety_2s",
@@ -125,6 +123,7 @@ def mass_action_2s_1p(s1: float, s2: float, p1: float, kf: float, kr: float) -> 
 
 ###############################################################################
 # Reactions: michaelis-menten type
+# For multi-molecular reactions use ping-pong kinetics as default
 ###############################################################################
 
 
@@ -144,29 +143,7 @@ def michaelis_menten_1s(s1: float, vmax: float, km1: float) -> float:
 #     return vmax * s / (s + km * (1 + i / ki))
 
 
-# def michaelis_menten_1s_1a(
-#     s: float,
-#     a: float,
-#     vmax: float,
-#     km: float,
-#     ka: float,
-# ) -> float:
-#     """Irreversible Michaelis-Menten equation for one substrate and one activator."""
-#     return vmax * s / (s + km * (1 + ka / a))
-
-
 def michaelis_menten_2s(
-    s1: float,
-    s2: float,
-    vmax: float,
-    km1: float,
-    km2: float,
-) -> float:
-    """Michaelis-Menten equation for two substrates."""
-    return vmax * s1 * s2 / ((km1 + s1) * (km2 + s2))
-
-
-def michaelis_menten_2s_ping_pong(
     s1: float,
     s2: float,
     vmax: float,
@@ -178,19 +155,6 @@ def michaelis_menten_2s_ping_pong(
 
 
 def michaelis_menten_3s(
-    s1: float,
-    s2: float,
-    s3: float,
-    vmax: float,
-    km1: float,
-    km2: float,
-    km3: float,
-) -> float:
-    """Michaelis-Menten equation for three substrates."""
-    return vmax * s1 * s2 * s3 / ((km1 + s1) * (km2 + s2) * (km3 + s3))
-
-
-def michaelis_menten_3s_ping_pong(
     s1: float,
     s2: float,
     s3: float,

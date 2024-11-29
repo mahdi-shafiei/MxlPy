@@ -400,7 +400,7 @@ def steady_state(
     Returns:
         SteadyStates: Steady-state results for each parameter set.
 
-    Example:
+    Examples:
         >>> steady_state(
         >>>     model,
         >>>     parameters=pd.DataFrame({"k1": np.linspace(1, 2, 3)})

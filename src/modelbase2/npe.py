@@ -48,12 +48,13 @@ DefaultCache = Cache(Path(".cache"))
 class DefaultSSAproximator(nn.Module):
     """Default neural network model for steady-state approximation."""
 
-    def __init__(self, n_inputs: int, n_outputs: int) -> None:
+    def __init__(self, n_inputs: int, n_outputs: int, n_hidden: int = 50) -> None:
         """Initializes the neural network with the specified number of inputs and outputs.
 
         Args:
             n_inputs (int): The number of input features.
             n_outputs (int): The number of output features.
+            n_hidden (int): The number of hidden units in the fully connected layers
 
         The network consists of three fully connected layers with ReLU activations in between.
         The weights of the linear layers are initialized with a normal distribution (mean=0, std=0.1),
@@ -63,11 +64,11 @@ class DefaultSSAproximator(nn.Module):
         super().__init__()
 
         self.net = nn.Sequential(
-            nn.Linear(n_inputs, 50),
+            nn.Linear(n_inputs, n_hidden),
             nn.ReLU(),
-            nn.Linear(50, 50),
+            nn.Linear(n_hidden, n_hidden),
             nn.ReLU(),
-            nn.Linear(50, n_outputs),
+            nn.Linear(n_hidden, n_outputs),
         )
 
         for m in self.net.modules():
@@ -237,6 +238,7 @@ def train_torch_ss_estimator(
         approximator = DefaultSSAproximator(
             n_inputs=len(features.columns),
             n_outputs=len(targets.columns),
+            n_hidden=max(2 * len(features.columns) * len(targets.columns), 10),
         ).to(device)
 
     features_ = torch.Tensor(features.to_numpy(), device=device)

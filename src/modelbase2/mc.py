@@ -135,7 +135,7 @@ def steady_state(
     Returns:
         SteadyStates: Object containing the steady state solutions for the given parameter
 
-    Example:
+    Examples:
     p    t     x      y
     0    0.0   0.1    0.00
          1.0   0.2    0.01
@@ -182,22 +182,21 @@ def time_course(
 ) -> TimeCourseByPars:
     """MC time course.
 
-    Returns
-    -------
-    tuple[concentrations, fluxes] using pandas multiindex
-    Both dataframes are of shape (#time_points * #mc_parameters, #variables)
+    Returns:
+        tuple[concentrations, fluxes] using pandas multiindex
+        Both dataframes are of shape (#time_points * #mc_parameters, #variables)
 
-    E.g.
-    p    t     x      y
-    0    0.0   0.1    0.00
-         1.0   0.2    0.01
-         2.0   0.3    0.02
-         3.0   0.4    0.03
-         ...   ...    ...
-    1    0.0   0.1    0.00
-         1.0   0.2    0.01
-         2.0   0.3    0.02
-         3.0   0.4    0.03
+        E.g.
+        p    t     x      y
+        0    0.0   0.1    0.00
+            1.0   0.2    0.01
+            2.0   0.3    0.02
+            3.0   0.4    0.03
+            ...   ...    ...
+        1    0.0   0.1    0.00
+            1.0   0.2    0.01
+            2.0   0.3    0.02
+            3.0   0.4    0.03
 
     """
     res = parallelise(
@@ -235,22 +234,21 @@ def time_course_over_protocol(
 ) -> ProtocolByPars:
     """MC time course.
 
-    Returns
-    -------
-    tuple[concentrations, fluxes] using pandas multiindex
-    Both dataframes are of shape (#time_points * #mc_parameters, #variables)
+    Returns:
+        tuple[concentrations, fluxes] using pandas multiindex
+        Both dataframes are of shape (#time_points * #mc_parameters, #variables)
 
-    E.g.
-    p    t     x      y
-    0    0.0   0.1    0.00
-         1.0   0.2    0.01
-         2.0   0.3    0.02
-         3.0   0.4    0.03
-         ...   ...    ...
-    1    0.0   0.1    0.00
-         1.0   0.2    0.01
-         2.0   0.3    0.02
-         3.0   0.4    0.03
+        E.g.
+        p    t     x      y
+        0    0.0   0.1    0.00
+            1.0   0.2    0.01
+            2.0   0.3    0.02
+            3.0   0.4    0.03
+            ...   ...    ...
+        1    0.0   0.1    0.00
+            1.0   0.2    0.01
+            2.0   0.3    0.02
+            3.0   0.4    0.03
 
     """
     res = parallelise(

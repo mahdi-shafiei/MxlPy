@@ -39,16 +39,13 @@ from __future__ import annotations
 # ) -> dict[int, set[str]]:
 #     """Return all label positions that can be reached step by step.
 
-#     Parameters
-#     ----------
+#     Parameters:
 #     initial_labels : dict(str: num)
 
-#     Returns
-#     -------
+#     Returns:
 #     label_scope : dict{step : set of new positions}
 
-#     Examples
-#     --------
+#     Examples:
 #     >>> l.get_label_scope({"x": 0})
 #     >>> l.get_label_scope({"x": [0, 1], "y": 0})
 

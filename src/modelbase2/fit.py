@@ -40,6 +40,8 @@ type MinimizeFn = Callable[[ResidualFn, dict[str, float]], dict[str, float]]
 
 
 class SteadyStateResidualFn(Protocol):
+    """Protocol for steady state residual functions."""
+
     def __call__(
         self,
         par_values: Array,
@@ -49,10 +51,14 @@ class SteadyStateResidualFn(Protocol):
         model: Model,
         y0: dict[str, float],
         integrator: type[IntegratorProtocol],
-    ) -> float: ...
+    ) -> float:
+        """Calculate residual error between model steady state and experimental data."""
+        ...
 
 
 class TimeSeriesResidualFn(Protocol):
+    """Protocol for time series residual functions."""
+
     def __call__(
         self,
         par_values: Array,
@@ -62,7 +68,9 @@ class TimeSeriesResidualFn(Protocol):
         model: Model,
         y0: dict[str, float],
         integrator: type[IntegratorProtocol],
-    ) -> float: ...
+    ) -> float:
+        """Calculate residual error between model time course and experimental data."""
+        ...
 
 
 def _default_minimize_fn(
@@ -183,6 +191,10 @@ def steady_state(
 ) -> dict[str, float]:
     """Fit model parameters to steady-state experimental data.
 
+    Examples:
+        >>> steady_state(model, p0, data)
+            {'k1': 0.1, 'k2': 0.2}
+
     Args:
         model: Model instance to fit
         data: Experimental steady state data as pandas Series
@@ -232,6 +244,10 @@ def time_course(
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
     """Fit model parameters to time course of experimental data.
+
+    Examples:
+        >>> time_course(model, p0, data)
+            {'k1': 0.1, 'k2': 0.2}
 
     Args:
         model: Model instance to fit

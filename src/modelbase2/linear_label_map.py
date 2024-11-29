@@ -37,9 +37,10 @@ def _generate_isotope_labels(base_name: str, num_labels: int) -> list[str]:
     Raises:
         ValueError: If num_labels <= 0
 
-    Example:
-        >>> _generate_isotope_labels("Glucose", 2)
-        ['Glucose__0', 'Glucose__1']
+    Examples:
+        >>> _generate_isotope_labels("x", 2)
+
+        ['x__0', 'x__1']
 
     """
     if num_labels > 0:
@@ -62,7 +63,7 @@ def _unpack_stoichiometries(
     Raises:
         NotImplementedError: If derived quantities are used in stoichiometry
 
-    Example:
+    Examples:
         >>> _unpack_stoichiometries({"A": -1, "B": 2})
         ({"A": 1}, {"B": 2})
 
@@ -89,7 +90,7 @@ def _stoichiometry_to_duplicate_list(stoichiometry: dict[str, int]) -> list[str]
     Returns:
         List with species repeated according to coefficients
 
-    Example:
+    Examples:
         >>> _stoichiometry_to_duplicate_list({"A": 2, "B": 1})
         ['A', 'A', 'B']
 
@@ -102,7 +103,7 @@ def _stoichiometry_to_duplicate_list(stoichiometry: dict[str, int]) -> list[str]
 
 def _map_substrates_to_labelmap(
     substrates: list[str], labelmap: list[int]
-) -> dict[str, int]:
+) -> list[str]:
     """Map substrate labels to product label positions.
 
     Args:
@@ -112,12 +113,15 @@ def _map_substrates_to_labelmap(
     Returns:
         Dictionary mapping substrate names to product label positions
 
-    Example:
+    Examples:
         >>> _map_substrates_to_labelmap(['A', 'B'], [1, 0])
         {'A': 1, 'B': 0}
 
     """
-    return {substrates[i]: labelmap[i] for i in range(len(substrates))}
+    res = ["EXT"] * len(substrates)
+    for substrate, pos in zip(substrates, labelmap, strict=True):
+        res[pos] = substrate
+    return res
 
 
 def _add_label_influx_or_efflux(
@@ -230,23 +234,17 @@ class LinearLabelMapper:
     ) -> Model:
         """Build a metabolic model with labeled isotopomers and reactions.
 
-        Parameters
-        ----------
-        concs : pd.Series
-            A pandas Series containing concentration values for metabolites.
-        fluxes : pd.Series
-            A pandas Series containing flux values for reactions.
-        external_label : float, optional
-            The label value for external metabolites, by default 1.0.
-        initial_labels : dict[str, int | list[int]] | None, optional
-            A dictionary specifying initial labeling positions for base compounds.
-            Keys are compound names, and values are either a single integer or a list of integers
-            indicating the positions to be labeled. Default is None.
-
-        Returns
-        -------
-        Model
-            A metabolic model with labeled isotopomers and reactions.
+        Args:
+            concs : pd.Series
+                A pandas Series containing concentration values for metabolites.
+            fluxes : pd.Series
+                A pandas Series containing flux values for reactions.
+            external_label : float, optional
+                The label value for external metabolites, by default 1.0.
+            initial_labels : dict[str, int | list[int]] | None, optional
+                A dictionary specifying initial labeling positions for base compounds.
+                Keys are compound names, and values are either a single integer or a list of integers
+                indicating the positions to be labeled. Default is None.
 
         """
         isotopomers = {
@@ -278,13 +276,18 @@ class LinearLabelMapper:
                 if substrate == product:
                     continue
 
+                stoichiometry = {}
+                if substrate != "EXT":
+                    stoichiometry[substrate] = Derived(
+                        _neg_one_div, [substrate.split("__")[0]]
+                    )
+                if product != "EXT":
+                    stoichiometry[product] = Derived(_one_div, [product.split("__")[0]])
+
                 m.add_reaction(
                     name=f"{rxn_name}__{i}",
                     fn=_relative_label_flux,
-                    stoichiometry={
-                        substrate: Derived(_neg_one_div, [substrate.split("__")[0]]),
-                        product: Derived(_one_div, [product.split("__")[0]]),
-                    },
+                    stoichiometry=stoichiometry,
                     args=[substrate, rxn_name],
                 )
         return m

@@ -74,6 +74,8 @@ class AbstractSurrogate:
 
 @dataclass(kw_only=True)
 class MockSurrogate(AbstractSurrogate):
+    """Mock surrogate model for testing purposes."""
+
     def predict(
         self,
         y: np.ndarray,
