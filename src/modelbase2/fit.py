@@ -21,7 +21,14 @@ from modelbase2.integrators import DefaultIntegrator
 from modelbase2.simulator import Simulator
 from modelbase2.types import Array, ArrayLike, Callable, IntegratorProtocol, cast
 
-__all__ = ["MinimizeFn", "ResidualFn", "SteadyStateResidualFn", "TimeSeriesResidualFn", "steady_state", "time_course"]
+__all__ = [
+    "MinimizeFn",
+    "ResidualFn",
+    "SteadyStateResidualFn",
+    "TimeSeriesResidualFn",
+    "steady_state",
+    "time_course",
+]
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
