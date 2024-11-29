@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from modelbase2 import Model
-
-from .shared import constant, mass_action_1s, mass_action_1s_1p, mass_action_2s
+from modelbase2.fns import constant, mass_action_1s, mass_action_1s_1p, mass_action_2s
 
 
 def get_model() -> Model:

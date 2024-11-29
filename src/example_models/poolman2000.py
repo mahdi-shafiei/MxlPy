@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from modelbase2 import Model
+from modelbase2.fns import moiety_1s
 
 
-def rapid_equilibrium_1_1(
+def rapid_equilibrium_1s_1p(
     s1: float,
     p1: float,
     kre: float,
@@ -15,7 +16,7 @@ def rapid_equilibrium_1_1(
     return kre * (s1 - p1 / q)
 
 
-def rapid_equilibrium_2_1(
+def rapid_equilibrium_2s_1p(
     s1: float,
     s2: float,
     p1: float,
@@ -26,7 +27,7 @@ def rapid_equilibrium_2_1(
     return kre * (s1 * s2 - p1 / q)
 
 
-def rapid_equilibrium_2_2(
+def rapid_equilibrium_2s_2p(
     s1: float,
     s2: float,
     p1: float,
@@ -178,14 +179,6 @@ def starch(
     )
 
 
-def moiety_1(
-    x: float,
-    x_total: float,
-) -> float:
-    """General moiety reaction."""
-    return x_total - x
-
-
 def free_orthophosphate(
     pga: float,
     bpga: float,
@@ -335,7 +328,7 @@ def get_model() -> Model:
 
     model.add_derived(
         name="ADP",
-        fn=moiety_1,
+        fn=moiety_1s,
         args=["ATP", "AP_total"],
     )
 
@@ -402,7 +395,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v2",
-        fn=rapid_equilibrium_2_2,
+        fn=rapid_equilibrium_2s_2p,
         stoichiometry={"PGA": -1, "ATP": -1, "BPGA": 1},
         args=[
             "PGA",
@@ -430,7 +423,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v4",
-        fn=rapid_equilibrium_1_1,
+        fn=rapid_equilibrium_1s_1p,
         stoichiometry={"GAP": -1, "DHAP": 1},
         args=[
             "GAP",
@@ -441,7 +434,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v5",
-        fn=rapid_equilibrium_2_1,
+        fn=rapid_equilibrium_2s_1p,
         stoichiometry={"GAP": -1, "DHAP": -1, "FBP": 1},
         args=[
             "GAP",
@@ -467,7 +460,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v7",
-        fn=rapid_equilibrium_2_2,
+        fn=rapid_equilibrium_2s_2p,
         stoichiometry={"GAP": -1, "F6P": -1, "E4P": 1, "X5P": 1},
         args=[
             "GAP",
@@ -480,7 +473,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v8",
-        fn=rapid_equilibrium_2_1,
+        fn=rapid_equilibrium_2s_1p,
         stoichiometry={"DHAP": -1, "E4P": -1, "SBP": 1},
         args=[
             "DHAP",
@@ -504,7 +497,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v10",
-        fn=rapid_equilibrium_2_2,
+        fn=rapid_equilibrium_2s_2p,
         stoichiometry={"GAP": -1, "S7P": -1, "X5P": 1, "R5P": 1},
         args=[
             "GAP",
@@ -517,7 +510,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v11",
-        fn=rapid_equilibrium_1_1,
+        fn=rapid_equilibrium_1s_1p,
         stoichiometry={"R5P": -1, "RU5P": 1},
         args=[
             "R5P",
@@ -528,7 +521,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v12",
-        fn=rapid_equilibrium_1_1,
+        fn=rapid_equilibrium_1s_1p,
         stoichiometry={"X5P": -1, "RU5P": 1},
         args=[
             "X5P",
@@ -560,7 +553,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v14",
-        fn=rapid_equilibrium_1_1,
+        fn=rapid_equilibrium_1s_1p,
         stoichiometry={"F6P": -1, "G6P": 1},
         args=[
             "F6P",
@@ -571,7 +564,7 @@ def get_model() -> Model:
     )
     model.add_reaction(
         name="v15",
-        fn=rapid_equilibrium_1_1,
+        fn=rapid_equilibrium_1s_1p,
         stoichiometry={"G6P": -1, "G1P": 1},
         args=[
             "G6P",

@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from modelbase2 import Model
-
-from .shared import constant, mass_action_1s, michaelis_menten_1s
+from modelbase2.fns import constant, mass_action_1s, michaelis_menten_1s
 
 
 def get_linear_chain_1v() -> Model:

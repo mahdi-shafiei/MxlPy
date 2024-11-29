@@ -2,47 +2,9 @@
 
 from __future__ import annotations
 
+from example_models.utils import filter_stoichiometry
 from modelbase2 import Model
-
-
-def filter_stoichiometry(
-    model: Model,
-    stoichiometry: dict[str, float],
-) -> dict[str, float]:
-    """Only use components that are actually compounds in the model.
-
-    Args:
-        model: Metabolic model instance
-        stoichiometry: Stoichiometry dictionary {component: value}
-
-    """
-    new: dict[str, float] = {}
-    ids = model.ids
-    variables = model.variables
-    for k, v in stoichiometry.items():
-        if k in variables:
-            new[k] = v
-        elif k not in ids:
-            msg = f"Missing component {k}"
-            raise KeyError(msg)
-    return new
-
-
-def constant(x: float) -> float:
-    """Constant function."""
-    return x
-
-
-def michaelis_menten_2s(
-    s1: float,
-    s2: float,
-    vmax: float,
-    km1: float,
-    km2: float,
-    ki1: float,
-) -> float:
-    """Michaelis-Menten equation for two substrates."""
-    return vmax * s1 * s2 / (ki1 * km2 + km2 * s1 + km1 * s2 + s1 * s2)
+from modelbase2.fns import constant, michaelis_menten_2s
 
 
 def get_example1() -> Model:
