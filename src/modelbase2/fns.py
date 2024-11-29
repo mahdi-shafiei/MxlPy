@@ -12,6 +12,46 @@ def constant(x: float) -> float:
     return x
 
 
+def neg(x: float) -> float:
+    """Negation function."""
+    return -x
+
+
+def minus(x: float, y: float) -> float:
+    """Subtraction function."""
+    return x - y
+
+
+def mul(x: float, y: float) -> float:
+    """Multiplication function."""
+    return x * y
+
+
+def div(x: float, y: float) -> float:
+    """Division function."""
+    return x / y
+
+
+def one_div(x: float) -> float:
+    """Reciprocal function."""
+    return 1.0 / x
+
+
+def neg_div(x: float, y: float) -> float:
+    """Negated division function."""
+    return -x / y
+
+
+def twice(x: float) -> float:
+    """Twice function."""
+    return x * 2
+
+
+def proportional(x: float, y: float) -> float:
+    """Proportional function."""
+    return x * y
+
+
 ###############################################################################
 # Derived functions
 ###############################################################################
@@ -35,33 +75,60 @@ def moiety_2s(
 
 
 ###############################################################################
-# Reactions
+# Reactions: mass action type
 ###############################################################################
 
 
 def mass_action_1s(s1: float, k: float) -> float:
-    """Mass action reaction with one substrate."""
+    """Irreversible mass action reaction with one substrate."""
     return k * s1
 
 
 def mass_action_1s_1p(s1: float, p1: float, kf: float, kr: float) -> float:
-    """Mass action reaction with one substrate and one product."""
+    """Reversible mass action reaction with one substrate and one product."""
     return kf * s1 - kr * p1
 
 
 def mass_action_2s(s1: float, s2: float, k: float) -> float:
-    """Mass action reaction with two substrates."""
+    """Irreversible mass action reaction with two substrates."""
     return k * s1 * s2
 
 
 def mass_action_2s_1p(s1: float, s2: float, p1: float, kf: float, kr: float) -> float:
-    """Mass action reaction with two substrates and one product."""
+    """Reversible mass action reaction with two substrates and one product."""
     return kf * s1 * s2 - kr * p1
 
 
-def michaelis_menten_1s(s: float, vmax: float, km: float) -> float:
+###############################################################################
+# Reactions: michaelis-menten type
+###############################################################################
+
+
+def michaelis_menten_1s(s1: float, vmax: float, km1: float) -> float:
     """Irreversible Michaelis-Menten equation for one substrate."""
-    return s * vmax / (s + km)
+    return s1 * vmax / (s1 + km1)
+
+
+# def michaelis_menten_1s_1i(
+#     s: float,
+#     i: float,
+#     vmax: float,
+#     km: float,
+#     ki: float,
+# ) -> float:
+#     """Irreversible Michaelis-Menten equation for one substrate and one inhibitor."""
+#     return vmax * s / (s + km * (1 + i / ki))
+
+
+# def michaelis_menten_1s_1a(
+#     s: float,
+#     a: float,
+#     vmax: float,
+#     km: float,
+#     ka: float,
+# ) -> float:
+#     """Irreversible Michaelis-Menten equation for one substrate and one activator."""
+#     return vmax * s / (s + km * (1 + ka / a))
 
 
 def michaelis_menten_2s(
@@ -70,7 +137,55 @@ def michaelis_menten_2s(
     vmax: float,
     km1: float,
     km2: float,
-    ki1: float,
 ) -> float:
     """Michaelis-Menten equation for two substrates."""
-    return vmax * s1 * s2 / (ki1 * km2 + km2 * s1 + km1 * s2 + s1 * s2)
+    return vmax * s1 * s2 / ((km1 + s1) * (km2 + s2))
+
+
+def michaelis_menten_2s_ping_pong(
+    s1: float,
+    s2: float,
+    vmax: float,
+    km1: float,
+    km2: float,
+) -> float:
+    """Michaelis-Menten equation (ping-pong) for two substrates."""
+    return vmax * s1 * s2 / (s1 * s2 + km1 * s2 + km2 * s1)
+
+
+def michaelis_menten_3s(
+    s1: float,
+    s2: float,
+    s3: float,
+    vmax: float,
+    km1: float,
+    km2: float,
+    km3: float,
+) -> float:
+    """Michaelis-Menten equation for three substrates."""
+    return vmax * s1 * s2 * s3 / ((km1 + s1) * (km2 + s2) * (km3 + s3))
+
+
+def michaelis_menten_3s_ping_pong(
+    s1: float,
+    s2: float,
+    s3: float,
+    vmax: float,
+    km1: float,
+    km2: float,
+    km3: float,
+) -> float:
+    """Michaelis-Menten equation (ping-pong) for three substrates."""
+    return (
+        vmax * s1 * s2 * s3 / (s1 * s2 + km1 * s2 * s3 + km2 * s1 * s3 + km3 * s1 * s2)
+    )
+
+
+###############################################################################
+# Reactions: michaelis-menten type
+###############################################################################
+
+
+def diffusion_1s_1p(inside: float, outside: float, k: float) -> float:
+    """Diffusion reaction with one substrate and one product."""
+    return k * (outside - inside)

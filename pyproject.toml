@@ -65,6 +65,14 @@ optional-dependencies = {dev = [
 [tool.bandit]
 skips = ["B101", "B301", "B403", "B404", "B603", "B607"]
 
+
+[tool.hatchling]
+from = "src"
+include = ["my_project", "example_models"]
+
+[tool.hatchling.extras]
+examples = ["example_models"]
+
 [tool.mypy]
 disallow_untyped_defs = true
 exclude = "tests/*.py"
@@ -77,6 +85,7 @@ warn_unused_configs = true
 assimulo = ">=3.5.2"
 python = ">=3.12.7,<4"
 pip = ">=24.3.1,<25"
+tabulate = ">=0.9.0,<0.10"
 
 [tool.pixi.project]
 channels = ["conda-forge"]

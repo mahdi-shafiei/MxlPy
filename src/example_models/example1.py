@@ -21,12 +21,10 @@ def get_example1() -> Model:
             "vmax_v2": 2.0,
             "km_v2_1": 0.1,
             "km_v2_2": 0.1,
-            "ki_v2": 0.1,
             # v3
             "vmax_v3": 2.0,
             "km_v3_1": 0.2,
             "km_v3_2": 0.2,
-            "ki_v3": 0.2,
         }
     )
 
@@ -34,13 +32,13 @@ def get_example1() -> Model:
         "v2",
         michaelis_menten_2s,
         filter_stoichiometry(model, {"x1": -1, "ATP": -1, "x2": 1}),
-        ["x1", "ATP", "vmax_v2", "km_v2_1", "km_v2_2", "ki_v2"],
+        ["x1", "ATP", "vmax_v2", "km_v2_1", "km_v2_2"],
     )
     model.add_reaction(
         "v3",
         michaelis_menten_2s,
         filter_stoichiometry(model, {"x1": -1, "NADPH": -1, "x3": 1}),
-        ["x1", "ATP", "vmax_v3", "km_v3_1", "km_v3_2", "ki_v3"],
+        ["x1", "ATP", "vmax_v3", "km_v3_1", "km_v3_2"],
     )
     model.add_reaction("x2_out", constant, {"x2": -1}, ["x2"])
     model.add_reaction("x3_out", constant, {"x3": -1}, ["x3"])

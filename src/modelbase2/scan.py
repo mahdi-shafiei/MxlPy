@@ -8,10 +8,9 @@ Classes:
     TimeCourse: Represents a time course in a simulation.
 
 Functions:
-    cartesian_product: Generate a cartesian product of the parameter values.
     parameter_scan_ss: Get steady-state results over supplied parameters.
-    parameter_scan_time_series: Get time series for each supplied parameter.
-    parameter_scan_protocol: Get protocol series for each supplied parameter.
+    parameter_scan_time_course: Get time course for each supplied parameter.
+    parameter_scan_protocol: Get protocol course for each supplied parameter.
 """
 
 from __future__ import annotations
@@ -19,18 +18,14 @@ from __future__ import annotations
 __all__ = [
     "TimeCourse",
     "TimePoint",
-    "cartesian_product",
-    "empty_time_course",
-    "empty_time_point",
-    "parameter_scan_protocol",
-    "parameter_scan_ss",
-    "parameter_scan_time_series",
+    "steady_state",
+    "time_course",
+    "time_course_over_protocol",
 ]
 
-import itertools as it
 from dataclasses import dataclass
 from functools import partial
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Protocol, Self, cast
 
 import numpy as np
 import pandas as pd
@@ -140,35 +135,12 @@ def _empty_flux_df(model: Model, time_points: Array) -> pd.DataFrame:
     )
 
 
-def empty_time_point(model: Model) -> tuple[pd.Series, pd.Series]:
-    """Create an empty time point for the model.
-
-    Args:
-        model: Model instance to generate the time point for.
-
-    """
-    return _empty_conc_series(model), _empty_flux_series(model)
-
-
-def empty_time_course(
-    model: Model, time_points: Array
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Create an empty time course for the model over given time points.
-
-    Args:
-        model: Model instance to generate the time course for.
-        time_points: Array of time points.
-
-    """
-    return _empty_conc_df(model, time_points), _empty_flux_df(model, time_points)
-
-
 ###############################################################################
 # Single returns
 ###############################################################################
 
 
-@dataclass(slots=True, init=False)
+@dataclass(slots=True)
 class TimePoint:
     """Represents a single time point in a simulation.
 
@@ -187,13 +159,14 @@ class TimePoint:
     concs: pd.Series
     fluxes: pd.Series
 
-    def __init__(
-        self,
+    @classmethod
+    def from_scan(
+        cls,
         model: Model,
         concs: pd.DataFrame | None,
         fluxes: pd.DataFrame | None,
         idx: int = -1,
-    ) -> None:
+    ) -> Self:
         """Initialize the Scan object.
 
         Args:
@@ -203,8 +176,10 @@ class TimePoint:
             idx (int, optional): Index to select specific row from concs and fluxes DataFrames. Defaults to -1.
 
         """
-        self.concs = _empty_conc_series(model) if concs is None else concs.iloc[idx]
-        self.fluxes = _empty_flux_series(model) if fluxes is None else fluxes.iloc[idx]
+        return cls(
+            concs=_empty_conc_series(model) if concs is None else concs.iloc[idx],
+            fluxes=_empty_flux_series(model) if fluxes is None else fluxes.iloc[idx],
+        )
 
     @property
     def results(self) -> pd.Series:
@@ -217,7 +192,7 @@ class TimePoint:
         return pd.concat((self.concs, self.fluxes), axis=0)
 
 
-@dataclass(slots=True, init=False)
+@dataclass(slots=True)
 class TimeCourse:
     """Represents a time course in a simulation.
 
@@ -236,13 +211,14 @@ class TimeCourse:
     concs: pd.DataFrame
     fluxes: pd.DataFrame
 
-    def __init__(
-        self,
+    @classmethod
+    def from_scan(
+        cls,
         model: Model,
         time_points: Array,
         concs: pd.DataFrame | None,
         fluxes: pd.DataFrame | None,
-    ) -> None:
+    ) -> Self:
         """Initialize the Scan object.
 
         Args:
@@ -252,8 +228,10 @@ class TimeCourse:
             fluxes (pd.DataFrame | None): DataFrame containing flux data. If None, an empty DataFrame is created.
 
         """
-        self.concs = _empty_conc_df(model, time_points) if concs is None else concs
-        self.fluxes = _empty_flux_df(model, time_points) if fluxes is None else fluxes
+        return cls(
+            _empty_conc_df(model, time_points) if concs is None else concs,
+            _empty_flux_df(model, time_points) if fluxes is None else fluxes,
+        )
 
     @property
     def results(self) -> pd.DataFrame:
@@ -267,13 +245,37 @@ class TimeCourse:
 
 
 ###############################################################################
-# Scan returns
-###############################################################################
-
-
-###############################################################################
 # Workers
 ###############################################################################
+
+
+class SteadyStateWorker(Protocol):
+    def __call__(
+        self,
+        model: Model,
+        y0: dict[str, float] | None,
+        *,
+        rel_norm: bool,
+    ) -> TimePoint: ...
+
+
+class TimeCourseWorker(Protocol):
+    def __call__(
+        self,
+        model: Model,
+        y0: dict[str, float] | None,
+        time_points: Array,
+    ) -> TimeCourse: ...
+
+
+class ProtocolWorker(Protocol):
+    def __call__(
+        self,
+        model: Model,
+        y0: dict[str, float] | None,
+        protocol: pd.DataFrame,
+        time_points_per_step: int = 10,
+    ) -> TimeCourse: ...
 
 
 def _steady_state_worker(
@@ -298,7 +300,7 @@ def _steady_state_worker(
         .simulate_to_steady_state(rel_norm=rel_norm)
         .get_full_concs_and_fluxes()
     )
-    return TimePoint(model, c, v)
+    return TimePoint.from_scan(model, c, v)
 
 
 def _time_course_worker(
@@ -322,7 +324,7 @@ def _time_course_worker(
         .simulate(time_points=time_points)
         .get_full_concs_and_fluxes()
     )
-    return TimeCourse(model, time_points, c, v)
+    return TimeCourse.from_scan(model, time_points, c, v)
 
 
 def _protocol_worker(
@@ -356,26 +358,10 @@ def _protocol_worker(
         protocol.index[-1].total_seconds(),
         len(protocol) * time_points_per_step,
     )
-    return TimeCourse(model, time_points, c, v)
+    return TimeCourse.from_scan(model, time_points, c, v)
 
 
-def cartesian_product(parameters: dict[str, Array]) -> pd.DataFrame:
-    """Generate a cartesian product of the parameter values.
-
-    Args:
-        parameters: Dictionary containing parameter names and values.
-
-    Returns:
-        pd.DataFrame: DataFrame containing the cartesian product of the parameter values.
-
-    """
-    return pd.DataFrame(
-        it.product(*parameters.values()),
-        columns=list(parameters),
-    )
-
-
-def parameter_scan_ss(
+def steady_state(
     model: Model,
     parameters: pd.DataFrame,
     y0: dict[str, float] | None = None,
@@ -383,6 +369,7 @@ def parameter_scan_ss(
     parallel: bool = True,
     rel_norm: bool = False,
     cache: Cache | None = None,
+    worker: SteadyStateWorker = _steady_state_worker,
 ) -> SteadyStates:
     """Get steady-state results over supplied parameters.
 
@@ -393,16 +380,41 @@ def parameter_scan_ss(
         parallel: Whether to execute in parallel (default: True).
         rel_norm: Whether to use relative normalization (default: False).
         cache: Optional cache to store and retrieve results.
+        worker: Worker function to use for the simulation.
 
     Returns:
         SteadyStates: Steady-state results for each parameter set.
+
+    Example:
+        >>> steady_state(
+        >>>     model,
+        >>>     parameters=pd.DataFrame({"k1": np.linspace(1, 2, 3)})
+        >>> ).concs
+
+        |  idx |    x |   y |
+        |-----:|-----:|----:|
+        |  1   | 0.5  | 1   |
+        |  1.5 | 0.75 | 1.5 |
+        |  2   | 1    | 2   |
+
+        >>> steady_state(
+        >>>     model,
+        >>>     parameters=cartesian_product({"k1": [1, 2], "k2": [3, 4]})
+        >>> ).concs
+
+        | idx    |    x |   y |
+        |:-------|-----:|----:|
+        | (1, 3) | 0.33 |   1 |
+        | (1, 4) | 0.25 |   1 |
+        | (2, 3) | 0.66 |   2 |
+        | (2, 4) | 0.5  |   2 |
 
     """
     res = parallelise(
         partial(
             _update_parameters_and,
             fn=partial(
-                _steady_state_worker,
+                worker,
                 y0=y0,
                 rel_norm=rel_norm,
             ),
@@ -424,7 +436,7 @@ def parameter_scan_ss(
     return SteadyStates(concs, fluxes, parameters=parameters)
 
 
-def parameter_scan_time_series(
+def time_course(
     model: Model,
     parameters: pd.DataFrame,
     time_points: Array,
@@ -432,8 +444,9 @@ def parameter_scan_time_series(
     *,
     parallel: bool = True,
     cache: Cache | None = None,
+    worker: TimeCourseWorker = _time_course_worker,
 ) -> TimeCourseByPars:
-    """Get time series for each supplied parameter.
+    """Get time course for each supplied parameter.
 
     Args:
         model: Model instance to simulate.
@@ -442,16 +455,50 @@ def parameter_scan_time_series(
         y0: Initial conditions as a dictionary {variable: value}.
         cache: Optional cache to store and retrieve results.
         parallel: Whether to execute in parallel (default: True).
+        worker: Worker function to use for the simulation.
 
     Returns:
         TimeCourseByPars: Time series results for each parameter set.
+
+    Examples:
+        >>> time_course(
+        >>>     model,
+        >>>     parameters=pd.DataFrame({"k1": [1, 1.5, 2]}),
+        >>>     time_points=np.linspace(0, 1, 3)
+        >>> ).concs
+
+        | (n, time) |        x |       y |
+        |:----------|---------:|--------:|
+        | (0, 0.0)  | 1        | 1       |
+        | (0, 0.5)  | 0.68394  | 1.23865 |
+        | (0, 1.0)  | 0.567668 | 1.23254 |
+        | (1, 0.0)  | 1        | 1       |
+        | (1, 0.5)  | 0.84197  | 1.31606 |
+        | (1, 1.0)  | 0.783834 | 1.43233 |
+        | (2, 0.0)  | 1        | 1       |
+        | (2, 0.5)  | 1        | 1.39347 |
+        | (2, 1.0)  | 1        | 1.63212 |
+
+        >>> time_course(
+        >>>     model,
+        >>>     parameters=cartesian_product({"k1": [1, 2], "k2": [3, 4]}),
+        >>>     time_points=[0.0, 0.5, 1.0],
+        >>> ).concs
+
+        | (n, time) |        x |      y |
+        |:----------|---------:|-------:|
+        | (0, 0.0)  | 1        | 1      |
+        | (0, 0.5)  | 0.482087 | 1.3834 |
+        | (1, 0.0)  | 1        | 1      |
+        | (1, 0.5)  | 0.351501 | 1.4712 |
+        | (2, 0.0)  | 1        | 1      |
 
     """
     res = parallelise(
         partial(
             _update_parameters_and,
             fn=partial(
-                _time_course_worker,
+                worker,
                 time_points=time_points,
                 y0=y0,
             ),
@@ -470,7 +517,7 @@ def parameter_scan_time_series(
     )
 
 
-def parameter_scan_protocol(
+def time_course_over_protocol(
     model: Model,
     parameters: pd.DataFrame,
     protocol: pd.DataFrame,
@@ -479,6 +526,7 @@ def parameter_scan_protocol(
     *,
     parallel: bool = True,
     cache: Cache | None = None,
+    worker: ProtocolWorker = _protocol_worker,
 ) -> ProtocolByPars:
     """Get protocol series for each supplied parameter.
 
@@ -488,8 +536,9 @@ def parameter_scan_protocol(
         protocol: Protocol to follow for the simulation.
         time_points_per_step: Number of time points per protocol step (default: 10).
         y0: Initial conditions as a dictionary {variable: value}.
-        cache: Optional cache to store and retrieve results.
         parallel: Whether to execute in parallel (default: True).
+        cache: Optional cache to store and retrieve results.
+        worker: Worker function to use for the simulation.
 
     Returns:
         TimeCourseByPars: Protocol series results for each parameter set.
@@ -499,7 +548,7 @@ def parameter_scan_protocol(
         partial(
             _update_parameters_and,
             fn=partial(
-                _protocol_worker,
+                worker,
                 protocol=protocol,
                 y0=y0,
                 time_points_per_step=time_points_per_step,

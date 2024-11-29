@@ -999,7 +999,7 @@ def test_get_args_with_empty_concs() -> None:
         model.get_args({})
 
 
-def test_get_args_time_series() -> None:
+def test_get_args_time_course() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
@@ -1007,20 +1007,20 @@ def test_get_args_time_series() -> None:
     model.add_readout("readout1", one_argument, ["var1"])
 
     concs = pd.DataFrame({"var1": [2.0, 3.0]}, index=[0.0, 1.0])
-    args_time_series = model.get_args_time_series(concs)
+    args_time_course = model.get_args_time_course(concs)
 
-    assert args_time_series["param1"].iloc[0] == 1.0
-    assert args_time_series["param1"].iloc[1] == 1.0
-    assert args_time_series["var1"].iloc[0] == 2.0
-    assert args_time_series["var1"].iloc[1] == 3.0
-    assert args_time_series["derived1"].iloc[0] == 2.0
-    assert args_time_series["derived1"].iloc[1] == 3.0
-    assert "readout1" not in args_time_series.columns
-    assert args_time_series["time"].iloc[0] == 0.0
-    assert args_time_series["time"].iloc[1] == 1.0
+    assert args_time_course["param1"].iloc[0] == 1.0
+    assert args_time_course["param1"].iloc[1] == 1.0
+    assert args_time_course["var1"].iloc[0] == 2.0
+    assert args_time_course["var1"].iloc[1] == 3.0
+    assert args_time_course["derived1"].iloc[0] == 2.0
+    assert args_time_course["derived1"].iloc[1] == 3.0
+    assert "readout1" not in args_time_course.columns
+    assert args_time_course["time"].iloc[0] == 0.0
+    assert args_time_course["time"].iloc[1] == 1.0
 
 
-def test_get_args_time_series_with_readouts() -> None:
+def test_get_args_time_course_with_readouts() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
@@ -1028,21 +1028,21 @@ def test_get_args_time_series_with_readouts() -> None:
     model.add_readout("readout1", one_argument, ["var1"])
 
     concs = pd.DataFrame({"var1": [2.0, 3.0]}, index=[0.0, 1.0])
-    args_time_series = model.get_args_time_series(concs, include_readouts=True)
+    args_time_course = model.get_args_time_course(concs, include_readouts=True)
 
-    assert args_time_series["param1"].iloc[0] == 1.0
-    assert args_time_series["param1"].iloc[1] == 1.0
-    assert args_time_series["var1"].iloc[0] == 2.0
-    assert args_time_series["var1"].iloc[1] == 3.0
-    assert args_time_series["derived1"].iloc[0] == 2.0
-    assert args_time_series["derived1"].iloc[1] == 3.0
-    assert args_time_series["readout1"].iloc[0] == 2.0
-    assert args_time_series["readout1"].iloc[1] == 3.0
-    assert args_time_series["time"].iloc[0] == 0.0
-    assert args_time_series["time"].iloc[1] == 1.0
+    assert args_time_course["param1"].iloc[0] == 1.0
+    assert args_time_course["param1"].iloc[1] == 1.0
+    assert args_time_course["var1"].iloc[0] == 2.0
+    assert args_time_course["var1"].iloc[1] == 3.0
+    assert args_time_course["derived1"].iloc[0] == 2.0
+    assert args_time_course["derived1"].iloc[1] == 3.0
+    assert args_time_course["readout1"].iloc[0] == 2.0
+    assert args_time_course["readout1"].iloc[1] == 3.0
+    assert args_time_course["time"].iloc[0] == 0.0
+    assert args_time_course["time"].iloc[1] == 1.0
 
 
-def test_get_args_time_series_with_multiple_concs() -> None:
+def test_get_args_time_course_with_multiple_concs() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
@@ -1051,23 +1051,23 @@ def test_get_args_time_series_with_multiple_concs() -> None:
     model.add_readout("readout1", two_arguments, ["var1", "var2"])
 
     concs = pd.DataFrame({"var1": [2.0, 3.0], "var2": [3.0, 4.0]}, index=[0.0, 1.0])
-    args_time_series = model.get_args_time_series(concs, include_readouts=True)
+    args_time_course = model.get_args_time_course(concs, include_readouts=True)
 
-    assert args_time_series["param1"].iloc[0] == 1.0
-    assert args_time_series["param1"].iloc[1] == 1.0
-    assert args_time_series["var1"].iloc[0] == 2.0
-    assert args_time_series["var1"].iloc[1] == 3.0
-    assert args_time_series["var2"].iloc[0] == 3.0
-    assert args_time_series["var2"].iloc[1] == 4.0
-    assert args_time_series["derived1"].iloc[0] == 5.0
-    assert args_time_series["derived1"].iloc[1] == 7.0
-    assert args_time_series["readout1"].iloc[0] == 5.0
-    assert args_time_series["readout1"].iloc[1] == 7.0
-    assert args_time_series["time"].iloc[0] == 0.0
-    assert args_time_series["time"].iloc[1] == 1.0
+    assert args_time_course["param1"].iloc[0] == 1.0
+    assert args_time_course["param1"].iloc[1] == 1.0
+    assert args_time_course["var1"].iloc[0] == 2.0
+    assert args_time_course["var1"].iloc[1] == 3.0
+    assert args_time_course["var2"].iloc[0] == 3.0
+    assert args_time_course["var2"].iloc[1] == 4.0
+    assert args_time_course["derived1"].iloc[0] == 5.0
+    assert args_time_course["derived1"].iloc[1] == 7.0
+    assert args_time_course["readout1"].iloc[0] == 5.0
+    assert args_time_course["readout1"].iloc[1] == 7.0
+    assert args_time_course["time"].iloc[0] == 0.0
+    assert args_time_course["time"].iloc[1] == 1.0
 
 
-def test_get_args_time_series_with_empty_concs() -> None:
+def test_get_args_time_course_with_empty_concs() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
@@ -1076,7 +1076,7 @@ def test_get_args_time_series_with_empty_concs() -> None:
 
     concs = pd.DataFrame({}, index=[])
     with pytest.raises(KeyError):
-        model.get_args_time_series(concs)
+        model.get_args_time_course(concs)
 
 
 def test_get_full_concs() -> None:
@@ -1252,7 +1252,7 @@ def test_get_fluxes_empty_concs() -> None:
         model.get_fluxes({})
 
 
-def test_get_fluxes_time_series() -> None:
+def test_get_fluxes_time_course() -> None:
     model = Model()
     model.add_variables({"A": 1.0, "B": 2.0})
     reaction_fn = two_arguments
@@ -1264,14 +1264,14 @@ def test_get_fluxes_time_series() -> None:
         args=["A", "B"],
     )
     concs = pd.DataFrame({"A": [1.0, 2.0], "B": [2.0, 3.0]}, index=[0.0, 1.0])
-    args_time_series = model.get_args_time_series(concs)
-    fluxes_time_series = model.get_fluxes_time_series(args_time_series)
+    args_time_course = model.get_args_time_course(concs)
+    fluxes_time_course = model.get_fluxes_time_course(args_time_course)
 
-    assert fluxes_time_series["reaction1"].iloc[0] == 3.0
-    assert fluxes_time_series["reaction1"].iloc[1] == 5.0
+    assert fluxes_time_course["reaction1"].iloc[0] == 3.0
+    assert fluxes_time_course["reaction1"].iloc[1] == 5.0
 
 
-def test_get_fluxes_time_series_with_surrogate() -> None:
+def test_get_fluxes_time_course_with_surrogate() -> None:
     model = Model()
     model.add_variables({"A": 1.0, "B": 2.0})
     reaction_fn = two_arguments
@@ -1290,25 +1290,25 @@ def test_get_fluxes_time_series_with_surrogate() -> None:
         ),
     )
     concs = pd.DataFrame({"A": [1.0, 2.0], "B": [2.0, 3.0]}, index=[0.0, 1.0])
-    args_time_series = model.get_args_time_series(concs)
-    fluxes_time_series = model.get_fluxes_time_series(args_time_series)
+    args_time_course = model.get_args_time_course(concs)
+    fluxes_time_course = model.get_fluxes_time_course(args_time_course)
 
-    assert fluxes_time_series["reaction1"].iloc[0] == 3.0
-    assert fluxes_time_series["reaction1"].iloc[1] == 5.0
-    assert fluxes_time_series["flux1"].iloc[0] == 1.0
-    assert fluxes_time_series["flux1"].iloc[1] == 2.0
+    assert fluxes_time_course["reaction1"].iloc[0] == 3.0
+    assert fluxes_time_course["reaction1"].iloc[1] == 5.0
+    assert fluxes_time_course["flux1"].iloc[0] == 1.0
+    assert fluxes_time_course["flux1"].iloc[1] == 2.0
 
 
-def test_get_fluxes_time_series_empty_reactions() -> None:
+def test_get_fluxes_time_course_empty_reactions() -> None:
     model = Model()
     concs = pd.DataFrame({"A": [1.0, 2.0], "B": [2.0, 3.0]}, index=[0.0, 1.0])
-    args_time_series = model.get_args_time_series(concs)
-    fluxes_time_series = model.get_fluxes_time_series(args_time_series)
+    args_time_course = model.get_args_time_course(concs)
+    fluxes_time_course = model.get_fluxes_time_course(args_time_course)
 
-    assert fluxes_time_series.empty
+    assert fluxes_time_course.empty
 
 
-def test_get_fluxes_time_series_empty_args() -> None:
+def test_get_fluxes_time_course_empty_args() -> None:
     model = Model()
     model.add_variables({"A": 1.0, "B": 2.0})
     reaction_fn = two_arguments
@@ -1321,7 +1321,7 @@ def test_get_fluxes_time_series_empty_args() -> None:
     )
     concs = pd.DataFrame({}, index=[])
     with pytest.raises(KeyError):
-        model.get_fluxes_time_series(concs)
+        model.get_fluxes_time_course(concs)
 
 
 def test_call() -> None:

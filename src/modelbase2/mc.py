@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING, cast
 
 import pandas as pd
 
-from modelbase2 import mca, scans
+from modelbase2 import mca, scan
 from modelbase2.parallel import Cache, parallelise
-from modelbase2.scans import (
+from modelbase2.scan import (
     _protocol_worker,
     _steady_state_worker,
     _time_course_worker,
@@ -40,8 +40,8 @@ from modelbase2.types import (
 __all__ = [
     "compound_elasticities",
     "parameter_elasticities",
-    "parameter_scan_ss",
     "response_coefficients",
+    "scan_steady_state",
     "steady_state",
     "time_course",
     "time_course_over_protocol",
@@ -91,7 +91,7 @@ def _parameter_scan_worker(
         Object containing the steady state solutions for the given parameter combinations
 
     """
-    return scans.parameter_scan_ss(
+    return scan.steady_state(
         model,
         parameters=parameters,
         y0=y0,
@@ -109,14 +109,12 @@ def steady_state(
     cache: Cache | None = None,
     rel_norm: bool = True,
 ) -> SteadyStates:
-    """MC time course.
+    """Monte-carlo scan of steady states.
 
-    Returns
-    -------
-    tuple[concentrations, fluxes] using pandas multiindex
-    Both dataframes are of shape (#time_points * #mc_parameters, #variables)
+    Returns:
+        SteadyStates: Object containing the steady state solutions for the given parameter
 
-    E.g.
+    Example:
     p    t     x      y
     0    0.0   0.1    0.00
          1.0   0.2    0.01
@@ -257,7 +255,7 @@ def time_course_over_protocol(
     )
 
 
-def parameter_scan_ss(
+def scan_steady_state(
     model: Model,
     parameters: pd.DataFrame,
     mc_parameters: pd.DataFrame,

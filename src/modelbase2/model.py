@@ -977,13 +977,13 @@ class Model:
             dtype=float,
         )
 
-    def get_args_time_series(
+    def get_args_time_course(
         self,
         concs: pd.DataFrame,
         *,
         include_readouts: bool = False,
     ) -> pd.DataFrame:
-        """Generate a DataFrame containing time series arguments for model evaluation.
+        """Generate a DataFrame containing time course arguments for model evaluation.
 
         Args:
             concs: A DataFrame containing concentration data with time as the index.
@@ -1100,12 +1100,12 @@ class Model:
             fluxes |= surrogate.predict(args.loc[surrogate.inputs].to_numpy())
         return pd.Series(fluxes, dtype=float)
 
-    def get_fluxes_time_series(self, args: pd.DataFrame) -> pd.DataFrame:
-        """Generate a time series of fluxes for the given reactions and surrogates.
+    def get_fluxes_time_course(self, args: pd.DataFrame) -> pd.DataFrame:
+        """Generate a time course of fluxes for the given reactions and surrogates.
 
         This method calculates the fluxes for each reaction in the model using the provided
         arguments and combines them with the outputs from the surrogates to create a complete
-        time series of fluxes.
+        time course of fluxes.
 
         Args:
             args (pd.DataFrame): A DataFrame containing the input arguments for the reactions

@@ -10,7 +10,7 @@ Classes:
 
 Functions:
     train_torch_surrogate: Train a PyTorch surrogate model
-    train_torch_time_series_estimator: Train a PyTorch time series estimator
+    train_torch_time_course_estimator: Train a PyTorch time course estimator
 """
 
 from __future__ import annotations
@@ -22,9 +22,9 @@ __all__ = [
     "DefaultSSAproximator",
     "DefaultTimeSeriesApproximator",
     "TorchSSEstimator",
-    "TorchTimeSeriesEstimator",
+    "TorchTimeCourseEstimator",
     "train_torch_ss_estimator",
-    "train_torch_time_series_estimator",
+    "train_torch_time_course_estimator",
 ]
 
 from abc import abstractmethod
@@ -134,8 +134,8 @@ class TorchSSEstimator(AbstractEstimator):
 
 
 @dataclass(kw_only=True)
-class TorchTimeSeriesEstimator(AbstractEstimator):
-    """Estimator for time series data using PyTorch models."""
+class TorchTimeCourseEstimator(AbstractEstimator):
+    """Estimator for time course data using PyTorch models."""
 
     model: torch.nn.Module
 
@@ -267,7 +267,7 @@ def train_torch_ss_estimator(
     ), losses
 
 
-def train_torch_time_series_estimator(
+def train_torch_time_course_estimator(
     features: pd.DataFrame,
     targets: pd.DataFrame,
     epochs: int,
@@ -275,10 +275,10 @@ def train_torch_time_series_estimator(
     approximator: nn.Module | None = None,
     optimimzer_cls: type[Adam] = Adam,
     device: torch.device = DefaultDevice,
-) -> tuple[TorchTimeSeriesEstimator, pd.Series]:
-    """Train a PyTorch time series estimator.
+) -> tuple[TorchTimeCourseEstimator, pd.Series]:
+    """Train a PyTorch time course estimator.
 
-    This function trains a neural network model to estimate time series data
+    This function trains a neural network model to estimate time course data
     using the provided features and targets. It supports both full-batch and
     mini-batch training.
 
@@ -329,7 +329,7 @@ def train_torch_time_series_estimator(
             optimizer=optimizer,
             batch_size=batch_size,
         )
-    return TorchTimeSeriesEstimator(
+    return TorchTimeCourseEstimator(
         model=approximator,
         parameter_names=list(targets.columns),
     ), losses

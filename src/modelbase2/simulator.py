@@ -283,7 +283,7 @@ class Simulator:
         for res, p in zip(concs, params, strict=True):
             self.model.update_parameters(p)
             args.append(
-                self.model.get_args_time_series(
+                self.model.get_args_time_course(
                     concs=res,
                     include_readouts=include_readouts,
                 )
@@ -445,7 +445,7 @@ class Simulator:
         fluxes: list[pd.DataFrame] = []
         for y, p in zip(args, params, strict=True):
             self.model.update_parameters(p)
-            fluxes.append(self.model.get_fluxes_time_series(args=y))
+            fluxes.append(self.model.get_fluxes_time_course(args=y))
 
         if normalise is not None:
             fluxes = _normalise_split_results(

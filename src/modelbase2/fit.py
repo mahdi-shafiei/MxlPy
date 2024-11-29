@@ -5,7 +5,7 @@ including both steadyd-state and time-series data fitting capabilities.e
 
 Functions:
     fit_steady_state: Fits parameters to steady-state experimental data
-    fit_time_series: Fits parameters to time-series experimental data
+    fit_time_course: Fits parameters to time-series experimental data
 """
 
 from __future__ import annotations
@@ -23,13 +23,13 @@ from modelbase2.types import Array, ArrayLike, Callable, IntegratorProtocol, cas
 
 __all__ = [
     "steady_state",
-    "time_series",
+    "time_course",
 ]
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
 
-type ResidualFn = Callable[[Array], Array]
+type ResidualFn = Callable[[Array], float]
 
 
 type MinimizeFn = Callable[[ResidualFn, dict[str, float]], dict[str, float]]
@@ -65,18 +65,21 @@ def _default_minimize_fn(
     residual_fn: ResidualFn,
     p0: dict[str, float],
 ) -> dict[str, float]:
-    return dict(
-        zip(
-            p0,
-            minimize(
-                residual_fn,
-                x0=list(p0.values()),
-                bounds=[(1e-12, 1e6) for _ in range(len(p0))],
-                method="L-BFGS-B",
-            ).x,
-            strict=True,
-        )
+    res = minimize(
+        residual_fn,
+        x0=list(p0.values()),
+        bounds=[(1e-12, 1e6) for _ in range(len(p0))],
+        method="L-BFGS-B",
     )
+    if res.success:
+        return dict(
+            zip(
+                p0,
+                res.x,
+                strict=True,
+            )
+        )
+    return dict(zip(p0, np.full(len(p0), np.nan, dtype=float), strict=True))
 
 
 def _steady_state_residual(
@@ -85,7 +88,7 @@ def _steady_state_residual(
     par_names: list[str],
     data: pd.Series,
     model: Model,
-    y0: dict[str, float],
+    y0: dict[str, float] | None,
     integrator: type[IntegratorProtocol],
 ) -> float:
     """Calculate residual error between model steady state and experimental data.
@@ -93,7 +96,7 @@ def _steady_state_residual(
     Args:
         par_values: Parameter values to test
         data: Experimental steady state data
-        model: Model instance to simulatep
+        model: Model instance to simulate
         y0: Initial conditions
         par_names: Names of parameters being fit
         integrator: ODE integrator class to use
@@ -126,7 +129,7 @@ def _steady_state_residual(
     return cast(float, np.sqrt(np.mean(np.square(diff))))
 
 
-def _time_series_residual(
+def _time_course_residual(
     par_values: ArrayLike,
     # This will be filled out by partial
     par_names: list[str],
@@ -139,7 +142,7 @@ def _time_series_residual(
 
     Args:
         par_values: Parameter values to test
-        data: Experimental time series data
+        data: Experimental time course data
         model: Model instance to simulate
         y0: Initial conditions
         par_names: Names of parameters being fit
@@ -181,9 +184,9 @@ def steady_state(
         data: Experimental steady state data as pandas Series
         p0: Initial parameter guesses as {parameter_name: value}
         y0: Initial conditions as {species_name: value}
-        minimize_fn: Function to minimize fitting error (default: _default_minimize_fn)
-        residual_fn: Function to calculate fitting error (default: _steady_state_residual)
-        integrator: ODE integrator class (default: DefaultIntegrator)
+        minimize_fn: Function to minimize fitting error
+        residual_fn: Function to calculate fitting error
+        integrator: ODE integrator class
 
     Returns:
         dict[str, float]: Fitted parameters as {parameter_name: fitted_value}
@@ -215,25 +218,25 @@ def steady_state(
     return res
 
 
-def time_series(
+def time_course(
     model: Model,
     p0: dict[str, float],
     data: pd.DataFrame,
     y0: dict[str, float] | None = None,
     minimize_fn: MinimizeFn = _default_minimize_fn,
-    residual_fn: TimeSeriesResidualFn = _time_series_residual,
+    residual_fn: TimeSeriesResidualFn = _time_course_residual,
     integrator: type[IntegratorProtocol] = DefaultIntegrator,
 ) -> dict[str, float]:
-    """Fit model parameters to time-series experimental data.
+    """Fit model parameters to time course of experimental data.
 
     Args:
         model: Model instance to fit
-        data: Experimental time series data as pandas DataFrame
+        data: Experimental time course data as pandas DataFrame
         p0: Initial parameter guesses as {parameter_name: value}
         y0: Initial conditions as {species_name: value}
-        minimize_fn: Function to minimize fitting error (default: _default_minimize_fn)
-        residual_fn: Function to calculate fitting error (default: _time_series_residual)
-        integrator: ODE integrator class (default: DefaultIntegrator)
+        minimize_fn: Function to minimize fitting error
+        residual_fn: Function to calculate fitting error
+        integrator: ODE integrator class
 
     Returns:
         dict[str, float]: Fitted parameters as {parameter_name: fitted_value}

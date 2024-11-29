@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 from modelbase2.parallel import parallelise
-from modelbase2.scans import _steady_state_worker
+from modelbase2.scan import _steady_state_worker
 from modelbase2.types import ResponseCoefficients
 
 __all__ = [

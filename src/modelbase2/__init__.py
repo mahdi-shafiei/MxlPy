@@ -52,15 +52,22 @@ __all__ = [
     "fit",
     "mc",
     "mca",
-    "parameter_scan_protocol",
-    "parameter_scan_ss",
-    "parameter_scan_time_series",
     "plot",
     "sbml",
+    "steady_state",
     "surrogates",
+    "time_course",
+    "time_course_over_protocol",
 ]
 
 import contextlib
+import itertools as it
+from typing import TYPE_CHECKING
+
+import pandas as pd
+
+if TYPE_CHECKING:
+    from modelbase2.types import ArrayLike
 
 from . import distributions, fit, mc, mca, plot, sbml
 from .integrators import DefaultIntegrator, Scipy
@@ -68,11 +75,10 @@ from .label_map import LabelMapper
 from .linear_label_map import LinearLabelMapper
 from .mc import Cache
 from .model import Model
-from .scans import (
-    cartesian_product,
-    parameter_scan_protocol,
-    parameter_scan_ss,
-    parameter_scan_time_series,
+from .scan import (
+    steady_state,
+    time_course,
+    time_course_over_protocol,
 )
 from .simulator import Simulator
 from .surrogates import TorchSurrogate
@@ -80,3 +86,63 @@ from .types import Derived, IntegratorProtocol
 
 with contextlib.suppress(ImportError):
     from .integrators import Assimulo
+
+
+def cartesian_product(parameters: dict[str, ArrayLike]) -> pd.DataFrame:
+    """Generate a cartesian product of the parameter values.
+
+    Args:
+        parameters: Dictionary containing parameter names and values.
+
+    Returns:
+        pd.DataFrame: DataFrame containing the cartesian product of the parameter values.
+
+    """
+    return pd.DataFrame(
+        it.product(*parameters.values()),
+        columns=list(parameters),
+    )
+
+
+def make_protocol(steps: dict[float, dict[str, float]]) -> pd.DataFrame:
+    """Create protocol DataFrame from a dictionary of steps.
+
+    Arguments:
+        steps: dictionary of steps, where each key is the duration of
+               the step in seconds and the value is a dictionary of all
+               parameter values during that step.
+
+    Examples:
+        >>> make_protocol({
+        ...     1: {"k1": 1.0},
+        ...     2: {"k1": 2.0},
+        ...     3: {"k1": 1.0},
+        ... })
+
+        | Timedelta       |   k1 |
+        |:----------------|-----:|
+        | 0 days 00:00:01 |  1.0 |
+        | 0 days 00:00:03 |  2.0 |
+        | 0 days 00:00:06 |  1.0 |
+
+        >>> make_protocol({
+        ...     1: {"k1": 1.0, "k2": 2.0},
+        ...     2: {"k1": 2.0, "k2": 3.0},
+        ...     3: {"k1": 1.0, "k2": 2.0},
+        ... })
+
+        | Timedelta       |   k1 |   k2 |
+        |:----------------|-----:|-----:|
+        | 0 days 00:00:01 |    1 |    2 |
+        | 0 days 00:00:03 |    2 |    3 |
+        | 0 days 00:00:06 |    1 |    2 |
+
+    """
+    data = {}
+    t0 = pd.Timedelta(0)
+    for step, pars in steps.items():
+        t0 += pd.Timedelta(seconds=step)
+        data[t0] = pars
+    protocol = pd.DataFrame(data).T
+    protocol.index.name = "Timedelta"
+    return protocol

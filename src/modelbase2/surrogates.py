@@ -11,7 +11,7 @@ Classes:
 
 Functions:
     train_torch_surrogate: Train a PyTorch surrogate model.
-    train_torch_time_series_estimator: Train a PyTorch time series estimator.
+    train_torch_time_course_estimator: Train a PyTorch time course estimator.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ from torch.optim.adam import Adam
 
 from modelbase2 import Simulator
 from modelbase2.parallel import Cache, parallelise
-from modelbase2.scans import _empty_flux_series
+from modelbase2.scan import _empty_flux_series
 
 __all__ = [
     "AbstractSurrogate",
