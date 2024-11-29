@@ -3,7 +3,7 @@ repos:
     rev: 0.4.0
     hooks:
       - id: unexport
-        exclude: "tests"
+        exclude: "tests|__init__.py"
         args: [--refactor]
 
   - repo: local
