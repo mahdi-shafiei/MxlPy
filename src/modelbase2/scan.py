@@ -15,7 +15,16 @@ Functions:
 
 from __future__ import annotations
 
-__all__ = ["ProtocolWorker", "SteadyStateWorker", "TimeCourse", "TimeCourseWorker", "TimePoint", "steady_state", "time_course", "time_course_over_protocol"]
+__all__ = [
+    "ProtocolWorker",
+    "SteadyStateWorker",
+    "TimeCourse",
+    "TimeCourseWorker",
+    "TimePoint",
+    "steady_state",
+    "time_course",
+    "time_course_over_protocol",
+]
 
 from dataclasses import dataclass
 from functools import partial
@@ -244,32 +253,44 @@ class TimeCourse:
 
 
 class SteadyStateWorker(Protocol):
+    """Worker function for steady-state simulations."""
+
     def __call__(
         self,
         model: Model,
         y0: dict[str, float] | None,
         *,
         rel_norm: bool,
-    ) -> TimePoint: ...
+    ) -> TimePoint:
+        """Call the worker function."""
+        ...
 
 
 class TimeCourseWorker(Protocol):
+    """Worker function for time-course simulations."""
+
     def __call__(
         self,
         model: Model,
         y0: dict[str, float] | None,
         time_points: Array,
-    ) -> TimeCourse: ...
+    ) -> TimeCourse:
+        """Call the worker function."""
+        ...
 
 
 class ProtocolWorker(Protocol):
+    """Worker function for protocol-based simulations."""
+
     def __call__(
         self,
         model: Model,
         y0: dict[str, float] | None,
         protocol: pd.DataFrame,
         time_points_per_step: int = 10,
-    ) -> TimeCourse: ...
+    ) -> TimeCourse:
+        """Call the worker function."""
+        ...
 
 
 def _steady_state_worker(

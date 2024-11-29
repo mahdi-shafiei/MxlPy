@@ -11,7 +11,8 @@ Functions:
     plot_3d_surface: Plot a 3D surface of the given data.
     plot_3d_scatter: Plot a 3D scatter plot of the given data.
     plot_label_distribution: Plot the distribution of labels in the given data.
-    plot_linear_label_distribution: Plot the distribution of linear labels in the given data.
+    plot_linear_label_distribution: Plot the distribution of linear labels in the given
+        data.
     plot_label_correlation: Plot the correlation between labels in the given data.
 """
 

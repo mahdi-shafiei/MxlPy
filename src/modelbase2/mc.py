@@ -17,13 +17,16 @@ Functions:
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 import pandas as pd
 
 from modelbase2 import mca, scan
 from modelbase2.parallel import Cache, parallelise
 from modelbase2.scan import (
+    ProtocolWorker,
+    SteadyStateWorker,
+    TimeCourseWorker,
     _protocol_worker,
     _steady_state_worker,
     _time_course_worker,
@@ -37,15 +40,7 @@ from modelbase2.types import (
     TimeCourseByPars,
 )
 
-__all__ = [
-    "compound_elasticities",
-    "parameter_elasticities",
-    "response_coefficients",
-    "scan_steady_state",
-    "steady_state",
-    "time_course",
-    "time_course_over_protocol",
-]
+__all__ = ["ParameterScanWorker", "compound_elasticities", "parameter_elasticities", "response_coefficients", "scan_steady_state", "steady_state", "time_course", "time_course_over_protocol"]
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
@@ -62,6 +57,21 @@ __ALL__ = [
 ]
 
 
+class ParameterScanWorker(Protocol):
+    """Protocol for the parameter scan worker function."""
+
+    def __call__(
+        self,
+        model: Model,
+        y0: dict[str, float] | None,
+        *,
+        parameters: pd.DataFrame,
+        rel_norm: bool,
+    ) -> SteadyStates:
+        """Call the worker function."""
+        ...
+
+
 def _parameter_scan_worker(
     model: Model,
     y0: dict[str, float] | None,
@@ -71,24 +81,25 @@ def _parameter_scan_worker(
 ) -> SteadyStates:
     """Worker function for parallel steady state scanning across parameter sets.
 
-    This function executes a parameter scan for steady state solutions for a given model
-    and parameter combinations. It's designed to be used as a worker in parallel processing.
+    This function executes a parameter scan for steady state solutions for a
+    given model and parameter combinations. It's designed to be used as a worker
+    in parallel processing.
 
-    Args:
-    model : Model
+    Args: model : Model
         The model object to analyze
     y0 : dict[str, float] | None
-        Initial conditions for the solver. If None, default initial conditions are used.
+        Initial conditions for the solver. If None, default initial conditions
+        are used.
     parameters : pd.DataFrame
-        DataFrame containing parameter combinations to scan over. Each row represents one
-        parameter set.
+        DataFrame containing parameter combinations to scan over. Each row
+        represents one parameter set.
     rel_norm : bool
         Whether to use relative normalization in the steady state calculations
 
     Returns:
-    -------
-    SteadyStates
-        Object containing the steady state solutions for the given parameter combinations
+        SteadyStates
+            Object containing the steady state solutions for the given parameter
+            combinations
 
     """
     return scan.steady_state(
@@ -108,6 +119,7 @@ def steady_state(
     max_workers: int | None = None,
     cache: Cache | None = None,
     rel_norm: bool = True,
+    worker: SteadyStateWorker = _steady_state_worker,
 ) -> SteadyStates:
     """Monte-carlo scan of steady states.
 
@@ -131,7 +143,7 @@ def steady_state(
         partial(
             _update_parameters_and,
             fn=partial(
-                _steady_state_worker,
+                worker,
                 y0=y0,
                 rel_norm=rel_norm,
             ),
@@ -157,6 +169,7 @@ def time_course(
     y0: dict[str, float] | None = None,
     max_workers: int | None = None,
     cache: Cache | None = None,
+    worker: TimeCourseWorker = _time_course_worker,
 ) -> TimeCourseByPars:
     """MC time course.
 
@@ -182,7 +195,7 @@ def time_course(
         partial(
             _update_parameters_and,
             fn=partial(
-                _time_course_worker,
+                worker,
                 time_points=time_points,
                 y0=y0,
             ),
@@ -209,6 +222,7 @@ def time_course_over_protocol(
     time_points_per_step: int = 10,
     max_workers: int | None = None,
     cache: Cache | None = None,
+    worker: ProtocolWorker = _protocol_worker,
 ) -> ProtocolByPars:
     """MC time course.
 
@@ -234,7 +248,7 @@ def time_course_over_protocol(
         partial(
             _update_parameters_and,
             fn=partial(
-                _protocol_worker,
+                worker,
                 protocol=protocol,
                 y0=y0,
                 time_points_per_step=time_points_per_step,
@@ -264,6 +278,7 @@ def scan_steady_state(
     max_workers: int | None = None,
     cache: Cache | None = None,
     rel_norm: bool = False,
+    worker: ParameterScanWorker = _parameter_scan_worker,
 ) -> McSteadyStates:
     """Parameter scan of mc distributed steady states.
 
@@ -275,6 +290,7 @@ def scan_steady_state(
         max_workers: Maximum number of workers for parallel processing
         cache: Cache object for storing results
         rel_norm: Whether to use relative normalization in the steady state calculations
+        worker: Worker function for parallel steady state scanning across parameter sets
 
     Returns:
         McSteadyStates: Object containing the steady state solutions for the given parameter
@@ -284,7 +300,7 @@ def scan_steady_state(
         partial(
             _update_parameters_and,
             fn=partial(
-                _parameter_scan_worker,
+                worker,
                 parameters=parameters,
                 y0=y0,
                 rel_norm=rel_norm,

@@ -3,7 +3,8 @@ repos:
     rev: 0.4.0
     hooks:
       - id: unexport
-        args: [--refactor, --exclude tests]
+        exclude: "tests"
+        args: [--refactor]
 
   - repo: local
     hooks:
