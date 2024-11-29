@@ -15,13 +15,7 @@ Functions:
 
 from __future__ import annotations
 
-__all__ = [
-    "TimeCourse",
-    "TimePoint",
-    "steady_state",
-    "time_course",
-    "time_course_over_protocol",
-]
+__all__ = ["ProtocolWorker", "SteadyStateWorker", "TimeCourse", "TimeCourseWorker", "TimePoint", "steady_state", "time_course", "time_course_over_protocol"]
 
 from dataclasses import dataclass
 from functools import partial

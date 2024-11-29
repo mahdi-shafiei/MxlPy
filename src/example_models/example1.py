@@ -6,6 +6,8 @@ from example_models.utils import filter_stoichiometry
 from modelbase2 import Model
 from modelbase2.fns import constant, michaelis_menten_2s
 
+__all__ = ["get_example1"]
+
 
 def get_example1() -> Model:
     """Example model 1."""

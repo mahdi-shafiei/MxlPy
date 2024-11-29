@@ -5,6 +5,8 @@ from __future__ import annotations
 from modelbase2 import Model
 from modelbase2.fns import constant, mass_action_1s, michaelis_menten_1s
 
+__all__ = ["get_lin_chain_two_circles", "get_linear_chain_1v", "get_linear_chain_2v"]
+
 
 def get_linear_chain_1v() -> Model:
     """Linear chain of reactions with one variable."""

@@ -1,5 +1,7 @@
 from modelbase2 import Model
 
+__all__ = ["filter_stoichiometry"]
+
 
 def filter_stoichiometry(
     model: Model,
