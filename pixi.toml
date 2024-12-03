@@ -1,0 +1,20 @@
+[dependencies]
+assimulo = ">=3.5.2"
+python = ">=3.12.0,<3.13"
+pip = ">=24.3.1,<25"
+ipykernel = ">=6.29.5,<7"
+
+[project]
+name = "modelbase2"
+channels = ["conda-forge"]
+platforms = ["linux-64", "win-64", "osx-arm64"]
+
+[pypi-dependencies]
+modelbase2 = {path = ".", extras = ['dev'], editable = true}
+
+[target.win-64.dependencies]
+posix = ">=1.0.0,<2"
+
+
+[target.osx-arm64.dependencies]
+clang = "*"
