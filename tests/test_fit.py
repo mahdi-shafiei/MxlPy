@@ -93,7 +93,7 @@ def test_steady_state_residual() -> None:
         Model()
         .add_parameters({"k1": 1.0})
         .add_variables({"x1": 1.0})
-        .add_reaction("v1", constant, {"x1": 1.0}, ["k1"])
+        .add_reaction("v1", constant, stoichiometry={"x1": 1.0}, args=["k1"])
     )
 
     residual = fit._steady_state_residual(
@@ -112,7 +112,7 @@ def test_time0_series_residual() -> None:
         Model()
         .add_parameters({"k1": 1.0})
         .add_variables({"x1": 1.0})
-        .add_reaction("v1", constant, {"x1": 1.0}, ["k1"])
+        .add_reaction("v1", constant, stoichiometry={"x1": 1.0}, args=["k1"])
     )
 
     residual = fit._time_course_residual(
