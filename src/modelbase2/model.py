@@ -39,6 +39,16 @@ class SortError(Exception):
     This typically indicates circular dependencies in model components.
     """
 
+    def __init__(self, unsorted: list[str], order: list[str]) -> None:
+        """Initialise exception."""
+        msg = (
+            f"Exceeded max iterations on sorting derived. "
+            "Check if there are circular references.\n"
+            f"Available: {unsorted}\n"
+            f"Order: {order}"
+        )
+        super().__init__(msg)
+
 
 def _get_all_args(argspec: FullArgSpec) -> list[str]:
     kwonly = [] if argspec.kwonlyargs is None else argspec.kwonlyargs
@@ -66,7 +76,10 @@ def _check_function_arity(function: Callable, arity: int) -> bool:
 
 
 class ArityMismatchError(Exception):
+    """Mismatch between python function and model arguments."""
+
     def __init__(self, name: str, fn: Callable, args: list[str]) -> None:
+        """Format message."""
         argspec = inspect.getfullargspec(fn)
 
         message = f"Function arity mismatch for {name}.\n"
@@ -106,14 +119,13 @@ def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetTy
 
 
 def _sort_dependencies(
-    available: set[str], elements: list[tuple[str, set[str]]], ctx: str
+    available: set[str], elements: list[tuple[str, set[str]]]
 ) -> list[str]:
     """Sort model elements topologically based on their dependencies.
 
     Args:
         available: Set of available component names
         elements: List of (name, dependencies) tuples to sort
-        ctx: Context string for error messages
 
     Returns:
         List of element names in dependency order
@@ -156,13 +168,7 @@ def _sort_dependencies(
                     unsorted.append(queue.get_nowait()[0])
                 except Empty:
                     break
-            msg = (
-                f"Exceeded max iterations on sorting {ctx}. "
-                "Check if there are circular references.\n"
-                f"Available: {unsorted}\n"
-                f"Order: {order}"
-            )
-            raise SortError(msg)
+            raise SortError(unsorted=unsorted, order=order)
     return order
 
 
@@ -247,7 +253,6 @@ class Model:
         derived_order = _sort_dependencies(
             available=set(self._parameters) | set(self._variables) | {"time"},
             elements=[(k, set(v.args)) for k, v in self._derived.items()],
-            ctx="derived",
         )
 
         # Split derived into parameters and variables
