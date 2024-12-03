@@ -8,6 +8,8 @@ metabolic models, including reactions, variables, parameters and derived quantit
 from __future__ import annotations
 
 import copy
+import inspect
+import itertools as it
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Self, cast
 
@@ -21,14 +23,11 @@ from modelbase2.types import (
     Readout,
 )
 
-__all__ = [
-    "Model",
-    "ModelCache",
-    "SortError",
-]
+__all__ = ["ArityMismatchError", "Model", "ModelCache", "SortError"]
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
+    from inspect import FullArgSpec
 
     from modelbase2.surrogates import AbstractSurrogate
     from modelbase2.types import Callable, Param, RateFn, RetType
@@ -39,6 +38,49 @@ class SortError(Exception):
 
     This typically indicates circular dependencies in model components.
     """
+
+
+def _get_all_args(argspec: FullArgSpec) -> list[str]:
+    kwonly = [] if argspec.kwonlyargs is None else argspec.kwonlyargs
+    return argspec.args + kwonly
+
+
+def _check_function_arity(function: Callable, arity: int) -> bool:
+    """Check if the amount of arguments given fits the argument count of the function."""
+    argspec = inspect.getfullargspec(function)
+    # Give up on *args functions
+    if argspec.varargs is not None:
+        return True
+
+    # The sane case
+    if len(argspec.args) == arity:
+        return True
+
+    # It might be that the user has set some args to default values,
+    # in which case they are also ok (might be kwonly as well)
+    defaults = argspec.defaults
+    if defaults is not None and len(argspec.args) + len(defaults) == arity:
+        return True
+    kwonly = argspec.kwonlyargs
+    return bool(defaults is not None and len(argspec.args) + len(kwonly) == arity)
+
+
+class ArityMismatchError(Exception):
+    def __init__(self, name: str, fn: Callable, args: list[str]) -> None:
+        argspec = inspect.getfullargspec(fn)
+
+        message = f"Function arity mismatch for {name}.\n"
+        message += "\n".join(
+            (
+                f"{i:<8.8} | {j:<10.10}"
+                for i, j in [
+                    ("Fn args", "Model args"),
+                    ("-------", "----------"),
+                    *it.zip_longest(argspec.args, args, fillvalue="---"),
+                ]
+            )
+        )
+        super().__init__(message)
 
 
 def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetType]:
@@ -191,6 +233,15 @@ class Model:
         """
         parameter_values: dict[str, float] = self._parameters.copy()
         all_parameter_names: set[str] = set(parameter_values)
+
+        # Sanity checks
+        for name, el in it.chain(
+            self._derived.items(),
+            self._readouts.items(),
+            self._reactions.items(),
+        ):
+            if not _check_function_arity(el.fn, len(el.args)):
+                raise ArityMismatchError(name, el.fn, el.args)
 
         # Sort derived
         derived_order = _sort_dependencies(
