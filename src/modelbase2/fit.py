@@ -193,7 +193,7 @@ def steady_state(
 
     Examples:
         >>> steady_state(model, p0, data)
-            {'k1': 0.1, 'k2': 0.2}
+        {'k1': 0.1, 'k2': 0.2}
 
     Args:
         model: Model instance to fit
@@ -247,7 +247,7 @@ def time_course(
 
     Examples:
         >>> time_course(model, p0, data)
-            {'k1': 0.1, 'k2': 0.2}
+        {'k1': 0.1, 'k2': 0.2}
 
     Args:
         model: Model instance to fit

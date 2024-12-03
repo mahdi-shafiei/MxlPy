@@ -322,6 +322,17 @@ def train_torch_surrogate(
 ) -> tuple[TorchSurrogate, pd.Series]:
     """Train a PyTorch surrogate model.
 
+    Examples:
+        >>> train_torch_surrogate(
+        ...     features,
+        ...     targets,
+        ...     epochs=100,
+        ...     surrogate_inputs=["x1", "x2"],
+        ...     surrogate_stoichiometries={
+        ...         "v1": {"x1": -1, "x2": 1, "ATP": -1},
+        ...     },
+        ...)
+
     Args:
         features: DataFrame containing the input features for training.
         targets: DataFrame containing the target values for training.

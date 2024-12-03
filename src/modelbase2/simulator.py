@@ -156,6 +156,12 @@ class Simulator:
     ) -> Self:
         """Simulate the model.
 
+        Examples:
+            >>> Simulator(model).simulate(t_end=100)
+            >>> Simulator(model).simulate(t_end=100, steps=100)
+            >>> Simulator(model).simulate(time_points=[0, 10, 20])
+            >>> Simulator(model, y0).simulate(t_end=100)
+
         You can either supply only a terminal time point, or additionally also the
         number of steps or exact time points for which values should be returned.
 
@@ -221,6 +227,11 @@ class Simulator:
     ) -> Self:
         """Simulate the model to steady state.
 
+        Examples:
+            >>> Simulator(model).simulate_to_steady_state()
+            >>> Simulator(model).simulate_to_steady_state(tolerance=1e-8)
+            >>> Simulator(model).simulate_to_steady_state(rel_norm=True)
+
         You can either supply only a terminal time point, or additionally also the
         number of steps or exact time points for which values should be returned.
 
@@ -256,6 +267,12 @@ class Simulator:
         time_points_per_step: int = 10,
     ) -> Self:
         """Simulate the model over a given protocol.
+
+        Examples:
+            >>> Simulator(model).simulate_over_protocol(
+            ...     protocol,
+            ...     time_points_per_step=10
+            ... )
 
         Args:
             protocol: DataFrame containing the protocol.
@@ -322,6 +339,13 @@ class Simulator:
     ) -> None | pd.DataFrame | list[pd.DataFrame]:
         """Get the concentration results.
 
+        Examples:
+            >>> Simulator(model).get_concs()
+            Time            ATP      NADPH
+            0.000000   1.000000   1.000000
+            0.000100   0.999900   0.999900
+            0.000200   0.999800   0.999800
+
         Returns:
             pd.DataFrame: DataFrame of concentrations.
 
@@ -373,8 +397,14 @@ class Simulator:
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
         """Get the full concentration results, including derived quantities.
 
-        Returns:
-            pd.DataFrame: DataFrame of full concentrations.
+        Examples:
+            >>> Simulator(model).get_full_concs()
+            Time            ATP      NADPH
+            0.000000   1.000000   1.000000
+            0.000100   0.999900   0.999900
+            0.000200   0.999800   0.999800
+
+        Returns: DataFrame of full concentrations.
 
         """
         if (concs := self.concs) is None:
@@ -431,6 +461,13 @@ class Simulator:
     ) -> pd.DataFrame | list[pd.DataFrame] | None:
         """Get the flux results.
 
+        Examples:
+            >>> Simulator(model).get_fluxes()
+            Time             v1         v2
+            0.000000   1.000000   10.00000
+            0.000100   0.999900   9.999000
+            0.000200   0.999800   9.998000
+
         Returns:
             pd.DataFrame: DataFrame of fluxes.
 
@@ -459,6 +496,11 @@ class Simulator:
     def get_concs_and_fluxes(self) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
         """Get the concentrations and fluxes.
 
+        Examples:
+            >>> Simulator(model).get_concs_and_fluxes()
+            (concs, fluxes)
+
+
         Returns:
             tuple[pd.DataFrame, pd.DataFrame]: Tuple of concentrations and fluxes.
 
@@ -471,6 +513,9 @@ class Simulator:
         include_readouts: bool = True,
     ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
         """Get the full concentrations and fluxes.
+
+        >>> Simulator(model).get_full_concs_and_fluxes()
+        (full_concs, full_fluxes)
 
         Args:
             include_readouts: Whether to include readouts in the results.
@@ -487,6 +532,13 @@ class Simulator:
     def get_results(self) -> pd.DataFrame | None:
         """Get the combined results of concentrations and fluxes.
 
+        Examples:
+            >>> Simulator(model).get_results()
+            Time            ATP      NADPH         v1         v2
+            0.000000   1.000000   1.000000   1.000000   1.000000
+            0.000100   0.999900   0.999900   0.999900   0.999900
+            0.000200   0.999800   0.999800   0.999800   0.999800
+
         Returns:
             pd.DataFrame: Combined DataFrame of concentrations and fluxes.
 
@@ -497,20 +549,38 @@ class Simulator:
         return pd.concat((c, v), axis=1)
 
     def get_full_results(self) -> pd.DataFrame | None:
-        """Get the combined full results of concentrations and fluxes."""
+        """Get the combined full results of concentrations and fluxes.
+
+        Examples:
+            >>> Simulator(model).get_full_results()
+            Time            ATP      NADPH         v1         v2
+            0.000000   1.000000   1.000000   1.000000   1.000000
+            0.000100   0.999900   0.999900   0.999900   0.999900
+            0.000200   0.999800   0.999800   0.999800   0.999800
+
+        """
         c, v = self.get_full_concs_and_fluxes()
         if c is None or v is None:
             return None
         return pd.concat((c, v), axis=1)
 
     def get_new_y0(self) -> dict[str, float] | None:
-        """Get the new initial conditions after the simulation."""
+        """Get the new initial conditions after the simulation.
+
+        Examples:
+            >>> Simulator(model).get_new_y0()
+            {"ATP": 1.0, "NADPH": 1.0}
+
+        """
         if (res := self.get_concs()) is None:
             return None
         return dict(res.iloc[-1])
 
     def update_parameter(self, parameter: str, value: float) -> Self:
         """Updates the value of a specified parameter in the model.
+
+        Examples:
+            >>> Simulator(model).update_parameter("k1", 0.1)
 
         Args:
             parameter: The name of the parameter to update.
@@ -523,6 +593,9 @@ class Simulator:
     def update_parameters(self, parameters: dict[str, float]) -> Self:
         """Updates the model parameters with the provided dictionary of parameters.
 
+        Examples:
+            >>> Simulator(model).update_parameters({"k1": 0.1, "k2": 0.2})
+
         Args:
             parameters: A dictionary where the keys are parameter names
                         and the values are the new parameter values.
@@ -534,6 +607,9 @@ class Simulator:
     def scale_parameter(self, parameter: str, factor: float) -> Self:
         """Scales the value of a specified parameter in the model.
 
+        Examples:
+            >>> Simulator(model).scale_parameter("k1", 0.1)
+
         Args:
             parameter: The name of the parameter to scale.
             factor: The factor by which to scale the parameter.
@@ -544,6 +620,9 @@ class Simulator:
 
     def scale_parameters(self, parameters: dict[str, float]) -> Self:
         """Scales the values of specified parameters in the model.
+
+        Examples:
+            >>> Simulator(model).scale_parameters({"k1": 0.1, "k2": 0.2})
 
         Args:
             parameters: A dictionary where the keys are parameter names

@@ -234,6 +234,14 @@ class LinearLabelMapper:
     ) -> Model:
         """Build a metabolic model with labeled isotopomers and reactions.
 
+        Examples:
+            >>> mapper = LinearLabelMapper(
+            ...     model,
+            ...     label_variables={"A": 2, "B": 2},
+            ...     label_maps={"v1": [0, 1], "v2": [1, 2]},
+            ... )
+            >>> mapper.build_model(concs, fluxes)
+
         Args:
             concs : pd.Series
                 A pandas Series containing concentration values for metabolites.

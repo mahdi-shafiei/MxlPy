@@ -524,6 +524,16 @@ class LabelMapper:
     ) -> Model:
         """Build new model with labeled species and reactions.
 
+        Examples:
+            >>> mapper = LabelMapper(
+            ...     model,
+            ...     label_variables={"A": 2, "B": 2},
+            ...     label_maps={"v1": [0, 1], "v2": [1, 2]},
+            ... )
+            >>> mapper.build_model()
+            >>> mapper.build_model(initial_labels={"A": 1})
+            >>> mapper.build_model(initial_labels={"A": 1, "B": [0, 1]})
+
         Args:
             initial_labels: Dict mapping species to initial label positions.
                           Can be single position (int) or multiple (list).

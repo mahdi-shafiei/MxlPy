@@ -879,6 +879,22 @@ class Model:
         """
         return copy.deepcopy(self._reactions)
 
+    def get_stoichiometries(self) -> pd.DataFrame:
+        """Retrieve the stoichiometries of the model.
+
+        Examples:
+            >>> model.stoichiometries()
+                v1  v2
+            x1 -1   1
+            x2  1  -1
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the stoichiometries of the model.
+
+        """
+        stoich_by_cpds = self._create_cache().stoich_by_cpds
+        return pd.DataFrame(stoich_by_cpds).T.fillna(0)
+
     @_invalidate_cache
     def add_reaction(
         self,

@@ -103,6 +103,10 @@ def parallelise[K: Hashable, Tin, Tout](
 ) -> dict[Tin, Tout]:
     """Execute a function in parallel over a collection of inputs.
 
+    Examples:
+        >>> parallelise(square, [("a", 2), ("b", 3), ("c", 4)])
+        {"a": 4, "b": 9, "c": 16}
+
     Args:
         fn: Function to execute in parallel. Takes a single input and returns a result.
         inputs: Collection of (key, input) tuples to process.

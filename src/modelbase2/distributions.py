@@ -211,13 +211,23 @@ def sample(
 ) -> pd.DataFrame:
     """Generate samples from the specified distributions.
 
+    Examples:
+        >>> sample({"beta": Beta(a=1.0, b=1.0),
+        ...         "uniform": Uniform(lower_bound=0.0, upper_bound=1.0),
+        ...         "normal": Normal(loc=1.0, scale=0.1),
+        ...         "log_normal": LogNormal(mean=1.0, sigma=0.1),
+        ...         "skewnorm": Skewnorm(loc=1.0, scale=0.1, a=5.0),},
+        ...         n=2,)
+                   beta   uniform    normal  log_normal  skewnorm
+            0  0.253043  0.682496  1.067891    2.798020  1.216259
+            1  0.573357  0.139752  1.006758    2.895416  1.129373
+
     Args:
         parameters: Dictionary mapping parameter names to distribution objects.
         n: Number of samples to generate.
         rng: Random number generator.
 
-    Returns:
-        pd.DataFrame: DataFrame containing the generated samples.
+    Returns: DataFrame containing the generated samples.
 
     """
     return pd.DataFrame({k: v.sample(n, rng) for k, v in parameters.items()})

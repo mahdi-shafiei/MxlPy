@@ -188,6 +188,13 @@ class TimePoint:
     def results(self) -> pd.Series:
         """Get the combined results of concentrations and fluxes.
 
+        Example:
+            >>> time_point.results
+            x1    1.0
+            x2    0.5
+            v1    0.1
+            v2    0.2
+
         Returns:
             pd.Series: Combined series of concentrations and fluxes.
 
@@ -239,6 +246,13 @@ class TimeCourse:
     @property
     def results(self) -> pd.DataFrame:
         """Get the combined results of concentrations and fluxes over time.
+
+        Examples:
+            >>> time_course.results
+            Time   x1     x2     v1     v2
+            0.0   1.0   1.00   1.00   1.00
+            0.1   0.9   0.99   0.99   0.99
+            0.2   0.8   0.99   0.99   0.99
 
         Returns:
             pd.DataFrame: Combined DataFrame of concentrations and fluxes.
@@ -405,12 +419,10 @@ def steady_state(
         >>>     model,
         >>>     parameters=pd.DataFrame({"k1": np.linspace(1, 2, 3)})
         >>> ).concs
-
-        |  idx |    x |   y |
-        |-----:|-----:|----:|
-        |  1   | 0.5  | 1   |
-        |  1.5 | 0.75 | 1.5 |
-        |  2   | 1    | 2   |
+        idx      x      y
+        1.0   0.50   1.00
+        1.5   0.75   1.50
+        2.0   1.00   2.00
 
         >>> steady_state(
         >>>     model,
@@ -418,7 +430,6 @@ def steady_state(
         >>> ).concs
 
         | idx    |    x |   y |
-        |:-------|-----:|----:|
         | (1, 3) | 0.33 |   1 |
         | (1, 4) | 0.25 |   1 |
         | (2, 3) | 0.66 |   2 |
@@ -463,18 +474,6 @@ def time_course(
 ) -> TimeCourseByPars:
     """Get time course for each supplied parameter.
 
-    Args:
-        model: Model instance to simulate.
-        parameters: DataFrame containing parameter values to scan.
-        time_points: Array of time points for the simulation.
-        y0: Initial conditions as a dictionary {variable: value}.
-        cache: Optional cache to store and retrieve results.
-        parallel: Whether to execute in parallel (default: True).
-        worker: Worker function to use for the simulation.
-
-    Returns:
-        TimeCourseByPars: Time series results for each parameter set.
-
     Examples:
         >>> time_course(
         >>>     model,
@@ -507,6 +506,19 @@ def time_course(
         | (1, 0.0)  | 1        | 1      |
         | (1, 0.5)  | 0.351501 | 1.4712 |
         | (2, 0.0)  | 1        | 1      |
+
+    Args:
+        model: Model instance to simulate.
+        parameters: DataFrame containing parameter values to scan.
+        time_points: Array of time points for the simulation.
+        y0: Initial conditions as a dictionary {variable: value}.
+        cache: Optional cache to store and retrieve results.
+        parallel: Whether to execute in parallel (default: True).
+        worker: Worker function to use for the simulation.
+
+    Returns:
+        TimeCourseByPars: Time series results for each parameter set.
+
 
     """
     res = parallelise(
@@ -544,6 +556,18 @@ def time_course_over_protocol(
     worker: ProtocolWorker = _protocol_worker,
 ) -> ProtocolByPars:
     """Get protocol series for each supplied parameter.
+
+    Examples:
+        >>> scan.time_course_over_protocol(
+        ...     model,
+        ...     parameters=pd.DataFrame({"k2": np.linspace(1, 2, 11)}),
+        ...     protocol=make_protocol(
+        ...         {
+        ...             1: {"k1": 1},
+        ...             2: {"k1": 2},
+        ...         }
+        ...     ),
+        ... )
 
     Args:
         model: Model instance to simulate.

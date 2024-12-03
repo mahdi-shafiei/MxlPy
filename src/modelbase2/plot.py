@@ -34,6 +34,7 @@ __all__ = [
     "relative_label_distribution",
     "rotate_xlabels",
     "shade_protocol",
+    "trajectories_2d",
     "two_axes",
     "violins",
     "violins_from_2d_idx",
@@ -63,7 +64,8 @@ if TYPE_CHECKING:
     from matplotlib.collections import QuadMesh
 
     from modelbase2.linear_label_map import LinearLabelMapper
-    from modelbase2.types import Array
+    from modelbase2.model import Model
+    from modelbase2.types import Array, ArrayLike
 
 type FigAx = tuple[Figure, Axes]
 type FigAxs = tuple[Figure, list[Axes]]
@@ -713,6 +715,53 @@ def shade_protocol(
                 title="protocol" if protocol.name is None else cast(str, protocol.name),
             )
         )
+
+
+##########################################################################
+# Plots that actually require a model :/
+##########################################################################
+
+
+def trajectories_2d(
+    model: Model,
+    x1: tuple[str, ArrayLike],
+    x2: tuple[str, ArrayLike],
+    y0: dict[str, float] | None = None,
+    ax: Axes | None = None,
+) -> FigAx:
+    """Plot trajectories of two variables in a 2D phase space.
+
+    Examples:
+        >>> trajectories_2d(
+        ...     model,
+        ...     ("S", np.linspace(0, 1, 10)),
+        ...     ("P", np.linspace(0, 1, 10)),
+        ... )
+
+    Args:
+        model: Model to use for the plot.
+        x1: Tuple of the first variable name and its values.
+        x2: Tuple of the second variable name and its values.
+        y0: Initial conditions for the model.
+        ax: Axes to use for the plot.
+
+    """
+    name1, values1 = x1
+    name2, values2 = x2
+    n1 = len(values1)
+    n2 = len(values2)
+    u = np.zeros((n1, n2))
+    v = np.zeros((n1, n2))
+    y0 = model.get_initial_conditions() if y0 is None else y0
+    for i, ii in enumerate(values1):
+        for j, jj in enumerate(values2):
+            rhs = model.get_right_hand_side(y0 | {name1: ii, name2: jj})
+            u[i, j] = rhs[name1]
+            v[i, j] = rhs[name2]
+
+    fig, ax = _default_fig_ax(ax=ax, grid=False)
+    ax.quiver(values1, values2, u.T, v.T)
+    return fig, ax
 
 
 ##########################################################################

@@ -132,20 +132,21 @@ def steady_state(
 ) -> SteadyStates:
     """Monte-carlo scan of steady states.
 
+    Examples:
+        >>> steady_state(model, mc_parameters)
+        p    t     x      y
+        0    0.0   0.1    0.00
+            1.0   0.2    0.01
+            2.0   0.3    0.02
+            3.0   0.4    0.03
+            ...   ...    ...
+        1    0.0   0.1    0.00
+            1.0   0.2    0.01
+            2.0   0.3    0.02
+            3.0   0.4    0.03
+
     Returns:
         SteadyStates: Object containing the steady state solutions for the given parameter
-
-    Examples:
-    p    t     x      y
-    0    0.0   0.1    0.00
-         1.0   0.2    0.01
-         2.0   0.3    0.02
-         3.0   0.4    0.03
-         ...   ...    ...
-    1    0.0   0.1    0.00
-         1.0   0.2    0.01
-         2.0   0.3    0.02
-         3.0   0.4    0.03
 
     """
     res = parallelise(
@@ -182,21 +183,21 @@ def time_course(
 ) -> TimeCourseByPars:
     """MC time course.
 
-    Returns:
-        tuple[concentrations, fluxes] using pandas multiindex
-        Both dataframes are of shape (#time_points * #mc_parameters, #variables)
-
-        E.g.
+    Examples:
+        >>> time_course(model, time_points, mc_parameters)
         p    t     x      y
-        0    0.0   0.1    0.00
+        0   0.0   0.1    0.00
             1.0   0.2    0.01
             2.0   0.3    0.02
             3.0   0.4    0.03
             ...   ...    ...
-        1    0.0   0.1    0.00
+        1   0.0   0.1    0.00
             1.0   0.2    0.01
             2.0   0.3    0.02
             3.0   0.4    0.03
+    Returns:
+        tuple[concentrations, fluxes] using pandas multiindex
+        Both dataframes are of shape (#time_points * #mc_parameters, #variables)
 
     """
     res = parallelise(
@@ -234,21 +235,22 @@ def time_course_over_protocol(
 ) -> ProtocolByPars:
     """MC time course.
 
-    Returns:
-        tuple[concentrations, fluxes] using pandas multiindex
-        Both dataframes are of shape (#time_points * #mc_parameters, #variables)
-
-        E.g.
+    Examples:
+        >>> time_course_over_protocol(model, protocol, mc_parameters)
         p    t     x      y
-        0    0.0   0.1    0.00
+        0   0.0   0.1    0.00
             1.0   0.2    0.01
             2.0   0.3    0.02
             3.0   0.4    0.03
             ...   ...    ...
-        1    0.0   0.1    0.00
+        1   0.0   0.1    0.00
             1.0   0.2    0.01
             2.0   0.3    0.02
             3.0   0.4    0.03
+
+    Returns:
+        tuple[concentrations, fluxes] using pandas multiindex
+        Both dataframes are of shape (#time_points * #mc_parameters, #variables)
 
     """
     res = parallelise(
@@ -288,6 +290,23 @@ def scan_steady_state(
     worker: ParameterScanWorker = _parameter_scan_worker,
 ) -> McSteadyStates:
     """Parameter scan of mc distributed steady states.
+
+    Examples:
+        >>> scan_steady_state(
+        ...     model,
+        ...     parameters=pd.DataFrame({"k1": np.linspace(0, 1, 3)}),
+        ...     mc_parameters=mc_parameters,
+        ... ).concs
+                  x     y
+          k1
+        0 0.0 -0.00 -0.00
+          0.5  0.44  0.20
+          1.0  0.88  0.40
+        1 0.0 -0.00 -0.00
+          0.5  0.45  0.14
+          1.0  0.90  0.28
+
+
 
     Args:
         model: The model to analyze
@@ -342,6 +361,21 @@ def compound_elasticities(
 ) -> pd.DataFrame:
     """Calculate compound elasticities using Monte Carlo analysis.
 
+    Examples:
+        >>> compound_elasticities(
+        ...     model,
+        ...     variables=["x1", "x2"],
+        ...     concs={"x1": 1, "x2": 2},
+        ...     mc_parameters=mc_parameters
+        ... )
+                 x1     x2
+        0   v1  0.0    0.0
+            v2  1.0    0.0
+            v3  0.0   -1.4
+        1   v1  0.0    0.0
+            v2  1.0    0.0
+            v3  0.0   -1.4
+
     Args:
         model: The model to analyze
         variables: List of variables for which to calculate elasticities
@@ -390,6 +424,21 @@ def parameter_elasticities(
     displacement: float = 1e-4,
 ) -> pd.DataFrame:
     """Calculate parameter elasticities using Monte Carlo analysis.
+
+    Examples:
+        >>> parameter_elasticities(
+        ...     model,
+        ...     variables=["p1", "p2"],
+        ...     concs={"x1": 1, "x2": 2},
+        ...     mc_parameters=mc_parameters
+        ... )
+                 p1     p2
+        0   v1  0.0    0.0
+            v2  1.0    0.0
+            v3  0.0   -1.4
+        1   v1  0.0    0.0
+            v2  1.0    0.0
+            v3  0.0   -1.4
 
     Args:
         model: The model to analyze
@@ -440,6 +489,18 @@ def response_coefficients(
     rel_norm: bool = False,
 ) -> ResponseCoefficientsByPars:
     """Calculate response coefficients using Monte Carlo analysis.
+
+    Examples:
+        >>> response_coefficients(
+        ...     model,
+        ...     parameters=["vmax1", "vmax2"],
+        ...     mc_parameters=mc_parameters,
+        ... ).concs
+                    x1    x2
+        0 vmax_1  0.01  0.01
+          vmax_2  0.02  0.02
+        1 vmax_1  0.03  0.03
+          vmax_2  0.04  0.04
 
     Args:
         model: The model to analyze

@@ -59,6 +59,14 @@ def variable_elasticities(
     Computes the sensitivity of reaction rates to changes in metabolite
     concentrations (ε-elasticities).
 
+    Examples:
+        >>> variable_elasticities(model, concs={"A": 1.0, "B": 2.0})
+        Rxn     A     B
+         v1   0.0   0.0
+         v2   1.0   0.0
+         v3   0.0   5.0
+
+
     Args:
         model: Metabolic model instance
         concs: Initial concentrations {metabolite: value}. Uses model defaults if None
@@ -103,6 +111,13 @@ def parameter_elasticities(
     displacement: float = _DISPLACEMENT,
 ) -> pd.DataFrame:
     """Calculate parameter elasticity coefficients.
+
+    Examples:
+        >>> parameter_elasticities(model)
+        Rxn    k1    k2
+         v1   1.0   0.0
+         v2   0.0   1.0
+         v3   0.0   0.0
 
     Args:
         model: Metabolic model instance
@@ -222,6 +237,12 @@ def response_coefficients(
     rel_norm: bool = False,
 ) -> ResponseCoefficients:
     """Calculate response coefficients.
+
+    Examples:
+        >>> response_coefficients(model, parameters=["k1", "k2"]).concs
+        p    x1    x2
+        k1  1.4  1.31
+        k2 -1.0 -2.49
 
     Args:
         model: Metabolic model instance

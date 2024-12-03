@@ -92,7 +92,7 @@ def add_dummy_compound(m: Model, y0: dict[str, float]) -> None:
 
 def routine(test: int) -> bool:
     m, sim_settings, expected = get_files(test=test)
-    if len(m.stoichiometries) == 0:
+    if len(m.get_stoichiometries) == 0:
         add_dummy_compound(m)
 
     # Make them a bit harder, such that we guarantee we are getting the required ones

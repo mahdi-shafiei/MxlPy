@@ -221,6 +221,9 @@ def train_torch_ss_estimator(
     using the provided features and targets. It supports both full-batch and
     mini-batch training.
 
+    Examples:
+        >>> train_torch_ss_estimator(features, targets, epochs=100)
+
     Args:
         features: DataFrame containing the input features for training
         targets: DataFrame containing the target values for training
@@ -283,6 +286,9 @@ def train_torch_time_course_estimator(
     This function trains a neural network model to estimate time course data
     using the provided features and targets. It supports both full-batch and
     mini-batch training.
+
+    Examples:
+        >>> train_torch_time_course_estimator(features, targets, epochs=100)
 
     Args:
         features: DataFrame containing the input features for training
