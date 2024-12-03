@@ -14,6 +14,7 @@ from modelbase2.sbml._data import AtomicUnit, Compartment
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
     from modelbase2.model import Model
 
@@ -24,7 +25,7 @@ __all__ = [
     "RE_LAMBDA_RATE_FUNC",
     "RE_TO_SBML",
     "SBML_DOT",
-    "to_sbml",
+    "write",
 ]
 
 RE_LAMBDA_FUNC = re.compile(r".*(lambda)(.+?):(.*?)")
@@ -354,6 +355,12 @@ def _default_compartments(
     return compartments
 
 
+def _default_model_name(model_name: str | None) -> str:
+    if model_name is None:
+        return "model"
+    return model_name
+
+
 def _default_units(units: dict[str, AtomicUnit] | None) -> dict[str, AtomicUnit]:
     if units is None:
         return {
@@ -367,11 +374,11 @@ def _default_units(units: dict[str, AtomicUnit] | None) -> dict[str, AtomicUnit]
     return units
 
 
-def to_sbml(
+def write(
     model: Model,
-    filename: str,
-    model_name: str,
+    file: Path | str,
     *,
+    model_name: str | None = None,
     units: dict[str, AtomicUnit] | None = None,
     compartments: dict[str, Compartment] | None = None,
     extent_units: str = "mole",
@@ -382,7 +389,7 @@ def to_sbml(
 
     Args:
         model: Model instance to export.
-        filename: Name of the SBML file to create.
+        file: Name of the SBML file to create.
         model_name: Name of the model.
         units: Dictionary of units to use in the SBML file (default: None).
         compartments: Dictionary of compartments to use in the SBML file (default: None).
@@ -396,7 +403,7 @@ def to_sbml(
     """
     doc = _model_to_sbml(
         model=model,
-        model_name=model_name,
+        model_name=_default_model_name(model_name),
         units=_default_units(units),
         extent_units=extent_units,
         substance_units=substance_units,
@@ -404,5 +411,5 @@ def to_sbml(
         compartments=_default_compartments(compartments),
     )
 
-    libsbml.writeSBMLToFile(doc, filename)
+    libsbml.writeSBMLToFile(doc, str(file))
     return None

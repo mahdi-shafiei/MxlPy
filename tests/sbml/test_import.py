@@ -10,7 +10,7 @@ import pandas as pd
 import pytest
 
 from modelbase2 import Simulator
-from modelbase2.sbml import from_sbml
+from modelbase2.sbml import read
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
@@ -75,7 +75,7 @@ def get_files(test: int) -> tuple[Model, dict, pd.DataFrame]:
     path = ASSET_PATH / prefix
     sim_settings = get_simulation_settings(path=path, prefix=prefix)
     expected = pd.read_csv(path / f"{prefix}-results.csv", index_col=0)
-    return from_sbml(file=path / f"{prefix}-sbml-l3v2.xml"), sim_settings, expected
+    return read(file=path / f"{prefix}-sbml-l3v2.xml"), sim_settings, expected
 
 
 def add_dummy_compound(m: Model, y0: dict[str, float]) -> None:

@@ -29,7 +29,7 @@ from modelbase2.sbml._unit_conversion import get_operator_mappings, get_unit_con
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-__all__ = ["INDENT", "OPERATOR_MAPPINGS", "Parser", "UNIT_CONVERSION", "from_sbml"]
+__all__ = ["INDENT", "OPERATOR_MAPPINGS", "Parser", "UNIT_CONVERSION", "read"]
 
 UNIT_CONVERSION = get_unit_conversion()
 OPERATOR_MAPPINGS = get_operator_mappings()
@@ -397,7 +397,7 @@ def _translate(sbml: Parser) -> Model:
     return m
 
 
-def from_sbml(file: Path | str) -> Model:
+def read(file: Path | str) -> Model:
     """Import a metabolic model from an SBML file.
 
     Args:

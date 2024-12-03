@@ -33,16 +33,26 @@ def get_example1() -> Model:
     model.add_reaction(
         "v2",
         michaelis_menten_2s,
-        filter_stoichiometry(model, {"x1": -1, "ATP": -1, "x2": 1}),
-        ["x1", "ATP", "vmax_v2", "km_v2_1", "km_v2_2"],
+        args=["x1", "ATP", "vmax_v2", "km_v2_1", "km_v2_2"],
+        stoichiometry=filter_stoichiometry(model, {"x1": -1, "ATP": -1, "x2": 1}),
     )
     model.add_reaction(
         "v3",
         michaelis_menten_2s,
-        filter_stoichiometry(model, {"x1": -1, "NADPH": -1, "x3": 1}),
-        ["x1", "ATP", "vmax_v3", "km_v3_1", "km_v3_2"],
+        args=["x1", "ATP", "vmax_v3", "km_v3_1", "km_v3_2"],
+        stoichiometry=filter_stoichiometry(model, {"x1": -1, "NADPH": -1, "x3": 1}),
     )
-    model.add_reaction("x2_out", constant, {"x2": -1}, ["x2"])
-    model.add_reaction("x3_out", constant, {"x3": -1}, ["x3"])
+    model.add_reaction(
+        "x2_out",
+        constant,
+        args=["x2"],
+        stoichiometry={"x2": -1},
+    )
+    model.add_reaction(
+        "x3_out",
+        constant,
+        args=["x3"],
+        stoichiometry={"x3": -1},
+    )
 
     return model

@@ -13,7 +13,7 @@ repos:
         files: \.ipynb$
         stages: [pre-commit]
         language: system
-        entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace
+        entry: uvx --from nbconvert jupyter-nbconvert --ClearOutputPreprocessor.enabled=True --inplace
 
   - repo: https://github.com/aio-libs/sort-all
     rev: v1.3.0

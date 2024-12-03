@@ -117,7 +117,7 @@ class AbstractEstimator:
     parameter_names: list[str]
 
     @abstractmethod
-    def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+    def predict(self, features: pd.Series | pd.DataFrame) -> pd.DataFrame:
         """Predict the target values for the given features."""
 
 
@@ -127,7 +127,7 @@ class TorchSSEstimator(AbstractEstimator):
 
     model: torch.nn.Module
 
-    def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+    def predict(self, features: pd.Series | pd.DataFrame) -> pd.DataFrame:
         """Predict the target values for the given features."""
         with torch.no_grad():
             pred = self.model(torch.tensor(features.to_numpy(), dtype=torch.float32))
@@ -140,7 +140,7 @@ class TorchTimeCourseEstimator(AbstractEstimator):
 
     model: torch.nn.Module
 
-    def predict(self, features: pd.DataFrame) -> pd.DataFrame:
+    def predict(self, features: pd.Series | pd.DataFrame) -> pd.DataFrame:
         """Predict the target values for the given features."""
         idx = cast(pd.MultiIndex, features.index)
         features_ = torch.Tensor(
