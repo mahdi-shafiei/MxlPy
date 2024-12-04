@@ -18,9 +18,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
@@ -29,9 +27,7 @@ import tqdm
 from torch import nn
 from torch.optim.adam import Adam
 
-from modelbase2 import Simulator
-from modelbase2.parallel import Cache, parallelise
-from modelbase2.scan import _empty_flux_series
+from modelbase2.parallel import Cache
 
 __all__ = [
     "AbstractSurrogate",
@@ -40,12 +36,9 @@ __all__ = [
     "DefaultDevice",
     "MockSurrogate",
     "TorchSurrogate",
-    "create_ss_flux_data",
     "train_torch_surrogate",
 ]
 
-if TYPE_CHECKING:
-    from modelbase2 import Model
 
 DefaultDevice = torch.device("cpu")
 DefaultCache = Cache(Path(".cache"))
@@ -175,65 +168,6 @@ class Approximator(nn.Module):
 
         """
         return self.net(x)
-
-
-def _ss_flux(
-    params: pd.Series,
-    model: Model,
-) -> pd.Series:
-    """Calculate steady-state fluxes for given parameters.
-
-    Args:
-        params: Series containing parameter values.
-        model: Model instance to simulate.
-
-    Returns:
-        pd.Series: Series containing the steady-state fluxes.
-
-    """
-    flux = (
-        Simulator(model.update_parameters(params.to_dict()))
-        .simulate_to_steady_state()
-        .get_fluxes()
-    )
-    if flux is None:
-        return _empty_flux_series(model)
-    return flux.iloc[-1]
-
-
-def create_ss_flux_data(
-    model: Model,
-    parameters: pd.DataFrame,
-    cache: Cache | None = DefaultCache,
-) -> pd.DataFrame:
-    """Create steady-state flux data for given parameters.
-
-    Args:
-        model: Model instance to simulate.
-        parameters: DataFrame containing parameter values.
-        cache: Optional cache to store and retrieve results.
-
-    Returns:
-        pd.DataFrame: DataFrame containing the steady-state flux data.
-
-    """
-    return cast(
-        pd.DataFrame,
-        (
-            pd.concat(
-                parallelise(
-                    partial(
-                        _ss_flux,
-                        model=model,
-                    ),
-                    inputs=list(parameters.iterrows()),
-                    cache=cache,
-                )
-            )
-            .unstack()
-            .fillna(0)
-        ),
-    )
 
 
 def _train_batched(

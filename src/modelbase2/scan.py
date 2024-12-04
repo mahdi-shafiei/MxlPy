@@ -324,11 +324,15 @@ def _steady_state_worker(
         TimePoint: Object containing steady-state concentrations and fluxes.
 
     """
-    c, v = (
-        Simulator(model, y0=y0)
-        .simulate_to_steady_state(rel_norm=rel_norm)
-        .get_full_concs_and_fluxes()
-    )
+    try:
+        c, v = (
+            Simulator(model, y0=y0)
+            .simulate_to_steady_state(rel_norm=rel_norm)
+            .get_full_concs_and_fluxes()
+        )
+    except ZeroDivisionError:
+        c = None
+        v = None
     return TimePoint.from_scan(model, c, v)
 
 
@@ -348,11 +352,15 @@ def _time_course_worker(
         TimePoint: Object containing steady-state concentrations and fluxes.
 
     """
-    c, v = (
-        Simulator(model, y0=y0)
-        .simulate(time_points=time_points)
-        .get_full_concs_and_fluxes()
-    )
+    try:
+        c, v = (
+            Simulator(model, y0=y0)
+            .simulate(time_points=time_points)
+            .get_full_concs_and_fluxes()
+        )
+    except ZeroDivisionError:
+        c = None
+        v = None
     return TimeCourse.from_scan(model, time_points, c, v)
 
 

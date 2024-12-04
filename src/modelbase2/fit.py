@@ -22,6 +22,7 @@ from modelbase2.simulator import Simulator
 from modelbase2.types import Array, ArrayLike, Callable, IntegratorProtocol, cast
 
 __all__ = [
+    "InitialGuess",
     "MinimizeFn",
     "ResidualFn",
     "SteadyStateResidualFn",
@@ -33,10 +34,9 @@ __all__ = [
 if TYPE_CHECKING:
     from modelbase2.model import Model
 
+type InitialGuess = dict[str, float]
 type ResidualFn = Callable[[Array], float]
-
-
-type MinimizeFn = Callable[[ResidualFn, dict[str, float]], dict[str, float]]
+type MinimizeFn = Callable[[ResidualFn, InitialGuess], dict[str, float]]
 
 
 class SteadyStateResidualFn(Protocol):
@@ -267,18 +267,6 @@ def time_course(
     """
     par_names = list(p0.keys())
     p_orig = model.parameters
-
-    fn = cast(
-        ResidualFn,
-        partial(
-            residual_fn,
-            data=data,
-            model=model,
-            y0=y0,
-            par_names=par_names,
-            integrator=integrator,
-        ),
-    )
 
     fn = cast(
         ResidualFn,

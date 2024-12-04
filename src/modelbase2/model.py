@@ -726,6 +726,21 @@ class Model:
     ##########################################################################
 
     @property
+    def derived(self) -> dict[str, Derived]:
+        """Returns a copy of the derived quantities.
+
+        Examples:
+            >>> model.derived
+                {"d1": Derived(fn1, ["x1", "x2"]),
+                 "d2": Derived(fn2, ["x1", "d1"])}
+
+        Returns:
+            dict[str, Derived]: A copy of the derived dictionary.
+
+        """
+        return self._derived.copy()
+
+    @property
     def derived_variables(self) -> dict[str, Derived]:
         """Returns a dictionary of derived variables.
 
@@ -1399,7 +1414,11 @@ class Model:
         flux_df = pd.DataFrame(fluxes, index=args.index)
         for surrogate in self._surrogates.values():
             outputs = pd.DataFrame(
-                [surrogate.predict(y) for y in args.loc[:, surrogate.inputs].to_numpy()]
+                [
+                    surrogate.predict(y)
+                    for y in args.loc[:, surrogate.inputs].to_numpy()
+                ],
+                index=args.index,
             )
             flux_df = pd.concat((flux_df, outputs), axis=1)
         return flux_df

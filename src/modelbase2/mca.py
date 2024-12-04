@@ -279,6 +279,6 @@ def response_coefficients(
         max_workers=max_workers,
     )
     return ResponseCoefficients(
-        concs=pd.DataFrame({k: v[0] for k, v in res.items()}).T,
-        fluxes=pd.DataFrame({k: v[1] for k, v in res.items()}).T,
+        concs=pd.DataFrame({k: v[0] for k, v in res.items()}),
+        fluxes=pd.DataFrame({k: v[1] for k, v in res.items()}),
     )

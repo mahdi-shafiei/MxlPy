@@ -101,7 +101,7 @@ def _handle_fn_def(node: ast.FunctionDef, user_args: list[str]) -> str:
 def _sbmlify_fn(fn: Callable, user_args: list[str]) -> str:
     try:
         source = inspect.getsource(fn)
-    except:  # noqa: E722
+    except OSError:  # could not get source code
         source = dill.source.getsource(fn)
 
     tree = ast.parse(textwrap.dedent(source))

@@ -42,13 +42,13 @@ from modelbase2.types import (
 
 __all__ = [
     "ParameterScanWorker",
-    "compound_elasticities",
     "parameter_elasticities",
     "response_coefficients",
     "scan_steady_state",
     "steady_state",
     "time_course",
     "time_course_over_protocol",
+    "variable_elasticities",
 ]
 
 if TYPE_CHECKING:
@@ -347,7 +347,7 @@ def scan_steady_state(
     )
 
 
-def compound_elasticities(
+def variable_elasticities(
     model: Model,
     variables: list[str],
     concs: dict[str, float],
@@ -359,10 +359,10 @@ def compound_elasticities(
     normalized: bool = True,
     displacement: float = 1e-4,
 ) -> pd.DataFrame:
-    """Calculate compound elasticities using Monte Carlo analysis.
+    """Calculate variable elasticities using Monte Carlo analysis.
 
     Examples:
-        >>> compound_elasticities(
+        >>> variable_elasticities(
         ...     model,
         ...     variables=["x1", "x2"],
         ...     concs={"x1": 1, "x2": 2},

@@ -22,6 +22,7 @@ __all__ = [
     "FigAx",
     "FigAxs",
     "add_grid",
+    "bars",
     "grid_layout",
     "heatmap",
     "heatmap_from_2d_idx",
@@ -374,7 +375,7 @@ def grid_layout(
 ##########################################################################
 
 
-def lines(
+def bars(
     x: pd.DataFrame,
     *,
     ax: Axes | None = None,
@@ -382,7 +383,22 @@ def lines(
 ) -> FigAx:
     """Plot multiple lines on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
-    ax.plot(x)
+    sns.barplot(data=x, ax=ax)
+    _default_labels(ax, xlabel=x.index.name, ylabel=None)
+    ax.legend(x.columns)
+    return fig, ax
+
+
+def lines(
+    x: pd.DataFrame | pd.Series,
+    *,
+    ax: Axes | None = None,
+    grid: bool = True,
+) -> FigAx:
+    """Plot multiple lines on the same axis."""
+    fig, ax = _default_fig_ax(ax=ax, grid=grid)
+    x.plot(ax=ax)
+    _default_labels(ax, xlabel=x.index.name, ylabel=None)
     ax.legend(x.columns)
     return fig, ax
 
@@ -409,7 +425,7 @@ def lines_grouped(
     )
 
     for group, ax in zip(groups, axs, strict=False):
-        group.plot(ax=ax)
+        lines(group, ax=ax, grid=grid)
 
     for i in range(len(groups), len(axs)):
         axs[i].set_visible(False)
@@ -476,6 +492,7 @@ def line_mean_std(
         color=color,
         alpha=alpha,
     )
+    _default_labels(ax, xlabel=df.index.name, ylabel=None)
     return fig, ax
 
 
@@ -522,22 +539,22 @@ def heatmap(
     fig, ax = _default_fig_ax(
         ax=ax,
         figsize=(
-            1.5 * len(df.index),
-            1.5 * len(df.columns),
+            max(4, 0.5 * len(df.columns)),
+            max(4, 0.5 * len(df.index)),
         ),
         grid=False,
     )
     if norm is None:
         norm = _norm_with_zero_center(df)
 
-    hm = ax.pcolormesh(df.T, norm=norm, cmap=cmap)
+    hm = ax.pcolormesh(df, norm=norm, cmap=cmap)
     ax.set_xticks(
-        np.arange(0, len(df.index), 1) + 0.5,
-        labels=df.index,
-    )
-    ax.set_yticks(
         np.arange(0, len(df.columns), 1) + 0.5,
         labels=df.columns,
+    )
+    ax.set_yticks(
+        np.arange(0, len(df.index), 1) + 0.5,
+        labels=df.index,
     )
 
     if annotate:
@@ -623,6 +640,7 @@ def violins(
     """Plot multiple violins on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
     sns.violinplot(df, ax=ax)
+    _default_labels(ax=ax, xlabel="", ylabel=None)
     return fig, ax
 
 
@@ -650,8 +668,8 @@ def violins_from_2d_idx(
     )
 
     for ax, col in zip(axs[: len(df.columns)], df.columns, strict=True):
-        ax.set_ylabel(col)
-        sns.violinplot(df[col].unstack(), ax=ax)
+        ax.set_title(col)
+        violins(df[col].unstack(), ax=ax)
 
     for ax in axs[len(df.columns) :]:
         for axis in ["top", "bottom", "left", "right"]:
