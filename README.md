@@ -13,7 +13,7 @@ You have two choices here, using `uv` (pypi-only) or using `pixi` (conda-forge, 
 ### pixi
 
 - Install `pixi` as described in [the docs](https://pixi.sh/latest/#installation)
-- Run `pixi install`
+- Run `pixi install --frozen`
 
 
 ## Notes
