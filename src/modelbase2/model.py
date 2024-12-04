@@ -188,7 +188,7 @@ class ModelCache:
     """
 
     var_names: list[str]
-    parameter_values: dict[str, float]
+    all_parameter_values: dict[str, float]
     derived_parameter_names: list[str]
     derived_variable_names: list[str]
     stoich_by_cpds: dict[str, dict[str, float]]
@@ -237,8 +237,8 @@ class Model:
             ModelCache: An instance of ModelCache containing the initialized cache data.
 
         """
-        parameter_values: dict[str, float] = self._parameters.copy()
-        all_parameter_names: set[str] = set(parameter_values)
+        all_parameter_values: dict[str, float] = self._parameters.copy()
+        all_parameter_names: set[str] = set(all_parameter_values)
 
         # Sanity checks
         for name, el in it.chain(
@@ -263,8 +263,8 @@ class Model:
             if all(i in all_parameter_names for i in derived.args):
                 all_parameter_names.add(name)
                 derived_parameter_names.append(name)
-                parameter_values[name] = derived.fn(
-                    *(parameter_values[i] for i in derived.args)
+                all_parameter_values[name] = derived.fn(
+                    *(all_parameter_values[i] for i in derived.args)
                 )
             else:
                 derived_variable_names.append(name)
@@ -279,7 +279,7 @@ class Model:
                 if isinstance(factor, Derived):
                     if all(i in all_parameter_names for i in factor.args):
                         d_static[rxn_name] = factor.fn(
-                            *(parameter_values[i] for i in factor.args)
+                            *(all_parameter_values[i] for i in factor.args)
                         )
                     else:
                         dyn_stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = (
@@ -298,7 +298,7 @@ class Model:
 
         self._cache = ModelCache(
             var_names=var_names,
-            parameter_values=parameter_values,
+            all_parameter_values=all_parameter_values,
             stoich_by_cpds=stoich_by_compounds,
             dyn_stoich_by_cpds=dyn_stoich_by_compounds,
             derived_variable_names=derived_variable_names,
@@ -405,14 +405,12 @@ class Model:
             >>> model.parameters
                 {"k1": 0.1, "k2": 0.2}
 
-        This method creates a cache of parameter values and returns a copy of it.
-
         Returns:
             parameters: A dictionary where the keys are parameter names (as strings)
                   and the values are parameter values (as floats).
 
         """
-        return self._create_cache().parameter_values.copy()
+        return self._parameters.copy()
 
     def get_parameter_names(self) -> list[str]:
         """Retrieve the names of the parameters.
@@ -1169,7 +1167,7 @@ class Model:
         if (cache := self._cache) is None:
             cache = self._create_cache()
 
-        args = cache.parameter_values | concs
+        args = cache.all_parameter_values | concs
         args["time"] = time
 
         derived = self._derived
@@ -1246,11 +1244,11 @@ class Model:
 
         pars_df = pd.DataFrame(
             np.full(
-                (len(concs), len(cache.parameter_values)),
-                np.fromiter(cache.parameter_values.values(), dtype=float),
+                (len(concs), len(cache.all_parameter_values)),
+                np.fromiter(cache.all_parameter_values.values(), dtype=float),
             ),
             index=concs.index,
-            columns=list(cache.parameter_values),
+            columns=list(cache.all_parameter_values),
         )
 
         args = pd.concat((concs, pars_df), axis=1)
