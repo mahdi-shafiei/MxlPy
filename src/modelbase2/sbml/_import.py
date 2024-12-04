@@ -12,6 +12,7 @@ import libsbml
 import numpy as np  # noqa: F401  # models might need it
 
 from modelbase2.model import Model
+from modelbase2.paths import default_tmp_dir
 from modelbase2.sbml._data import (
     AtomicUnit,
     Compartment,
@@ -25,11 +26,20 @@ from modelbase2.sbml._data import (
 from modelbase2.sbml._mathml import parse_sbml_math
 from modelbase2.sbml._name_conversion import _name_to_py
 from modelbase2.sbml._unit_conversion import get_operator_mappings, get_unit_conversion
+from modelbase2.types import unwrap
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-__all__ = ["INDENT", "OPERATOR_MAPPINGS", "Parser", "UNIT_CONVERSION", "read"]
+__all__ = [
+    "INDENT",
+    "OPERATOR_MAPPINGS",
+    "Parser",
+    "UNIT_CONVERSION",
+    "import_from_path",
+    "read",
+    "valid_filename",
+]
 
 UNIT_CONVERSION = get_unit_conversion()
 OPERATOR_MAPPINGS = get_operator_mappings()
@@ -397,7 +407,110 @@ def _translate(sbml: Parser) -> Model:
     return m
 
 
-def read(file: Path | str) -> Model:
+def _codegen_fn(name: str, body: str, args: list[str]) -> str:
+    func_args = ", ".join(args)
+    return "\n".join(
+        [
+            f"def {name}({func_args}):",
+            f"{INDENT}return {body}",
+            "",
+        ]
+    )
+
+
+def _codgen(name: str, sbml: Parser) -> Path:
+    import itertools as it
+
+    # # Calculate initial assignments
+    # # FIXME: probably will need to sort these ...
+    # for k, v in sbml.initial_assignment.items():
+    #     args = m.get_args(m.variables, include_readouts=False)
+    #     fn = _handle_fn(k, body=v.body, args=v.args)
+    #     m.update_variable(k, fn(*(args[arg] for arg in v.args)))
+
+    functions = {
+        k: _codegen_fn(k, body=v.body, args=v.args)
+        for k, v in it.chain(
+            sbml.functions.items(),
+            sbml.derived.items(),
+            sbml.reactions.items(),
+            sbml.initial_assignment.items(),
+        )
+    }
+
+    parameters = {
+        k: v.value for k, v in sbml.parameters.items() if k not in sbml.derived
+    }
+    variables = {
+        k: v.initial_amount for k, v in sbml.variables.items() if k not in sbml.derived
+    }
+    for k, v in sbml.compartments.items():
+        if k in sbml.derived:
+            continue
+        if v.is_constant:
+            parameters[k] = v.size
+        else:
+            variables[k] = v.size
+
+    derived_str = "\n".join(
+        f"m.add_derived('{k}', fn={k}, args={v.args})" for k, v in sbml.derived.items()
+    )
+    rxn_str = "\n".join(
+        f"m.add_reaction('{k}', fn={k}, args={rxn.args}, stoichiometry={rxn.stoichiometry})"
+        for k, rxn in sbml.reactions.items()
+    )
+
+    functions_str = "\n\n".join(functions.values())
+    parameters_str = f"m.add_parameters({parameters})"
+    variables_str = f"m.add_variables({variables})"
+
+    file = f"""
+import math
+
+import numpy as np
+
+from modelbase2 import Model
+
+{functions_str}
+
+def get_model() -> Model:
+    m = Model()
+    {parameters_str}
+    {variables_str}
+    {derived_str}
+    {rxn_str}
+    return m
+"""
+    path = default_tmp_dir(None, remove_old_cache=False) / f"{name}.py"
+    with path.open("w+") as f:
+        f.write(file)
+    return path
+
+
+def import_from_path(module_name: str, file_path: Path) -> Callable[[], Model]:
+    import sys
+    from importlib import util
+
+    spec = unwrap(util.spec_from_file_location(module_name, file_path))
+    module = util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    unwrap(spec.loader).exec_module(module)
+    return module.get_model
+
+
+def valid_filename(value: str) -> str:
+    import re
+    import unicodedata
+
+    value = (
+        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    )
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    value = re.sub(r"[-\s]+", "_", value).strip("-_")
+    return f"mb_{value}"
+
+
+def read(file: Path) -> Model:
     """Import a metabolic model from an SBML file.
 
     Args:
@@ -407,4 +520,9 @@ def read(file: Path | str) -> Model:
         Model: Imported model instance.
 
     """
-    return _translate(Parser().parse(file=file))
+    name = valid_filename(file.stem)
+    sbml = Parser().parse(file=file)
+    # return _translate(sbml)
+
+    model_fn = import_from_path(name, _codgen(name, sbml))
+    return model_fn()
