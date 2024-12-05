@@ -8,12 +8,16 @@ __all__ = [
     "Assimulo",
 ]
 
+import contextlib
+import os
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-from assimulo.problem import Explicit_Problem  # type: ignore
-from assimulo.solvers import CVode  # type: ignore
-from assimulo.solvers.sundials import CVodeError  # type: ignore
+
+with contextlib.redirect_stderr(open(os.devnull, "w")):
+    from assimulo.problem import Explicit_Problem  # type: ignore
+    from assimulo.solvers import CVode  # type: ignore
+    from assimulo.solvers.sundials import CVodeError  # type: ignore
 
 if TYPE_CHECKING:
     from collections.abc import Callable
