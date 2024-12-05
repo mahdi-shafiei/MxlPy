@@ -397,7 +397,7 @@ def lines(
 ) -> FigAx:
     """Plot multiple lines on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
-    x.plot(ax=ax)
+    ax.plot(x.index, x)
     _default_labels(ax, xlabel=x.index.name, ylabel=None)
     ax.legend(x.columns)
     return fig, ax
@@ -481,6 +481,7 @@ def line_mean_std(
     mean = df.mean(axis=1)
     std = df.std(axis=1)
     ax.plot(
+        mean.index,
         mean,
         color=color,
         label=label,
@@ -814,14 +815,14 @@ def relative_label_distribution(
                 isos = mapper.get_isotopomers_of_at_position(name, i)
                 labels = cast(pd.DataFrame, concs.loc[:, isos])
                 total = concs.loc[:, f"{name}__total"]
-                (labels.sum(axis=1) / total).plot(ax=ax, label=f"C{i+1}")
+                ax.plot(labels.index, (labels.sum(axis=1) / total), label=f"C{i+1}")
             ax.set_title(name)
             ax.legend()
     else:
         for ax, (name, isos) in zip(
             axs, mapper.get_isotopomers(variables).items(), strict=False
         ):
-            concs.loc[:, isos].plot(ax=ax)
+            ax.plot(concs.index, concs.loc[:, isos])
             ax.set_title(name)
             ax.legend([f"C{i+1}" for i in range(len(isos))])
 
