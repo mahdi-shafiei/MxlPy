@@ -784,12 +784,13 @@ class Model:
         self,
         name: str,
         fn: RateFn,
+        *,
         args: list[str],
     ) -> Self:
         """Adds a derived attribute to the model.
 
         Examples:
-            >>> model.add_derived("d1", add, ["x1", "x2"])
+            >>> model.add_derived("d1", add, args=["x1", "x2"])
 
         Args:
             name: The name of the derived attribute.
@@ -835,6 +836,7 @@ class Model:
         self,
         name: str,
         fn: RateFn | None = None,
+        *,
         args: list[str] | None = None,
     ) -> Self:
         """Updates the derived function and its arguments for a given name.
@@ -1037,7 +1039,7 @@ class Model:
     # Think of something like NADPH / (NADP + NADPH) as a proxy for energy state
     ##########################################################################
 
-    def add_readout(self, name: str, fn: RateFn, args: list[str]) -> Self:
+    def add_readout(self, name: str, fn: RateFn, *, args: list[str]) -> Self:
         """Adds a readout to the model.
 
         Examples:

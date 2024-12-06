@@ -36,10 +36,6 @@ if TYPE_CHECKING:
     from modelbase2.model import Model
 
 
-# Internal Constants
-_DISPLACEMENT: float = 1e-4  # Default perturbation size for coefficient calculation
-
-
 ###############################################################################
 # Non-steady state
 ###############################################################################
@@ -52,7 +48,7 @@ def variable_elasticities(
     variables: list[str] | None = None,
     time: float = 0,
     normalized: bool = True,
-    displacement: float = _DISPLACEMENT,
+    displacement: float = 1e-4,
 ) -> pd.DataFrame:
     """Calculate non-steady state elasticity coefficients.
 
@@ -108,7 +104,7 @@ def parameter_elasticities(
     time: float = 0,
     *,
     normalized: bool = True,
-    displacement: float = _DISPLACEMENT,
+    displacement: float = 1e-4,
 ) -> pd.DataFrame:
     """Calculate parameter elasticity coefficients.
 
@@ -168,7 +164,7 @@ def _response_coefficient_worker(
     y0: dict[str, float] | None,
     normalized: bool,
     rel_norm: bool,
-    displacement: float = _DISPLACEMENT,
+    displacement: float = 1e-4,
 ) -> tuple[pd.Series, pd.Series]:
     """Calculate response coefficients for a single parameter.
 
@@ -185,7 +181,7 @@ def _response_coefficient_worker(
         y0: Initial conditions as a dictionary {species: value}
         normalized: Whether to normalize the coefficients
         rel_norm: Whether to use relative normalization
-        displacement: Relative perturbation size (default: _DISPLACEMENT)
+        displacement: Relative perturbation size (default: 1e-4)
 
     Returns:
         tuple[pd.Series, pd.Series]: Tuple containing:
@@ -230,7 +226,7 @@ def response_coefficients(
     *,
     y0: dict[str, float] | None = None,
     normalized: bool = True,
-    displacement: float = _DISPLACEMENT,
+    displacement: float = 1e-4,
     disable_tqdm: bool = False,
     parallel: bool = True,
     max_workers: int | None = None,

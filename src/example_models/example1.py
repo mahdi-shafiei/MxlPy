@@ -39,7 +39,7 @@ def get_example1() -> Model:
     model.add_reaction(
         "v3",
         michaelis_menten_2s,
-        args=["x1", "ATP", "vmax_v3", "km_v3_1", "km_v3_2"],
+        args=["x1", "NADPH", "vmax_v3", "km_v3_1", "km_v3_2"],
         stoichiometry=filter_stoichiometry(model, {"x1": -1, "NADPH": -1, "x3": 1}),
     )
     model.add_reaction(

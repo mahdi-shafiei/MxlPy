@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 
-with contextlib.redirect_stderr(open(os.devnull, "w")):
+with contextlib.redirect_stderr(open(os.devnull, "w")):  # noqa: PTH123
     from assimulo.problem import Explicit_Problem  # type: ignore
     from assimulo.solvers import CVode  # type: ignore
     from assimulo.solvers.sundials import CVodeError  # type: ignore
