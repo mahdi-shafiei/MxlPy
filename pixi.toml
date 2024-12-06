@@ -13,9 +13,11 @@ platforms = ["linux-64", "win-64", "osx-arm64"]
 
 [pypi-dependencies]
 modelbase2 = {path = ".", extras = ['dev'], editable = true}
+rpds = "*"
 
 [target.linux-64.dependencies]
 blast = {channel = "bioconda", version = ">=2.15.0"}
+
 
 [target.win-64.dependencies]
 posix = ">=1.0.0,<2"

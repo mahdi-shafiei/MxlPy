@@ -3,10 +3,13 @@ site_url: https://qtb-hhu.gitlab.io/modelbase-software/
 site_dir: public
 
 nav:
-  - Tutorial: index.ipynb
-  - Label Models: label-models.ipynb
-  - SBML: sbml.ipynb
-  - API Changes: api-changes.ipynb
+  - Overview: index.ipynb
+  - Basics: basics.ipynb
+  - Scans: scans.ipynb
+  - MCA: mca.ipynb
+  - Fitting: fitting.ipynb
+  - Monte-Carlo: monte-carlo.ipynb
+  - Mechanistic-Learning: mxl.ipynb
 
 theme:
   name: material
