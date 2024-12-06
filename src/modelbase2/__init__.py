@@ -104,7 +104,7 @@ def cartesian_product(parameters: dict[str, ArrayLike]) -> pd.DataFrame:
     )
 
 
-def make_protocol(steps: dict[float, dict[str, float]]) -> pd.DataFrame:
+def make_protocol(steps: list[tuple[float, dict[str, float]]]) -> pd.DataFrame:
     """Create protocol DataFrame from a dictionary of steps.
 
     Arguments:
@@ -113,11 +113,11 @@ def make_protocol(steps: dict[float, dict[str, float]]) -> pd.DataFrame:
                parameter values during that step.
 
     Examples:
-        >>> make_protocol({
-        ...     1: {"k1": 1.0},
-        ...     2: {"k1": 2.0},
-        ...     3: {"k1": 1.0},
-        ... })
+        >>> make_protocol([
+        ...     (1, {"k1": 1.0}),
+        ...     (2, {"k1": 2.0}),
+        ...     (3, {"k1": 1.0}),
+        ... ])
 
         | Timedelta       |   k1 |
         |:----------------|-----:|
@@ -125,11 +125,11 @@ def make_protocol(steps: dict[float, dict[str, float]]) -> pd.DataFrame:
         | 0 days 00:00:03 |  2.0 |
         | 0 days 00:00:06 |  1.0 |
 
-        >>> make_protocol({
-        ...     1: {"k1": 1.0, "k2": 2.0},
-        ...     2: {"k1": 2.0, "k2": 3.0},
-        ...     3: {"k1": 1.0, "k2": 2.0},
-        ... })
+        >>> make_protocol([
+        ...     (1, {"k1": 1.0, "k2": 2.0}),
+        ...     (2, {"k1": 2.0, "k2": 3.0}),
+        ...     (3, {"k1": 1.0, "k2": 2.0}),
+        ... ])
 
         | Timedelta       |   k1 |   k2 |
         |:----------------|-----:|-----:|
@@ -140,7 +140,7 @@ def make_protocol(steps: dict[float, dict[str, float]]) -> pd.DataFrame:
     """
     data = {}
     t0 = pd.Timedelta(0)
-    for step, pars in steps.items():
+    for step, pars in steps:
         t0 += pd.Timedelta(seconds=step)
         data[t0] = pars
     protocol = pd.DataFrame(data).T

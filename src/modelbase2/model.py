@@ -537,7 +537,10 @@ class Model:
 
     @_invalidate_cache
     def make_parameter_dynamic(
-        self, name: str, initial_value: float | None = None
+        self,
+        name: str,
+        initial_value: float | None = None,
+        stoichiometries: dict[str, float] | None = None,
     ) -> Self:
         """Converts a parameter to a dynamic variable in the model.
 
@@ -550,6 +553,7 @@ class Model:
         Args:
             name: The name of the parameter to be converted.
             initial_value: The initial value for the new variable. If None, the current value of the parameter is used. Defaults to None.
+            stoichiometries: A dictionary mapping reaction names to stoichiometries for the new variable. Defaults to None.
 
         Returns:
             Self: The instance of the model with the parameter converted to a variable.
@@ -558,6 +562,22 @@ class Model:
         value = self._parameters[name] if initial_value is None else initial_value
         self.remove_parameter(name)
         self.add_variable(name, value)
+
+        if stoichiometries is not None:
+            for rxn_name, value in stoichiometries.items():
+                target = False
+                if rxn_name in self._reactions:
+                    target = True
+                    cast(dict, self._reactions[name].stoichiometry)[name] = value
+                else:
+                    for surrogate in self._surrogates.values():
+                        if rxn_name in surrogate.stoichiometries:
+                            target = True
+                            surrogate.stoichiometries[rxn_name][name] = value
+                if not target:
+                    msg = f"Reaction '{rxn_name}' not found in reactions or surrogates"
+                    raise KeyError(msg)
+
         return self
 
     ##########################################################################
@@ -703,6 +723,9 @@ class Model:
     def make_variable_static(self, name: str, value: float | None = None) -> Self:
         """Converts a variable to a static parameter.
 
+        This removes the variable from the stoichiometries of all reactions and surrogates.
+        It is not re-inserted if `Model.make_parameter_dynamic` is called.
+
         Examples:
             >>> model.make_variable_static("x1")
             >>> model.make_variable_static("x2", value=2.0)
@@ -719,6 +742,17 @@ class Model:
         value = self._variables[name] if value is None else value
         self.remove_variable(name)
         self.add_parameter(name, value)
+
+        # Remove from stoichiometries
+        for reaction in self._reactions.values():
+            if name in reaction.stoichiometry:
+                cast(dict, reaction.stoichiometry).pop(name)
+        for surrogate in self._surrogates.values():
+            surrogate.stoichiometries = {
+                k: {k2: v2 for k2, v2 in v.items() if k2 != name}
+                for k, v in surrogate.stoichiometries.items()
+                if k != name
+            }
         return self
 
     ##########################################################################
@@ -1199,7 +1233,7 @@ class Model:
 
     def get_args(
         self,
-        concs: dict[str, float],
+        concs: dict[str, float] | None = None,
         time: float = 0.0,
         *,
         include_readouts: bool = False,
@@ -1207,8 +1241,17 @@ class Model:
         """Generate a pandas Series of arguments for the model.
 
         Examples:
-            >>> model.get_args({"x1": 1.0, "x2": 2.0}, time=0.0)
+            # Using initial conditions
+            >>> model.get_args()
                 {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 0.0}
+
+            # With custom concentrations
+            >>> model.get_args({"x1": 1.0, "x2": 2.0})
+                {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 0.0}
+
+            # With custom concentrations and time
+            >>> model.get_args({"x1": 1.0, "x2": 2.0}, time=1.0)
+                {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 1.0}
 
         Args:
             concs: A dictionary where keys are the names of the concentrations and values are their respective float values.
@@ -1221,7 +1264,7 @@ class Model:
         """
         return pd.Series(
             self._get_args(
-                concs=concs,
+                concs=self.get_initial_conditions() if concs is None else concs,
                 time=time,
                 include_readouts=include_readouts,
             ),
@@ -1287,7 +1330,7 @@ class Model:
 
     def get_full_concs(
         self,
-        concs: dict[str, float],
+        concs: dict[str, float] | None = None,
         time: float = 0.0,
         *,
         include_readouts: bool = True,
@@ -1353,10 +1396,23 @@ class Model:
             )
         return fluxes
 
-    def get_fluxes(self, concs: dict[str, float], time: float = 0.0) -> pd.Series:
+    def get_fluxes(
+        self,
+        concs: dict[str, float] | None = None,
+        time: float = 0.0,
+    ) -> pd.Series:
         """Calculate the fluxes for the given concentrations and time.
 
         Examples:
+            # Using initial conditions as default
+            >>> model.get_fluxes()
+                pd.Series({"r1": 0.1, "r2": 0.2})
+
+            # Using custom concentrations
+            >>> model.get_fluxes({"x1": 1.0, "x2": 2.0})
+                pd.Series({"r1": 0.1, "r2": 0.2})
+
+            # Using custom concentrations and time
             >>> model.get_fluxes({"x1": 1.0, "x2": 2.0}, time=0.0)
                 pd.Series({"r1": 0.1, "r2": 0.2})
 
@@ -1476,11 +1532,22 @@ class Model:
         return cast(Array, dxdt.to_numpy())
 
     def get_right_hand_side(
-        self, concs: dict[str, float], time: float = 0.0
+        self,
+        concs: dict[str, float] | None = None,
+        time: float = 0.0,
     ) -> pd.Series:
         """Calculate the right-hand side of the differential equations for the model.
 
         Examples:
+            # Using initial conditions as default
+            >>> model.get_right_hand_side()
+                pd.Series({"x1": 0.1, "x2": 0.2})
+
+            # Using custom concentrations
+            >>> model.get_right_hand_side({"x1": 1.0, "x2": 2.0})
+                pd.Series({"x1": 0.1, "x2": 0.2})
+
+            # Using custom concentrations and time
             >>> model.get_right_hand_side({"x1": 1.0, "x2": 2.0}, time=0.0)
                 pd.Series({"x1": 0.1, "x2": 0.2})
 
@@ -1496,7 +1563,7 @@ class Model:
             cache = self._create_cache()
         var_names = self.get_variable_names()
         args = self._get_args(
-            concs=concs,
+            concs=self.get_initial_conditions() if concs is None else concs,
             time=time,
             include_readouts=False,
         )
