@@ -4454,7 +4454,7 @@ packages:
 - pypi: .
   name: modelbase2
   version: 0.1.0
-  sha256: 33bd0661e1b66a2ecba8b3e841f2fd8595ab47311f35df0c02a658a3c6898462
+  sha256: 690a8ab9d48910aa33c82a01b7a9210ca314d9fccfce2813bd4dde7841295629
   requires_dist:
   - dill>=0.3.9
   - matplotlib>=3.9.2
