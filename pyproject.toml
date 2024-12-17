@@ -70,7 +70,7 @@ skips = ["B101", "B301", "B403", "B404", "B603", "B607"]
 
 [tool.hatchling]
 from = "src"
-include = ["my_project", "example_models"]
+include = ["modelbase2", "example_models"]
 
 [tool.hatchling.extras]
 examples = ["example_models"]
