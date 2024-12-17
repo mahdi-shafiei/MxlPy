@@ -3,13 +3,14 @@ site_url: https://qtb-hhu.gitlab.io/modelbase-software/
 site_dir: public
 
 nav:
-  - Overview: index.ipynb
+  - Overview: index.md
   - Basics: basics.ipynb
   - Scans: scans.ipynb
   - MCA: mca.ipynb
   - Fitting: fitting.ipynb
   - Monte-Carlo: monte-carlo.ipynb
   - Mechanistic-Learning: mxl.ipynb
+  - Label-Models: label-models.ipynb
 
 theme:
   name: material
@@ -31,3 +32,7 @@ plugins:
   - mkdocs-jupyter:
       ignore_h1_titles: True
       execute: false
+      ignore: ["assets/*.ipynb"]
+
+markdown_extensions:
+  - attr_list
