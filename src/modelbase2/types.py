@@ -23,11 +23,10 @@ import pandas as pd
 __all__ = [
     "Array",
     "ArrayLike",
-    "Axes",
     "Derived",
     "IntegratorProtocol",
     "McSteadyStates",
-    "Number",
+    "Float",
     "Param",
     "ProtocolByPars",
     "RateFn",
@@ -46,21 +45,20 @@ __all__ = [
 # changed between Python versions and I have no interest in
 # fixing it in every file
 from collections.abc import Callable, Iterator, Mapping
-from typing import TYPE_CHECKING, ParamSpec, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar, cast
 
 import numpy as np
-from matplotlib.axes import Axes as Axis
+import numpy.typing as npt
 from numpy.typing import NDArray
 
-type RateFn = Callable[..., float]
-type Array = NDArray[np.float64]
-type Number = float | list[float] | Array
+type Float = npt.NDArray[np.floating[Any]] | float
+type RateFn = Callable[..., Float]
+type Array = NDArray[np.floating[Any]]
+type ArrayLike = NDArray[np.floating[Any]] | list[float]
+
 
 Param = ParamSpec("Param")
 RetType = TypeVar("RetType")
-
-Axes = NDArray[Axis]  # type: ignore
-ArrayLike = NDArray[np.float64] | list[float]
 
 
 if TYPE_CHECKING:

@@ -19,6 +19,7 @@ import pandas as pd
 from modelbase2.types import (
     Array,
     Derived,
+    Float,
     Reaction,
     Readout,
 )
@@ -263,8 +264,8 @@ class Model:
             if all(i in all_parameter_names for i in derived.args):
                 all_parameter_names.add(name)
                 derived_parameter_names.append(name)
-                all_parameter_values[name] = derived.fn(
-                    *(all_parameter_values[i] for i in derived.args)
+                all_parameter_values[name] = float(
+                    derived.fn(*(all_parameter_values[i] for i in derived.args))
                 )
             else:
                 derived_variable_names.append(name)
@@ -278,8 +279,8 @@ class Model:
 
                 if isinstance(factor, Derived):
                     if all(i in all_parameter_names for i in factor.args):
-                        d_static[rxn_name] = factor.fn(
-                            *(all_parameter_values[i] for i in factor.args)
+                        d_static[rxn_name] = float(
+                            factor.fn(*(all_parameter_values[i] for i in factor.args))
                         )
                     else:
                         dyn_stoich_by_compounds.setdefault(cpd_name, {})[rxn_name] = (
@@ -1244,17 +1245,17 @@ class Model:
         if (cache := self._cache) is None:
             cache = self._create_cache()
 
-        args = cache.all_parameter_values | concs
+        args: dict[str, float] = cache.all_parameter_values | concs
         args["time"] = time
 
         derived = self._derived
         for name in cache.derived_variable_names:
             dv = derived[name]
-            args[name] = dv.fn(*(args[arg] for arg in dv.args))
+            args[name] = cast(float, dv.fn(*(args[arg] for arg in dv.args)))
 
         if include_readouts:
             for name, ro in self._readouts.items():
-                args[name] = ro.fn(*(args[arg] for arg in ro.args))
+                args[name] = cast(float, ro.fn(*(args[arg] for arg in ro.args)))
         return args
 
     def get_args(
@@ -1414,7 +1415,7 @@ class Model:
         """
         fluxes: dict[str, float] = {}
         for name, rxn in self._reactions.items():
-            fluxes[name] = rxn.fn(*(args[arg] for arg in rxn.args))
+            fluxes[name] = cast(float, rxn.fn(*(args[arg] for arg in rxn.args)))
 
         for surrogate in self._surrogates.values():
             fluxes |= surrogate.predict(np.array([args[arg] for arg in surrogate.args]))
@@ -1456,7 +1457,7 @@ class Model:
 
         fluxes: dict[str, float] = {}
         for name, rxn in self._reactions.items():
-            fluxes[name] = rxn.fn(*args.loc[rxn.args])
+            fluxes[name] = cast(float, rxn.fn(*args.loc[rxn.args]))
 
         for surrogate in self._surrogates.values():
             fluxes |= surrogate.predict(args.loc[surrogate.args].to_numpy())
@@ -1484,12 +1485,9 @@ class Model:
                           the index of the input arguments.
 
         """
-        fluxes: dict[str, Array] = {}
+        fluxes: dict[str, Float] = {}
         for name, rate in self._reactions.items():
-            fluxes[name] = cast(
-                Array,
-                rate.fn(*args.loc[:, rate.args].to_numpy().T),
-            )
+            fluxes[name] = rate.fn(*args.loc[:, rate.args].to_numpy().T)
 
         # Create df here already to avoid having to play around with
         # shape of surrogate outputs

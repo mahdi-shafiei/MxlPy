@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from modelbase2.types import Float
+
 __all__ = [
     "constant",
     "diffusion_1s_1p",
@@ -24,52 +29,53 @@ __all__ = [
     "twice",
 ]
 
+
 ###############################################################################
 # General functions
 ###############################################################################
 
 
-def constant(x: float) -> float:
+def constant(x: Float) -> Float:
     """Constant function."""
     return x
 
 
-def neg(x: float) -> float:
+def neg(x: Float) -> Float:
     """Negation function."""
     return -x
 
 
-def minus(x: float, y: float) -> float:
+def minus(x: Float, y: Float) -> Float:
     """Subtraction function."""
     return x - y
 
 
-def mul(x: float, y: float) -> float:
+def mul(x: Float, y: Float) -> Float:
     """Multiplication function."""
     return x * y
 
 
-def div(x: float, y: float) -> float:
+def div(x: Float, y: Float) -> Float:
     """Division function."""
     return x / y
 
 
-def one_div(x: float) -> float:
+def one_div(x: Float) -> Float:
     """Reciprocal function."""
     return 1.0 / x
 
 
-def neg_div(x: float, y: float) -> float:
+def neg_div(x: Float, y: Float) -> Float:
     """Negated division function."""
     return -x / y
 
 
-def twice(x: float) -> float:
+def twice(x: Float) -> Float:
     """Twice function."""
     return x * 2
 
 
-def proportional(x: float, y: float) -> float:
+def proportional(x: Float, y: Float) -> Float:
     """Proportional function."""
     return x * y
 
@@ -80,18 +86,18 @@ def proportional(x: float, y: float) -> float:
 
 
 def moiety_1s(
-    x: float,
-    x_total: float,
-) -> float:
+    x: Float,
+    x_total: Float,
+) -> Float:
     """General moiety for one substrate."""
     return x_total - x
 
 
 def moiety_2s(
-    x1: float,
-    x2: float,
-    x_total: float,
-) -> float:
+    x1: Float,
+    x2: Float,
+    x_total: Float,
+) -> Float:
     """General moiety for two substrates."""
     return x_total - x1 - x2
 
@@ -101,22 +107,22 @@ def moiety_2s(
 ###############################################################################
 
 
-def mass_action_1s(s1: float, k: float) -> float:
+def mass_action_1s(s1: Float, k: Float) -> Float:
     """Irreversible mass action reaction with one substrate."""
     return k * s1
 
 
-def mass_action_1s_1p(s1: float, p1: float, kf: float, kr: float) -> float:
+def mass_action_1s_1p(s1: Float, p1: Float, kf: Float, kr: Float) -> Float:
     """Reversible mass action reaction with one substrate and one product."""
     return kf * s1 - kr * p1
 
 
-def mass_action_2s(s1: float, s2: float, k: float) -> float:
+def mass_action_2s(s1: Float, s2: Float, k: Float) -> Float:
     """Irreversible mass action reaction with two substrates."""
     return k * s1 * s2
 
 
-def mass_action_2s_1p(s1: float, s2: float, p1: float, kf: float, kr: float) -> float:
+def mass_action_2s_1p(s1: Float, s2: Float, p1: Float, kf: Float, kr: Float) -> Float:
     """Reversible mass action reaction with two substrates and one product."""
     return kf * s1 * s2 - kr * p1
 
@@ -127,7 +133,7 @@ def mass_action_2s_1p(s1: float, s2: float, p1: float, kf: float, kr: float) -> 
 ###############################################################################
 
 
-def michaelis_menten_1s(s1: float, vmax: float, km1: float) -> float:
+def michaelis_menten_1s(s1: Float, vmax: Float, km1: Float) -> Float:
     """Irreversible Michaelis-Menten equation for one substrate."""
     return s1 * vmax / (s1 + km1)
 
@@ -144,25 +150,25 @@ def michaelis_menten_1s(s1: float, vmax: float, km1: float) -> float:
 
 
 def michaelis_menten_2s(
-    s1: float,
-    s2: float,
-    vmax: float,
-    km1: float,
-    km2: float,
-) -> float:
+    s1: Float,
+    s2: Float,
+    vmax: Float,
+    km1: Float,
+    km2: Float,
+) -> Float:
     """Michaelis-Menten equation (ping-pong) for two substrates."""
     return vmax * s1 * s2 / (s1 * s2 + km1 * s2 + km2 * s1)
 
 
 def michaelis_menten_3s(
-    s1: float,
-    s2: float,
-    s3: float,
-    vmax: float,
-    km1: float,
-    km2: float,
-    km3: float,
-) -> float:
+    s1: Float,
+    s2: Float,
+    s3: Float,
+    vmax: Float,
+    km1: Float,
+    km2: Float,
+    km3: Float,
+) -> Float:
     """Michaelis-Menten equation (ping-pong) for three substrates."""
     return (
         vmax * s1 * s2 * s3 / (s1 * s2 + km1 * s2 * s3 + km2 * s1 * s3 + km3 * s1 * s2)
@@ -174,6 +180,6 @@ def michaelis_menten_3s(
 ###############################################################################
 
 
-def diffusion_1s_1p(inside: float, outside: float, k: float) -> float:
+def diffusion_1s_1p(inside: Float, outside: Float, k: Float) -> Float:
     """Diffusion reaction with one substrate and one product."""
     return k * (outside - inside)

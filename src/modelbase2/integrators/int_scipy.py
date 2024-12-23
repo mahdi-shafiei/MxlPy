@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 import scipy.integrate as spi
 
-from modelbase2.types import ArrayLike
+from modelbase2.types import ArrayLike, Float
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -67,7 +67,7 @@ class Scipy:
         t_end: float | None = None,
         steps: int | None = None,
         time_points: ArrayLike | None = None,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Float | None, ArrayLike | None]:
         """Integrate the ODE system.
 
         Args:

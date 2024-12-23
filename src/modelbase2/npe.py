@@ -78,7 +78,7 @@ class DefaultSSAproximator(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through the neural network."""
-        return self.net(x)
+        return cast(torch.Tensor, self.net(x))
 
 
 class DefaultTimeSeriesApproximator(nn.Module):
@@ -107,7 +107,7 @@ class DefaultTimeSeriesApproximator(nn.Module):
         """Forward pass through the neural network."""
         # lstm_out, (hidden_state, cell_state)
         _, (hn, _) = self.lstm(x)
-        return self.to_out(hn[-1])  # Use last hidden state
+        return cast(torch.Tensor, self.to_out(hn[-1]))  # Use last hidden state
 
 
 @dataclass(kw_only=True)
