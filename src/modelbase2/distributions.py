@@ -27,6 +27,7 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+from modelbase2.plot import Axes, FigAx, _default_fig_ax
 from modelbase2.types import Array
 
 __all__ = [
@@ -196,12 +197,70 @@ class Skewnorm:
 
         Args:
             num: Number of samples to generate
-            rng: The random generator arguemnt is unused but required for API compatibility
+            rng: The random generator argument is unused but required for API compatibility
 
         """
         return cast(
             Array, stats.skewnorm(self.a, loc=self.loc, scale=self.scale).rvs(num)
         )
+
+
+@dataclass
+class GaussianKde:
+    """Representation of a kernel-density estimate using Gaussian kernels.
+
+    Args:
+        mean: Mean of the underlying normal distribution
+        sigma: Standard deviation of the underlying normal distribution
+        seed: Random seed for reproducibility
+
+    """
+
+    kde: stats.gaussian_kde
+
+    @classmethod
+    def from_data(cls, data: Array | pd.Series) -> GaussianKde:
+        """Create a GaussianKde object from a data array.
+
+        Args:
+            data: Array of data points
+
+        """
+        return cls(stats.gaussian_kde(data))
+
+    def plot(
+        self,
+        xmin: float,
+        xmax: float,
+        n: int = 1000,
+        ax: Axes | None = None,
+    ) -> FigAx:
+        """Plot the kernel-density estimate."""
+        fig, ax = _default_fig_ax(ax=ax, grid=True, figsize=(5, 3))
+
+        x = np.geomspace(xmin, xmax, n)
+        y = self.kde(x)
+        ax.set_xlim(xmin, xmax)
+        ax.set_xscale("log")
+        ax.fill_between(x, y, alpha=0.2)
+        ax.plot(x, y)
+        ax.grid(visible=True)
+        ax.set_frame_on(False)
+        return fig, ax
+
+    def sample(
+        self,
+        num: int,
+        rng: np.random.Generator | None = None,  # noqa: ARG002
+    ) -> Array:
+        """Generate random samples from the kde.
+
+        Args:
+            num: Number of samples to generate
+            rng: Random number generator. Unused but required for API compatibility
+
+        """
+        return cast(Array, self.kde.resample(num)[0])
 
 
 def sample(

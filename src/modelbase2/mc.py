@@ -127,7 +127,7 @@ def steady_state(
     y0: dict[str, float] | None = None,
     max_workers: int | None = None,
     cache: Cache | None = None,
-    rel_norm: bool = True,
+    rel_norm: bool = False,
     worker: SteadyStateWorker = _steady_state_worker,
 ) -> SteadyStates:
     """Monte-carlo scan of steady states.

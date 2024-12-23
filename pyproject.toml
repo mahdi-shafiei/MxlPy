@@ -32,21 +32,24 @@ readme = "README.md"
 version = "0.1.0"
 dependencies = [
   "dill>=0.3.9",
+  "latexify-py>=0.4.4",
   "matplotlib>=3.9.2",
   "more-itertools>=10.5.0",
   "numpy>=2.1.2",
   "pandas>=2.2.3",
+  "parameteriser>=0.1.0",
   "pebble>=5.0.7",
   "python-libsbml>=5.20.4",
   "scipy>=1.14.1",
   "seaborn>=0.13.2",
   "sympy>=1.13.1",
   "tabulate>=0.9.0",
-  "torch>=2.5.1",
   "tqdm>=4.66.6",
   "typing-extensions>=4.12.2",
 ]
-optional-dependencies = { dev = [
+optional-dependencies = { torch = [
+  "torch>=2.5.1",
+], dev = [
   "toml-sort>=0.23.1,<0.24",
   "qtbmodels>=0.1.0,<0.2",
   "ruff>=0.7.1",
@@ -94,7 +97,6 @@ line-length = 88
 select = ["ALL"]
 fixable = ["ALL"]
 ignore = [
-  "ANN101",  # self-type annotation
   "ANN401",  # any
   "C901",    # too complex
   "COM812",  # missing trailing comma  # "D", # all of documenetation

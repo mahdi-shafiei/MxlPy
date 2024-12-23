@@ -1134,6 +1134,8 @@ class Model:
         self,
         name: str,
         surrogate: AbstractSurrogate,
+        args: list[str] | None = None,
+        stoichiometries: dict[str, dict[str, float]] | None = None,
     ) -> Self:
         """Adds a surrogate model to the current instance.
 
@@ -1143,16 +1145,30 @@ class Model:
         Args:
             name (str): The name of the surrogate model.
             surrogate (AbstractSurrogate): The surrogate model instance to be added.
+            args: A list of arguments for the surrogate model.
+            stoichiometries: A dictionary mapping reaction names to stoichiometries.
 
         Returns:
             Self: The current instance with the added surrogate model.
 
         """
         self._insert_id(name=name, ctx="surrogate")
+
+        if args is not None:
+            surrogate.args = args
+        if stoichiometries is not None:
+            surrogate.stoichiometries = stoichiometries
+
         self._surrogates[name] = surrogate
         return self
 
-    def update_surrogate(self, name: str, surrogate: AbstractSurrogate) -> Self:
+    def update_surrogate(
+        self,
+        name: str,
+        surrogate: AbstractSurrogate | None = None,
+        args: list[str] | None = None,
+        stoichiometries: dict[str, dict[str, float]] | None = None,
+    ) -> Self:
         """Update a surrogate model in the model.
 
         Examples:
@@ -1161,6 +1177,8 @@ class Model:
         Args:
             name (str): The name of the surrogate model to update.
             surrogate (AbstractSurrogate): The new surrogate model instance.
+            args: A list of arguments for the surrogate model.
+            stoichiometries: A dictionary mapping reaction names to stoichiometries.
 
         Returns:
             Self: The instance of the model with the updated surrogate model.
@@ -1169,6 +1187,14 @@ class Model:
         if name not in self._surrogates:
             msg = f"Surrogate '{name}' not found in model"
             raise KeyError(msg)
+
+        if surrogate is None:
+            surrogate = self._surrogates[name]
+        if args is not None:
+            surrogate.args = args
+        if stoichiometries is not None:
+            surrogate.stoichiometries = stoichiometries
+
         self._surrogates[name] = surrogate
         return self
 
@@ -1391,9 +1417,7 @@ class Model:
             fluxes[name] = rxn.fn(*(args[arg] for arg in rxn.args))
 
         for surrogate in self._surrogates.values():
-            fluxes |= surrogate.predict(
-                np.array([args[arg] for arg in surrogate.inputs])
-            )
+            fluxes |= surrogate.predict(np.array([args[arg] for arg in surrogate.args]))
         return fluxes
 
     def get_fluxes(
@@ -1435,7 +1459,7 @@ class Model:
             fluxes[name] = rxn.fn(*args.loc[rxn.args])
 
         for surrogate in self._surrogates.values():
-            fluxes |= surrogate.predict(args.loc[surrogate.inputs].to_numpy())
+            fluxes |= surrogate.predict(args.loc[surrogate.args].to_numpy())
         return pd.Series(fluxes, dtype=float)
 
     def get_fluxes_time_course(self, args: pd.DataFrame) -> pd.DataFrame:
@@ -1472,10 +1496,7 @@ class Model:
         flux_df = pd.DataFrame(fluxes, index=args.index)
         for surrogate in self._surrogates.values():
             outputs = pd.DataFrame(
-                [
-                    surrogate.predict(y)
-                    for y in args.loc[:, surrogate.inputs].to_numpy()
-                ],
+                [surrogate.predict(y) for y in args.loc[:, surrogate.args].to_numpy()],
                 index=args.index,
             )
             flux_df = pd.concat((flux_df, outputs), axis=1)

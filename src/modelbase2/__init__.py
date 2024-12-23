@@ -46,7 +46,6 @@ __all__ = [
     "Model",
     "Scipy",
     "Simulator",
-    "TorchSurrogate",
     "cartesian_product",
     "distributions",
     "fit",
@@ -56,8 +55,10 @@ __all__ = [
     "plot",
     "sbml",
     "steady_state",
+    "surrogates",
     "time_course",
     "time_course_over_protocol",
+    "experimental",
 ]
 
 import contextlib
@@ -69,7 +70,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from modelbase2.types import ArrayLike
 
-from . import distributions, fit, mc, mca, plot, sbml
+from . import distributions, experimental, fit, mc, mca, plot, sbml, surrogates
 from .integrators import DefaultIntegrator, Scipy
 from .label_map import LabelMapper
 from .linear_label_map import LinearLabelMapper
@@ -81,7 +82,6 @@ from .scan import (
     time_course_over_protocol,
 )
 from .simulator import Simulator
-from .surrogates import TorchSurrogate
 from .types import Derived, IntegratorProtocol
 
 with contextlib.suppress(ImportError):

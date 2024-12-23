@@ -161,7 +161,7 @@ if __name__ == "__main__":
     res = unwrap(
         Simulator(model_fn())
         .update_parameters(p_true)
-        .simulate(time_points=np.linspace(0, 1, 11))
+        .simulate_time_course(np.linspace(0, 1, 11))
         .get_results()
     )
 

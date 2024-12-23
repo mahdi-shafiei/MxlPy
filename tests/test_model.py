@@ -432,7 +432,7 @@ def test_derived_variables() -> None:
     model = Model()
     derived_fn = one_argument
     model.add_variable("x", 1.0)
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     derived_vars = model.derived_variables
     assert "derived1" in derived_vars
     assert derived_vars["derived1"].fn == derived_fn
@@ -449,7 +449,7 @@ def test_derived_parameters() -> None:
     model = Model()
     derived_fn = one_argument
     model.add_parameter("param1", 1.0)
-    model.add_derived("derived_param1", derived_fn, ["param1"])
+    model.add_derived("derived_param1", derived_fn, args=["param1"])
     derived_params = model.derived_parameters
     assert "derived_param1" in derived_params
     assert derived_params["derived_param1"].fn == derived_fn
@@ -465,7 +465,7 @@ def test_derived_parameters_empty() -> None:
 def test_add_derived() -> None:
     model = Model()
     derived_fn = one_argument
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     assert "derived1" in model._derived
     assert model._derived["derived1"].fn == derived_fn
     assert model._derived["derived1"].args == ["x"]
@@ -475,23 +475,23 @@ def test_add_derived() -> None:
 def test_add_derived_existing_name() -> None:
     model = Model()
     derived_fn = one_argument
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     with pytest.raises(NameError):
-        model.add_derived("derived1", derived_fn, ["x"])
+        model.add_derived("derived1", derived_fn, args=["x"])
 
 
 def test_add_derived_protected_name() -> None:
     model = Model()
     derived_fn = one_argument
     with pytest.raises(KeyError):
-        model.add_derived("time", derived_fn, ["x"])
+        model.add_derived("time", derived_fn, args=["x"])
 
 
 def test_get_derived_parameter_names() -> None:
     model = Model()
     derived_fn = one_argument
     model.add_parameter("param1", 1.0)
-    model.add_derived("derived_param1", derived_fn, ["param1"])
+    model.add_derived("derived_param1", derived_fn, args=["param1"])
     derived_param_names = model.get_derived_parameter_names()
     assert "derived_param1" in derived_param_names
     assert len(derived_param_names) == 1
@@ -507,7 +507,7 @@ def test_get_derived_variable_names() -> None:
     model = Model()
     derived_fn = one_argument
     model.add_variable("x", 1.0)
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     derived_var_names = model.get_derived_variable_names()
     assert "derived1" in derived_var_names
     assert len(derived_var_names) == 1
@@ -524,7 +524,7 @@ def test_update_derived_fn() -> None:
     derived_fn = one_argument
     new_derived_fn = one_argument_v2
     model.add_variable("x", 1.0)
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     model.update_derived("derived1", fn=new_derived_fn)
     assert model._derived["derived1"].fn == new_derived_fn
     assert model._derived["derived1"].args == ["x"]
@@ -535,7 +535,7 @@ def test_update_derived_args() -> None:
     derived_fn = one_argument
     model.add_variable("x", 1.0)
     model.add_variable("y", 2.0)
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     model.update_derived("derived1", args=["y"])
     assert model._derived["derived1"].fn == derived_fn
     assert model._derived["derived1"].args == ["y"]
@@ -547,7 +547,7 @@ def test_update_derived_fn_and_args() -> None:
     new_derived_fn = one_argument_v2
     model.add_variable("x", 1.0)
     model.add_variable("y", 2.0)
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     model.update_derived("derived1", fn=new_derived_fn, args=["y"])
     assert model._derived["derived1"].fn == new_derived_fn
     assert model._derived["derived1"].args == ["y"]
@@ -562,7 +562,7 @@ def test_update_derived_nonexistent() -> None:
 def test_remove_derived() -> None:
     model = Model()
     derived_fn = one_argument
-    model.add_derived("derived1", derived_fn, ["x"])
+    model.add_derived("derived1", derived_fn, args=["x"])
     model.remove_derived("derived1")
     assert "derived1" not in model._derived
     assert "derived1" not in model._ids
@@ -838,7 +838,7 @@ def test_remove_reaction_nonexistent() -> None:
 def test_add_readout() -> None:
     model = Model()
     readout_fn = one_argument
-    model.add_readout("readout1", readout_fn, ["x"])
+    model.add_readout("readout1", readout_fn, args=["x"])
     assert "readout1" in model._readouts
     assert model._readouts["readout1"].fn == readout_fn
     assert model._readouts["readout1"].args == ["x"]
@@ -848,23 +848,23 @@ def test_add_readout() -> None:
 def test_add_readout_existing_name() -> None:
     model = Model()
     readout_fn = one_argument
-    model.add_readout("readout1", readout_fn, ["x"])
+    model.add_readout("readout1", readout_fn, args=["x"])
     with pytest.raises(NameError):
-        model.add_readout("readout1", readout_fn, ["x"])
+        model.add_readout("readout1", readout_fn, args=["x"])
 
 
 def test_add_readout_protected_name() -> None:
     model = Model()
     readout_fn = one_argument
     with pytest.raises(KeyError):
-        model.add_readout("time", readout_fn, ["x"])
+        model.add_readout("time", readout_fn, args=["x"])
 
 
 def test_get_readout_names() -> None:
     model = Model()
     readout_fn = one_argument
-    model.add_readout("readout1", readout_fn, ["x"])
-    model.add_readout("readout2", readout_fn, ["x"])
+    model.add_readout("readout1", readout_fn, args=["x"])
+    model.add_readout("readout2", readout_fn, args=["x"])
     readout_names = model.get_readout_names()
     assert "readout1" in readout_names
     assert "readout2" in readout_names
@@ -880,7 +880,7 @@ def test_get_readout_names_empty() -> None:
 def test_remove_readout() -> None:
     model = Model()
     readout_fn = one_argument
-    model.add_readout("readout1", readout_fn, ["x"])
+    model.add_readout("readout1", readout_fn, args=["x"])
     model.remove_readout("readout1")
     assert "readout1" not in model._readouts
     assert "readout1" not in model._ids
@@ -916,7 +916,7 @@ def test_add_surrogate_protected_name(mock_surrogate: MockSurrogate) -> None:
 def test_update_surrogate(mock_surrogate: MockSurrogate) -> None:
     model = Model()
     model.add_surrogate("surrogate1", mock_surrogate)
-    new_surrogate = MockSurrogate(inputs=["x"], stoichiometries={"v1": {"x": 1.0}})
+    new_surrogate = MockSurrogate(args=["x"], stoichiometries={"v1": {"x": 1.0}})
     model.update_surrogate("surrogate1", new_surrogate)
     assert model._surrogates["surrogate1"] == new_surrogate
 
@@ -945,8 +945,8 @@ def test_get_args() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
-    model.add_derived("derived1", one_argument, ["var1"])
-    model.add_readout("readout1", one_argument, ["var1"])
+    model.add_derived("derived1", one_argument, args=["var1"])
+    model.add_readout("readout1", one_argument, args=["var1"])
     concs = {"var1": 2.0}
     args = model.get_args(concs)
     assert args["param1"] == 1.0
@@ -960,8 +960,8 @@ def test_get_args_without_readouts() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
-    model.add_derived("derived1", one_argument, ["var1"])
-    model.add_readout("readout1", one_argument, ["var1"])
+    model.add_derived("derived1", one_argument, args=["var1"])
+    model.add_readout("readout1", one_argument, args=["var1"])
     concs = {"var1": 2.0}
     args = model.get_args(concs)
     assert args["param1"] == 1.0
@@ -976,8 +976,8 @@ def test_get_args_with_multiple_concs() -> None:
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
     model.add_variable("var2", 3.0)
-    model.add_derived("derived1", two_arguments, ["var1", "var2"])
-    model.add_readout("readout1", two_arguments, ["var1", "var2"])
+    model.add_derived("derived1", two_arguments, args=["var1", "var2"])
+    model.add_readout("readout1", two_arguments, args=["var1", "var2"])
     concs = {"var1": 2.0, "var2": 3.0}
     args = model.get_args(concs)
     assert args["param1"] == 1.0
@@ -992,8 +992,8 @@ def test_get_args_with_empty_concs() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
-    model.add_derived("derived1", one_argument, ["var1"])
-    model.add_readout("readout1", one_argument, ["var1"])
+    model.add_derived("derived1", one_argument, args=["var1"])
+    model.add_readout("readout1", one_argument, args=["var1"])
 
     with pytest.raises(KeyError):
         model.get_args({})
@@ -1003,8 +1003,8 @@ def test_get_args_time_course() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
-    model.add_derived("derived1", one_argument, ["var1"])
-    model.add_readout("readout1", one_argument, ["var1"])
+    model.add_derived("derived1", one_argument, args=["var1"])
+    model.add_readout("readout1", one_argument, args=["var1"])
 
     concs = pd.DataFrame({"var1": [2.0, 3.0]}, index=[0.0, 1.0])
     args_time_course = model.get_args_time_course(concs)
@@ -1024,8 +1024,8 @@ def test_get_args_time_course_with_readouts() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
-    model.add_derived("derived1", one_argument, ["var1"])
-    model.add_readout("readout1", one_argument, ["var1"])
+    model.add_derived("derived1", one_argument, args=["var1"])
+    model.add_readout("readout1", one_argument, args=["var1"])
 
     concs = pd.DataFrame({"var1": [2.0, 3.0]}, index=[0.0, 1.0])
     args_time_course = model.get_args_time_course(concs, include_readouts=True)
@@ -1047,8 +1047,8 @@ def test_get_args_time_course_with_multiple_concs() -> None:
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
     model.add_variable("var2", 3.0)
-    model.add_derived("derived1", two_arguments, ["var1", "var2"])
-    model.add_readout("readout1", two_arguments, ["var1", "var2"])
+    model.add_derived("derived1", two_arguments, args=["var1", "var2"])
+    model.add_readout("readout1", two_arguments, args=["var1", "var2"])
 
     concs = pd.DataFrame({"var1": [2.0, 3.0], "var2": [3.0, 4.0]}, index=[0.0, 1.0])
     args_time_course = model.get_args_time_course(concs, include_readouts=True)
@@ -1071,8 +1071,8 @@ def test_get_args_time_course_with_empty_concs() -> None:
     model = Model()
     model.add_parameter("param1", 1.0)
     model.add_variable("var1", 2.0)
-    model.add_derived("derived1", one_argument, ["var1"])
-    model.add_readout("readout1", one_argument, ["var1"])
+    model.add_derived("derived1", one_argument, args=["var1"])
+    model.add_readout("readout1", one_argument, args=["var1"])
 
     concs = pd.DataFrame({}, index=[])
     with pytest.raises(KeyError):
@@ -1083,8 +1083,8 @@ def test_get_full_concs() -> None:
     model = Model()
     model.add_variable("var1", 2.0)
     model.add_variable("var2", 3.0)
-    model.add_derived("derived1", two_arguments, ["var1", "var2"])
-    model.add_readout("readout1", two_arguments, ["var1", "var2"])
+    model.add_derived("derived1", two_arguments, args=["var1", "var2"])
+    model.add_readout("readout1", two_arguments, args=["var1", "var2"])
 
     concs = {"var1": 2.0, "var2": 3.0}
     full_concs = model.get_full_concs(concs)
@@ -1099,8 +1099,8 @@ def test_get_full_concs_without_readouts() -> None:
     model = Model()
     model.add_variable("var1", 2.0)
     model.add_variable("var2", 3.0)
-    model.add_derived("derived1", two_arguments, ["var1", "var2"])
-    model.add_readout("readout1", two_arguments, ["var1", "var2"])
+    model.add_derived("derived1", two_arguments, args=["var1", "var2"])
+    model.add_readout("readout1", two_arguments, args=["var1", "var2"])
 
     concs = {"var1": 2.0, "var2": 3.0}
     full_concs = model.get_full_concs(concs, include_readouts=False)
@@ -1115,8 +1115,8 @@ def test_get_full_concs_with_empty_concs() -> None:
     model = Model()
     model.add_variable("var1", 2.0)
     model.add_variable("var2", 3.0)
-    model.add_derived("derived1", two_arguments, ["var1", "var2"])
-    model.add_readout("readout1", two_arguments, ["var1", "var2"])
+    model.add_derived("derived1", two_arguments, args=["var1", "var2"])
+    model.add_readout("readout1", two_arguments, args=["var1", "var2"])
 
     with pytest.raises(KeyError):
         model.get_full_concs({})
@@ -1153,7 +1153,7 @@ def test__get_fluxes_with_surrogate() -> None:
     model.add_surrogate(
         "surrogate1",
         MockSurrogate(
-            inputs=["A"],
+            args=["A"],
             stoichiometries={"flux1": {"A": 1.0, "B": 1.0}},
         ),
     )
@@ -1218,7 +1218,7 @@ def test_get_fluxes_with_surrogate() -> None:
     model.add_surrogate(
         "surrogate1",
         MockSurrogate(
-            inputs=["A"],
+            args=["A"],
             stoichiometries={"flux1": {"A": 1.0, "B": 1.0}},
         ),
     )
@@ -1285,7 +1285,7 @@ def test_get_fluxes_time_course_with_surrogate() -> None:
     model.add_surrogate(
         "surrogate1",
         MockSurrogate(
-            inputs=["A"],
+            args=["A"],
             stoichiometries={"flux1": {"A": 1.0, "B": 1.0}},
         ),
     )
@@ -1356,7 +1356,7 @@ def test_call_with_surrogate() -> None:
     model.add_surrogate(
         "surrogate1",
         MockSurrogate(
-            inputs=["A"],
+            args=["A"],
             stoichiometries={"flux1": {"A": 1.0, "B": 1.0}},
         ),
     )
@@ -1422,7 +1422,7 @@ def test_get_right_hand_side_with_surrogate() -> None:
     model.add_surrogate(
         "surrogate1",
         MockSurrogate(
-            inputs=["A"],
+            args=["A"],
             stoichiometries={"flux1": {"A": 1.0, "B": 1.0}},
         ),
     )

@@ -119,3 +119,23 @@ Once that training is successful, the neural network can now predict the input p
 
 
 [Start learning](mxl.ipynb){ .md-button }
+
+## Parameterisation
+
+Obtaining experimentally measured parameters can be challenging.
+Using the [Brenda enzymes database](https://www.brenda-enzymes.org/) we can obtain  distributions of enzymatic parameters for a wide range of organisms.
+These distributions can in turn be used with our [Monte-Carlo methods](monte-carlo.ipynb) to capture the **range of possible behaviour** your model can exhibit.
+
+<div>
+    <img src="assets/time-course.png"
+         style='vertical-align:middle; max-height: 175px;'/>
+    <span style='padding: 0 1rem; font-size: 2rem'>+</span>
+    <img src="assets/parameter-distribution.png"
+         style='vertical-align:middle; max-height: 175px'/>
+    <span style='padding: 0 1rem; font-size: 2rem'>=</span>
+    <img src="assets/mc-time-course.png"
+         style='vertical-align:middle; max-height: 175px'/>
+</div>
+
+
+[Start learning](mxl.ipynb){ .md-button }

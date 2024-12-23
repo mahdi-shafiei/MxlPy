@@ -355,7 +355,7 @@ def _time_course_worker(
     try:
         c, v = (
             Simulator(model, y0=y0)
-            .simulate(time_points=time_points)
+            .simulate_time_course(time_points=time_points)
             .get_full_concs_and_fluxes()
         )
     except ZeroDivisionError:

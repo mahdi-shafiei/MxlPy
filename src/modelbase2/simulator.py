@@ -10,7 +10,6 @@ Classes:
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Self, cast, overload
 
@@ -148,19 +147,68 @@ class Simulator:
         if self.integrator is not None:
             self.integrator.reset()
 
+    def _handle_simulation_results(
+        self,
+        time: ArrayLike | None,
+        results: ArrayLike | None,
+        *,
+        skipfirst: bool,
+    ) -> None:
+        """Handle simulation results.
+
+        Args:
+            time: Array of time points for the simulation.
+            results: Array of results for the simulation.
+            skipfirst: Whether to skip the first row of results.
+
+        """
+        if time is None or results is None:
+            # Need to clear results in case continued integration fails
+            # to keep expectation that failure = None
+            self.clear_results()
+            return
+
+        # NOTE: IMPORTANT!
+        # model._get_rhs sorts the return array by model.get_compounds()
+        # Do NOT change this ordering
+        results_df = pd.DataFrame(
+            results,
+            index=time,
+            columns=self.model.get_variable_names(),
+        )
+        self._save_simulation_results(results=results_df, skipfirst=skipfirst)
+
     def simulate(
         self,
         t_end: float | None = None,
         steps: int | None = None,
-        time_points: ArrayLike | None = None,
     ) -> Self:
         """Simulate the model.
 
         Examples:
-            >>> Simulator(model).simulate(t_end=100)
-            >>> Simulator(model).simulate(t_end=100, steps=100)
-            >>> Simulator(model).simulate(time_points=[0, 10, 20])
-            >>> Simulator(model, y0).simulate(t_end=100)
+            >>> s.simulate(t_end=100)
+            >>> s.simulate(t_end=100, steps=100)
+
+        You can either supply only a terminal time point, or additionally also the
+        number of steps for which values should be returned.
+
+        Args:
+            t_end: Terminal time point for the simulation.
+            steps: Number of steps for the simulation.
+
+        Returns:
+            Self: The Simulator instance with updated results.
+
+        """
+        time, results = self.integrator.integrate(t_end=t_end, steps=steps)
+        self._handle_simulation_results(time, results, skipfirst=True)
+        return self
+
+    def simulate_time_course(self, time_points: ArrayLike) -> Self:
+        """Simulate the model over a given set of time points.
+
+        Examples:
+            >>> Simulator(model).simulate_time_course([1, 2, 3])
 
         You can either supply only a terminal time point, or additionally also the
         number of steps or exact time points for which values should be returned.
@@ -174,49 +222,8 @@ class Simulator:
             Self: The Simulator instance with updated results.
 
         """
-        if steps is not None and time_points is not None:
-            warnings.warn(
-                """
-            You can either specify the steps or the time return points.
-            I will use the time return points""",
-                stacklevel=1,
-            )
-            if t_end is None:
-                t_end = time_points[-1]
-            time, results = self.integrator.integrate(
-                t_end=t_end,
-                time_points=time_points,
-            )
-        elif time_points is not None:
-            time, results = self.integrator.integrate(
-                t_end=time_points[-1],
-                time_points=time_points,
-            )
-        elif steps is not None:
-            if t_end is None:
-                msg = "t_end must no be None"
-                raise ValueError(msg)
-            time, results = self.integrator.integrate(
-                t_end=t_end,
-                steps=steps,
-            )
-        else:
-            time, results = self.integrator.integrate(
-                t_end=t_end,
-            )
-
-        if time is None or results is None:
-            return self
-
-        # NOTE: IMPORTANT!
-        # model._get_rhs sorts the return array by model.get_compounds()
-        # Do NOT change this ordering
-        results_df = pd.DataFrame(
-            results,
-            index=time,
-            columns=self.model.get_variable_names(),
-        )
-        self._save_simulation_results(results=results_df, skipfirst=True)
+        time, results = self.integrator.integrate(time_points=time_points)
+        self._handle_simulation_results(time, results, skipfirst=True)
         return self
 
     def simulate_to_steady_state(
@@ -247,18 +254,11 @@ class Simulator:
             tolerance=tolerance,
             rel_norm=rel_norm,
         )
-        if time is None or results is None:
-            return self
-
-        # NOTE: IMPORTANT!
-        # model._get_rhs sorts the return array by model.get_compounds
-        # Do NOT change this ordering
-        results_df = pd.DataFrame(
-            data=[results],
-            index=[time],
-            columns=self.model.get_variable_names(),
+        self._handle_simulation_results(
+            [time] if time is not None else None,
+            [results] if results is not None else None,  # type: ignore
+            skipfirst=False,
         )
-        self._save_simulation_results(results=results_df, skipfirst=False)
         return self
 
     def simulate_over_protocol(
@@ -286,6 +286,8 @@ class Simulator:
             t_end = cast(pd.Timedelta, t_end)
             self.model.update_parameters(pars.to_dict())
             self.simulate(t_end.total_seconds(), steps=time_points_per_step)
+            if self.concs is None:
+                break
         return self
 
     def _get_args_vectorised(

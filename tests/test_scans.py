@@ -151,7 +151,7 @@ def test_time_course_1p() -> None:
 
 def test_time_course_over_protocol_1p() -> None:
     parameters = pd.DataFrame({"param1": [0.1]})
-    protocol = make_protocol({})
+    protocol = make_protocol([])
 
     result = time_course_over_protocol(
         model=Model().add_parameters({"param1": 0.1}),
