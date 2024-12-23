@@ -13,11 +13,11 @@ This will allow you to create time courses and do steady-state analysis as shown
 
 <div>
     <img src="assets/time-course.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; max-width: 25%;" />
     <img src="assets/protocol-time-course.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; max-width: 25%;" />
     <img src="assets/steady-state.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; max-width: 25%;" />
 </div>
 
 [Start learning](basics.ipynb){ .md-button }
@@ -28,9 +28,9 @@ Parameter scans allow you to systematically assess the behaviour of your model d
 *modelbase2* has rountines to scan over, and easily visualise **time courses**, **protocol time courses**, and **steady states** for one or more parameters.
 <div>
     <img src="assets/time-course-by-parameter.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; " />
     <img src="assets/parameter-scan-2d.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; " />
 </div>
 
 [Start learning](scans.ipynb){ .md-button }
@@ -42,11 +42,11 @@ It is thus a *local* measurement about which reactions hold the most control.
 If you ever read about **rate-limiting steps**, then this is for you!
 <div>
     <img src="assets/variable-elasticity.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; max-width: 29%;" />
     <img src="assets/parameter-elasticity.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; max-width: 29%;" />
     <img src="assets/response-coefficient.png"
-         style="vertical-align:middle; max-height: 175px;" />
+         style="vertical-align:middle; max-height: 175px; max-width: 29%;" />
 </div>
 
 [Start learning](mca.ipynb){ .md-button }
@@ -69,24 +69,24 @@ This is especially useful when you want to understand the **uncertainty** in you
 *modelbase2* offers these Monte Carlo methods for all *scans*  ...
 <div>
     <img src="assets/time-course.png"
-         style='vertical-align:middle; max-height: 175px;'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
     <span style='padding: 0 1rem; font-size: 2rem'>+</span>
     <img src="assets/parameter-distribution.png"
-         style='vertical-align:middle; max-height: 175px'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
     <span style='padding: 0 1rem; font-size: 2rem'>=</span>
     <img src="assets/mc-time-course.png"
-         style='vertical-align:middle; max-height: 175px'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
 </div>
 and even for *metabolic control analysis*
 <div>
     <img src="assets/parameter-elasticity.png"
-         style='vertical-align:middle; max-height: 175px;'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
     <span style='padding: 0 1rem; font-size: 2rem'>+</span>
     <img src="assets/parameter-distribution.png"
-         style='vertical-align:middle; max-height: 175px'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
     <span style='padding: 0 1rem; font-size: 2rem'>=</span>
     <img src="assets/violins.png"
-         style='vertical-align:middle; max-height: 175px'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
 </div>
 
 [Start learning](monte-carlo.ipynb){ .md-button }
@@ -128,13 +128,13 @@ These distributions can in turn be used with our [Monte-Carlo methods](monte-car
 
 <div>
     <img src="assets/time-course.png"
-         style='vertical-align:middle; max-height: 175px;'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
     <span style='padding: 0 1rem; font-size: 2rem'>+</span>
     <img src="assets/parameter-distribution.png"
-         style='vertical-align:middle; max-height: 175px'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
     <span style='padding: 0 1rem; font-size: 2rem'>=</span>
     <img src="assets/mc-time-course.png"
-         style='vertical-align:middle; max-height: 175px'/>
+         style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
 </div>
 
 
