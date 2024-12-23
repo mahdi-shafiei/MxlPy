@@ -8,7 +8,7 @@ from parameteriser.brenda.v0 import Brenda
 
 def get_km_and_kcat_from_brenda(
     ec: str,
-    brenda_path: Path | None = None,
+    brenda_path: Path,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Obtain michaelis and catalytic constants for given ec number.
 
