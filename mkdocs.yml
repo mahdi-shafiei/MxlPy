@@ -12,6 +12,7 @@ nav:
   - Monte-Carlo: monte-carlo.ipynb
   - Mechanistic-Learning: mxl.ipynb
   - Label-Models: label-models.ipynb
+  - Model-Parameterisation: parameterise.ipynb
 
 theme:
   name: material
