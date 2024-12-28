@@ -1,6 +1,6 @@
 import pytest
 
-from modelbase2.surrogates import MockSurrogate
+from modelbase2.types import MockSurrogate
 
 
 @pytest.fixture

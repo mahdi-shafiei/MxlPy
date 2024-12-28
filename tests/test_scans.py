@@ -56,7 +56,7 @@ def mock_protocol_worker(
     model: Model,  # noqa: ARG001
     y0: dict[str, float] | None,  # noqa: ARG001
     protocol: pd.DataFrame,
-    time_points_per_step: int = 10,
+    time_points_per_step: int = 10,  # noqa: ARG001
 ) -> TimeCourse:
     return TimeCourse(
         concs=pd.DataFrame(

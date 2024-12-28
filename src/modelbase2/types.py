@@ -16,17 +16,20 @@ Classes:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from abc import abstractmethod
+from dataclasses import dataclass, field
 
 import pandas as pd
 
 __all__ = [
+    "AbstractSurrogate",
     "Array",
     "ArrayLike",
     "Derived",
+    "Float",
     "IntegratorProtocol",
     "McSteadyStates",
-    "Float",
+    "MockSurrogate",
     "Param",
     "ProtocolByPars",
     "RateFn",
@@ -308,3 +311,46 @@ class ProtocolByPars:
         """Get aggregated concentration or flux."""
         mean = cast(pd.DataFrame, self.results.unstack(level=0).agg(agg, axis=0))
         return cast(pd.DataFrame, mean.unstack().T)
+
+
+@dataclass(kw_only=True)
+class AbstractSurrogate:
+    """Abstract base class for surrogate models.
+
+    Attributes:
+        inputs: List of input variable names.
+        stoichiometries: Dictionary mapping reaction names to stoichiometries.
+
+    Methods:
+        predict: Abstract method to predict outputs based on input data.
+
+    """
+
+    args: list[str] = field(default_factory=list)
+    stoichiometries: dict[str, dict[str, float]] = field(default_factory=dict)
+
+    @abstractmethod
+    def predict_raw(self, y: np.ndarray) -> np.ndarray:
+        """Predict outputs based on input data."""
+
+    def predict(self, y: np.ndarray) -> dict[str, float]:
+        """Predict outputs based on input data."""
+        return dict(
+            zip(
+                self.stoichiometries,
+                self.predict_raw(y),
+                strict=True,
+            )
+        )
+
+
+@dataclass(kw_only=True)
+class MockSurrogate(AbstractSurrogate):
+    """Mock surrogate model for testing purposes."""
+
+    def predict_raw(
+        self,
+        y: np.ndarray,
+    ) -> np.ndarray:
+        """Predict outputs based on input data."""
+        return y

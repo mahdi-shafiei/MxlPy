@@ -33,6 +33,7 @@ from modelbase2.types import Array
 __all__ = [
     "Beta",
     "Distribution",
+    "GaussianKde",
     "LogNormal",
     "Normal",
     "RNG",

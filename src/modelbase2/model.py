@@ -30,8 +30,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
     from inspect import FullArgSpec
 
-    from modelbase2.surrogates import AbstractSurrogate
-    from modelbase2.types import Callable, Param, RateFn, RetType
+    from modelbase2.types import AbstractSurrogate, Callable, Param, RateFn, RetType
 
 
 class SortError(Exception):

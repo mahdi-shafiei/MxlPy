@@ -7,7 +7,7 @@ import tqdm
 from torch import nn
 from torch.optim.adam import Adam
 
-from modelbase2.surrogates import AbstractSurrogate
+from modelbase2.types import AbstractSurrogate
 
 __all__ = ["DefaultDevice", "Dense", "TorchSurrogate", "train_torch_surrogate"]
 

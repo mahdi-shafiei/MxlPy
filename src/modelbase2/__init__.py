@@ -48,6 +48,7 @@ __all__ = [
     "Simulator",
     "cartesian_product",
     "distributions",
+    "experimental",
     "fit",
     "make_protocol",
     "mc",
@@ -58,7 +59,6 @@ __all__ = [
     "surrogates",
     "time_course",
     "time_course_over_protocol",
-    "experimental",
 ]
 
 import contextlib

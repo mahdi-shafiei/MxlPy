@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from modelbase2.model import Model
-from modelbase2.surrogates import MockSurrogate
+from modelbase2.types import MockSurrogate
 
 
 def no_arguments() -> float:
