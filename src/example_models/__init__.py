@@ -8,7 +8,11 @@ It includes models for example systems, linear chains, and specific metabolic pa
 from __future__ import annotations
 
 from .example1 import get_example1
-from .linear_chain import get_lin_chain_two_circles, get_linear_chain_2v
+from .linear_chain import (
+    get_lin_chain_two_circles,
+    get_linear_chain_1v,
+    get_linear_chain_2v,
+)
 from .poolman2000 import get_model as get_poolman2000
 from .tpi import get_tpi_ald_model
 from .upper_glycolysis import get_model as get_upper_glycolysis
@@ -16,6 +20,7 @@ from .upper_glycolysis import get_model as get_upper_glycolysis
 __all__ = [
     "get_example1",
     "get_lin_chain_two_circles",
+    "get_linear_chain_1v",
     "get_linear_chain_2v",
     "get_poolman2000",
     "get_tpi_ald_model",
