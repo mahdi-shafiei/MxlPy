@@ -941,7 +941,16 @@ class Model:
             pd.DataFrame: A DataFrame containing the stoichiometries of the model.
 
         """
-        stoich_by_cpds = self._create_cache().stoich_by_cpds
+        if (cache := self._cache) is None:
+            cache = self._create_cache()
+        args = self.get_args(concs=concs, time=time)
+
+        stoich_by_cpds = copy.deepcopy(cache.stoich_by_cpds)
+        for cpd, stoich in cache.dyn_stoich_by_cpds.items():
+            for rxn, derived in stoich.items():
+                stoich_by_cpds[cpd][rxn] = float(
+                    derived.fn(*(args[i] for i in derived.args))
+                )
         return pd.DataFrame(stoich_by_cpds).T.fillna(0)
 
     @_invalidate_cache
