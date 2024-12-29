@@ -452,10 +452,10 @@ def _codgen(name: str, sbml: Parser) -> Path:
         else:
             variables[k] = v.size
 
-    derived_str = "\n".join(
+    derived_str = "\n    ".join(
         f"m.add_derived('{k}', fn={k}, args={v.args})" for k, v in sbml.derived.items()
     )
-    rxn_str = "\n".join(
+    rxn_str = "\n    ".join(
         f"m.add_reaction('{k}', fn={k}, args={rxn.args}, stoichiometry={rxn.stoichiometry})"
         for k, rxn in sbml.reactions.items()
     )
