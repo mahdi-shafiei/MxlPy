@@ -928,7 +928,9 @@ class Model:
         """
         return copy.deepcopy(self._reactions)
 
-    def get_stoichiometries(self) -> pd.DataFrame:
+    def get_stoichiometries(
+        self, concs: dict[str, float] | None = None, time: float = 0.0
+    ) -> pd.DataFrame:
         """Retrieve the stoichiometries of the model.
 
         Examples:
