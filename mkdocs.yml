@@ -9,10 +9,11 @@ nav:
   - Scans: scans.ipynb
   - MCA: mca.ipynb
   - Fitting: fitting.ipynb
-  - Monte-Carlo: monte-carlo.ipynb
-  - Mechanistic-Learning: mxl.ipynb
-  - Label-Models: label-models.ipynb
-  - Model-Parameterisation: parameterise.ipynb
+  - Monte Carlo methods: monte-carlo.ipynb
+  - Mechanistic learning: mxl.ipynb
+  - Label models: label-models.ipynb
+  - Model parameterisation: parameterise.ipynb
+  - Experimental: experimental.ipynb
 
 theme:
   name: material
