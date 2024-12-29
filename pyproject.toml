@@ -118,6 +118,7 @@ ignore = [
   "TD005",   # missing todo date
   "TRY003",  # raise vanilla args
   "PLR0912", # too many branches
+  "PLR0911", # too many statements
   "PLR0913", # max num of arguments
   "PLR0915", # too many lines
   "PD010",   # pivot table
