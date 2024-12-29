@@ -461,8 +461,9 @@ def _codgen(name: str, sbml: Parser) -> Path:
     )
 
     functions_str = "\n\n".join(functions.values())
-    parameters_str = f"m.add_parameters({parameters})"
-    variables_str = f"m.add_variables({variables})"
+
+    parameters_str = f"m.add_parameters({parameters})" if len(parameters) > 0 else ""
+    variables_str = f"m.add_variables({variables})" if len(variables) > 0 else ""
 
     file = f"""
 import math
