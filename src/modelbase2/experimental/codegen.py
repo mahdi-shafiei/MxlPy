@@ -170,16 +170,26 @@ def generate_modelbase_code(model: Model) -> str:
 
 def generate_model_code_py(model: Model) -> str:
     """Transform the model into a single function, inlining the function calls."""
+    # Variables
     variables = model.variables
     variable_source = ", ".join(f"{k}: Float" for k in variables)
 
+    # Parameters
     parameter_source = "\n".join(f"    {k} = {v}" for k, v in model.parameters.items())
+
+    # Derived
+    derived_source = []
+    for name, derived in model.derived.items():
+        derived_source.append(f"    {name} = {handle_fn(derived.fn, derived.args)}")
+
+    # Reactions
     reactions = []
     for name, rxn in model.reactions.items():
         reactions.append(f"    {name} = {handle_fn(rxn.fn, rxn.args)}")
 
+    # Stoichiometries
     stoichiometries = {}
-    for rxn_name, rxn in model._reactions.items():  # noqa: SLF001
+    for rxn_name, rxn in model.reactions.items():
         for cpd_name, factor in rxn.stoichiometry.items():
             if isinstance(factor, Derived):
                 src = f"{handle_fn(factor.fn, factor.args)} * {rxn_name}"
@@ -190,16 +200,17 @@ def generate_model_code_py(model: Model) -> str:
             else:
                 src = f"{factor} * {rxn_name}"
             stoichiometries.setdefault(cpd_name, []).append(src)
-
     stoich_source = []
     for variable, stoich in stoichiometries.items():
         stoich_source.append(
             f"    d{variable}dt = {conditional_join(stoich, lambda x: x.startswith("-"), " ", " + ")}"
         )
 
+    # Combine all the sources
     source = [
         f"def model({variable_source}) -> Float:",
         parameter_source,
+        *derived_source,
         *reactions,
         *stoich_source,
         "    return {}".format(
