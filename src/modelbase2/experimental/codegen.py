@@ -2,6 +2,7 @@
 
 import ast
 import inspect
+import warnings
 from collections.abc import Callable, Generator, Iterable, Iterator
 
 from modelbase2.model import Model
@@ -109,10 +110,13 @@ def conditional_join[T](
 
 def generate_modelbase_code(model: Model) -> str:
     """Generate a modelbase model from a model."""
-    variables = model.variables
-    parameters = model.parameters
     functions = {}
 
+    # Variables and parameters
+    variables = model.variables
+    parameters = model.parameters
+
+    # Derived
     derived_source = []
     for k, v in model.derived.items():
         fn = v.fn
@@ -127,6 +131,7 @@ def generate_modelbase_code(model: Model) -> str:
             )"""
         )
 
+    # Reactions
     reactions_source = []
     for k, v in model.reactions.items():
         fn = v.fn
@@ -141,8 +146,15 @@ def generate_modelbase_code(model: Model) -> str:
             )"""
         )
 
-    functions_source = "\n".join(functions.values())
+    # Surrogates
+    if len(model._surrogates) > 0:  # noqa: SLF001
+        warnings.warn(
+            "Generating code for Surrogates not yet supported.",
+            stacklevel=1,
+        )
 
+    # Combine all the sources
+    functions_source = "\n".join(functions.values())
     source = [
         "from modelbase2 import Model\n",
         functions_source,
@@ -150,16 +162,12 @@ def generate_modelbase_code(model: Model) -> str:
         "    return (",
         "        Model()",
     ]
-
     if len(parameters) > 0:
         source.append(f"        .add_parameters({parameters})")
-
     if len(variables) > 0:
         source.append(f"        .add_variables({variables})")
-
     if len(derived_source) > 0:
         source.append("\n".join(derived_source))
-
     if len(reactions_source) > 0:
         source.append("\n".join(reactions_source))
 
@@ -204,6 +212,13 @@ def generate_model_code_py(model: Model) -> str:
     for variable, stoich in stoichiometries.items():
         stoich_source.append(
             f"    d{variable}dt = {conditional_join(stoich, lambda x: x.startswith("-"), " ", " + ")}"
+        )
+
+    # Surrogates
+    if len(model._surrogates) > 0:  # noqa: SLF001
+        warnings.warn(
+            "Generating code for Surrogates not yet supported.",
+            stacklevel=1,
         )
 
     # Combine all the sources
