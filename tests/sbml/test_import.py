@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -10,6 +11,7 @@ import pandas as pd
 import pytest
 
 from modelbase2 import Simulator
+from modelbase2.integrators.int_scipy import Scipy
 from modelbase2.sbml import read
 
 if TYPE_CHECKING:
@@ -78,38 +80,31 @@ def get_files(test: int) -> tuple[Model, dict, pd.DataFrame]:
     return read(file=path / f"{prefix}-sbml-l3v2.xml"), sim_settings, expected
 
 
-def add_dummy_compound(m: Model, y0: dict[str, float]) -> None:
-    m.add_variable("dummy")
-    m.add_reaction(
-        "dummy",
-        lambda: 0,
-        {
-            "dummy": 1,
-        },
-    )
-    y0.update({"dummy": 0})
-
-
 def routine(test: int) -> bool:
     m, sim_settings, expected = get_files(test=test)
-    if len(m.get_stoichiometries) == 0:
-        add_dummy_compound(m)
 
     # Make them a bit harder, such that we guarantee we are getting the required ones
-    sim_kwargs = {
-        "atol": sim_settings["atol"] / 100,
-        "rtol": sim_settings["rtol"] / 100,
-    }
-    s = Simulator(m)
-    s.simulate(time_points=expected.index, **sim_kwargs)
-    result = s.get_full_results()
+    result = (
+        Simulator(
+            m,
+            integrator=partial(
+                Scipy,
+                atol=sim_settings["atol"] / 100,
+                rtol=sim_settings["rtol"] / 100,
+            ),
+        )
+        .simulate_time_course(expected.index)
+        .get_full_results()
+    )
+
     if result is None:
         return False
     result = add_constant_species_to_results(m, expected, result)
-    # Sort results like expected
-    result = result.loc[:, expected.columns]
     return np.isclose(
-        result, expected, rtol=sim_settings["rtol"], atol=sim_settings["atol"]
+        result.loc[:, expected.columns],
+        expected,
+        rtol=sim_settings["rtol"],
+        atol=sim_settings["atol"],
     ).all()
 
 
