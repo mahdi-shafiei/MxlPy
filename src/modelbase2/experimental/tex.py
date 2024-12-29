@@ -1,8 +1,4 @@
-"""Export model to latex.
-
-This isn't implemented yet, as latexify doesn't yet support Python 3.12.
-Either write the parser / ast transform myself or wait for the library to be updated.
-"""
+"""Export model to latex."""
 
 from __future__ import annotations
 
