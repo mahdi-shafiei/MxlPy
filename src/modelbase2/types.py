@@ -152,6 +152,14 @@ class Derived:
 
 
 @dataclass(slots=True)
+class Readout:
+    """Container for a readout."""
+
+    fn: RateFn
+    args: list[str]
+
+
+@dataclass(slots=True)
 class Reaction:
     """Container for a reaction."""
 
@@ -166,14 +174,6 @@ class Reaction:
         exclude = set(self.stoichiometry)
 
         return [k for k in self.args if k in include and k not in exclude]
-
-
-@dataclass(slots=True)
-class Readout:
-    """Container for a readout."""
-
-    fn: RateFn
-    args: list[str]
 
 
 @dataclass(slots=True)
