@@ -180,7 +180,7 @@ def generate_model_code_py(model: Model) -> str:
     """Transform the model into a single function, inlining the function calls."""
     # Variables
     variables = model.variables
-    variable_source = ", ".join(f"{k}: Float" for k in variables)
+    variable_source = "    {} = y".format(", ".join(variables))
 
     # Parameters
     parameter_source = "\n".join(f"    {k} = {v}" for k, v in model.parameters.items())
@@ -223,7 +223,10 @@ def generate_model_code_py(model: Model) -> str:
 
     # Combine all the sources
     source = [
-        f"def model({variable_source}) -> Float:",
+        "from collections.abs import Iterable\n",
+        "from modelbase2.types import Float\n",
+        "def model(t: Float, y: Float) -> Iterable[Float]:",
+        variable_source,
         parameter_source,
         *derived_source,
         *reactions,
