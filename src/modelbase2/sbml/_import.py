@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Self
 
 import libsbml
 import numpy as np  # noqa: F401  # models might need it
+import sympy
 
 from modelbase2.model import Model
 from modelbase2.paths import default_tmp_dir
@@ -91,6 +92,9 @@ class Parser:
         self.parse_constraints(sbml_model)
         self.parse_reactions(sbml_model)
         self.parse_events(sbml_model)
+
+        # Modifications
+        self._convert_substance_amount_to_concentration()
         return self
 
     ###############################################################################
@@ -331,6 +335,48 @@ class Parser:
                 stoichiometry=dict(parsed_reactants) | dict(parsed_products),
                 args=args,
             )
+
+    def _convert_substance_amount_to_concentration(
+        self,
+    ) -> None:
+        """Convert substance amount to concentration if has_only_substance_units is false.
+
+        The compounds in the test are supplied in mole if has_only_substance_units is false.
+        In that case, the reaction equation has to be reformed like this:
+        k1 * S1 * compartment -> k1 * S1
+        or in other words the species have to be divided by the compartment to get
+        concentration units.
+        """
+        for reaction in self.reactions.values():
+            function_body = reaction.body
+            removed_compartments = set()
+            for arg in reaction.args:
+                # the parsed species part is important to not
+                # introduce conversion on things that aren't species
+                if (species := self.variables.get(arg, None)) is None:
+                    continue
+
+                if not species.has_only_substance_units:
+                    compartment = species.compartment
+                    if compartment is not None:
+                        if self.compartments[compartment].dimensions == 0:
+                            continue
+                        if species.is_concentration:
+                            if compartment not in removed_compartments:
+                                pattern = f"({compartment})" + r"\b"
+                                repl = f"({compartment} / {compartment})"
+                                function_body = re.sub(pattern, repl, function_body)
+                                removed_compartments.add(compartment)
+                        else:
+                            # \b is word boundary
+                            pattern = f"({arg})" + r"\b"
+                            repl = f"({arg} / {compartment})"
+                            function_body = re.sub(pattern, repl, function_body)
+                        if compartment not in reaction.args:
+                            reaction.args.append(compartment)
+
+            # Simplify the function
+            reaction.body = str(sympy.parse_expr(function_body))
 
 
 def _handle_fn(name: str, body: str, args: list[str]) -> Callable[..., float]:
