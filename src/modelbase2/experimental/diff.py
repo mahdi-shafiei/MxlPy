@@ -1,6 +1,7 @@
 """Diffing utilities for comparing models."""
 
 from dataclasses import dataclass, field
+from typing import Mapping
 
 from modelbase2.model import Model
 from modelbase2.types import Derived
@@ -113,6 +114,27 @@ class ModelDiff:
         return "\n".join(content)
 
 
+def _soft_eq_stoichiometries(
+    s1: Mapping[str, float | Derived], s2: Mapping[str, float | Derived]
+) -> bool:
+    """Check if two stoichiometries are equal, ignoring the functions."""
+    if s1.keys() != s2.keys():
+        return False
+
+    for k, v1 in s1.items():
+        v2 = s2[k]
+        if isinstance(v1, Derived):
+            if not isinstance(v2, Derived):
+                return False
+            if v1.args != v2.args:
+                return False
+        else:
+            if v1 != v2:
+                return False
+
+    return True
+
+
 def soft_eq(m1: Model, m2: Model) -> bool:
     """Check if two models are equal, ignoring the functions."""
     if m1._parameters != m2._parameters:  # noqa: SLF001
@@ -134,7 +156,7 @@ def soft_eq(m1: Model, m2: Model) -> bool:
             return False
         if v1.args != v2.args:
             return False
-        if v1.stoichiometry != v2.stoichiometry:
+        if not _soft_eq_stoichiometries(v1.stoichiometry, v2.stoichiometry):
             return False
     for k, s1 in m1._surrogates.items():  # noqa: SLF001
         if (s2 := m2._surrogates.get(k)) is None:  # noqa: SLF001

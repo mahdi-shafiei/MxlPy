@@ -12,6 +12,7 @@ import libsbml
 import numpy as np
 
 from modelbase2.sbml._data import AtomicUnit, Compartment
+from modelbase2.types import Derived
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -467,8 +468,20 @@ def _create_sbml_derived_variables(*, model: Model, sbml_model: libsbml.Model) -
         sbml_ar.setId(_convert_id_to_sbml(id_=name, prefix="AR"))
         sbml_ar.setName(_convert_id_to_sbml(id_=name, prefix="AR"))
         sbml_ar.setVariable(_convert_id_to_sbml(id_=name, prefix="AR"))
-        sbml_ar.setConstant(False)
         sbml_ar.setMath(_sbmlify_fn(dv.fn, dv.args))
+
+
+def _create_derived_parameter(
+    sbml_model: libsbml.Model,
+    name: str,
+    dp: Derived,
+) -> None:
+    """Create a derived parameter for the sbml model."""
+    ar = sbml_model.createAssignmentRule()
+    ar.setId(_convert_id_to_sbml(id_=name, prefix="AR"))
+    ar.setName(_convert_id_to_sbml(id_=name, prefix="AR"))
+    ar.setVariable(_convert_id_to_sbml(id_=name, prefix="AR"))
+    ar.setMath(_sbmlify_fn(dp.fn, dp.args))
 
 
 def _create_sbml_parameters(
@@ -492,12 +505,7 @@ def _create_sbml_parameters(
 
 def _create_sbml_derived_parameters(*, model: Model, sbml_model: libsbml.Model) -> None:
     for name, dp in model.derived_parameters.items():
-        sbml_ar = sbml_model.createAssignmentRule()
-        sbml_ar.setId(_convert_id_to_sbml(id_=name, prefix="AR"))
-        sbml_ar.setName(_convert_id_to_sbml(id_=name, prefix="AR"))
-        sbml_ar.setVariable(_convert_id_to_sbml(id_=name, prefix="AR"))
-        sbml_ar.setConstant(True)
-        sbml_ar.setMath(_sbmlify_fn(dp.fn, dp.args))
+        _create_derived_parameter(sbml_model, name, dp)
 
 
 def _create_sbml_reactions(
@@ -513,19 +521,28 @@ def _create_sbml_reactions(
         sbml_rxn.setFast(False)
 
         for compound_id, factor in rxn.stoichiometry.items():
-            if isinstance(factor, float | int):
-                sref = (
-                    sbml_rxn.createReactant()
-                    if factor < 0
-                    else sbml_rxn.createProduct()
-                )
-                sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
-                sref.setStoichiometry(abs(factor))
-                sref.setConstant(False)
-            else:
-                msg = f"Stoichiometry type {type(factor)} not supported"
-                raise NotImplementedError(msg)
+            match factor:
+                case float() | int():
+                    sref = (
+                        sbml_rxn.createReactant()
+                        if factor < 0
+                        else sbml_rxn.createProduct()
+                    )
+                    sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
+                    sref.setStoichiometry(abs(factor))
+                    sref.setConstant(False)
+                case Derived():
+                    # SBML uses species references for derived stoichiometries
+                    # So we need to create a assignment rule and then refer to it
+                    reference = f"{compound_id}ref"
+                    _create_derived_parameter(sbml_model, reference, factor)
 
+                    sref = sbml_rxn.createReactant()
+                    sref.setId(_convert_id_to_sbml(id_=reference, prefix="CPD"))
+                    sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
+                case _:
+                    msg = f"Stoichiometry type {type(factor)} not supported"
+                    raise NotImplementedError(msg)
         for compound_id in rxn.get_modifiers(model):
             sref = sbml_rxn.createModifier()
             sref.setSpecies(_convert_id_to_sbml(id_=compound_id, prefix="CPD"))
@@ -608,7 +625,7 @@ def write(
     extent_units: str = "mole",
     substance_units: str = "mole",
     time_units: str = "second",
-) -> None:
+) -> Path:
     """Export a metabolic model to an SBML file.
 
     Args:
@@ -636,3 +653,4 @@ def write(
     )
 
     libsbml.writeSBMLToFile(doc, str(file))
+    return file
