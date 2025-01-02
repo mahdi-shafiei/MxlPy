@@ -60,8 +60,16 @@ class MockIntegrator:
     def integrate(
         self,
         *,
-        t_end: float | None = None,  # noqa: ARG002
+        t_end: float,  # noqa: ARG002
         steps: int | None = None,  # noqa: ARG002
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        t = np.array([0.0])
+        y = np.ones((1, len(self.y0)))
+        return t, y
+
+    def integrate_time_course(
+        self,
+        *,
         time_points: ArrayLike | None = None,  # noqa: ARG002
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
         t = np.array([0.0])
