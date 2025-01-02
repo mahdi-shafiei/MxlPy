@@ -180,7 +180,7 @@ class Simulator:
 
     def simulate(
         self,
-        t_end: float | None = None,
+        t_end: float,
         steps: int | None = None,
     ) -> Self:
         """Simulate the model.
@@ -222,7 +222,7 @@ class Simulator:
             Self: The Simulator instance with updated results.
 
         """
-        time, results = self.integrator.integrate(time_points=time_points)
+        time, results = self.integrator.integrate_time_course(time_points=time_points)
         self._handle_simulation_results(time, results, skipfirst=True)
         return self
 

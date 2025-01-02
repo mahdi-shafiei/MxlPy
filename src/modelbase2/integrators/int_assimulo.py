@@ -75,9 +75,8 @@ class Assimulo:
     def integrate(
         self,
         *,
-        t_end: float | None = None,
+        t_end: float,
         steps: int | None = None,
-        time_points: ArrayLike | None = None,
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
         """Integrate the ODE system.
 
@@ -93,7 +92,26 @@ class Assimulo:
         if steps is None:
             steps = 0
         try:
-            return self.integrator.simulate(t_end, steps, time_points)  # type: ignore
+            return self.integrator.simulate(t_end, steps)  # type: ignore
+        except CVodeError:
+            return None, None
+
+    def integrate_time_course(
+        self,
+        *,
+        time_points: ArrayLike,
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        """Integrate the ODE system over a time course.
+
+        Args:
+            time_points: Time points for the integration.
+
+        Returns:
+            tuple[ArrayLike | None, ArrayLike | None]: Tuple containing the time points and the integrated values.
+
+        """
+        try:
+            return self.integrator.simulate(time_points[-1], 0, time_points)  # type: ignore
         except CVodeError:
             return None, None
 

@@ -64,10 +64,9 @@ class Scipy:
     def integrate(
         self,
         *,
-        t_end: float | None = None,
+        t_end: float,
         steps: int | None = None,
-        time_points: ArrayLike | None = None,
-    ) -> tuple[Float | None, ArrayLike | None]:
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
         """Integrate the ODE system.
 
         Args:
@@ -79,35 +78,37 @@ class Scipy:
             tuple[ArrayLike | None, ArrayLike | None]: Tuple containing the time points and the integrated values.
 
         """
-        if time_points is not None:
-            if time_points[0] != 0:
-                t = [self.t0]
-                t.extend(time_points)
-            else:
-                t = cast(list, time_points)
-            t_array = np.array(t)
-        elif steps is not None and t_end is not None:
-            # Scipy counts the total amount of return points rather than
-            # steps as assimulo
-            steps += 1
-            t_array = np.linspace(self.t0, t_end, steps)
-        elif t_end is not None:
-            t_array = np.linspace(self.t0, t_end, 100)
-        else:
-            msg = "You need to supply t_end (+steps) or time_points"
-            raise ValueError(msg)
+        # Scipy counts the total amount of return points rather than steps as assimulo
+        steps = 100 if steps is None else steps + 1
+
+        return self.integrate_time_course(
+            time_points=np.linspace(self.t0, t_end, steps)
+        )
+
+    def integrate_time_course(
+        self, *, time_points: ArrayLike
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        """Integrate the ODE system over a time course.
+
+        Args:
+            time_points: Time points for the integration.
+
+        Returns:
+            tuple[ArrayLike, ArrayLike]: Tuple containing the time points and the integrated values.
+
+        """
 
         y = spi.odeint(
             func=self.rhs,
             y0=self.y0,
-            t=t_array,
+            t=time_points,
             tfirst=True,
             atol=self.atol,
             rtol=self.rtol,
         )
-        self.t0 = t_array[-1]
+        self.t0 = time_points[-1]
         self.y0 = y[-1, :]
-        return t_array, y
+        return time_points, y
 
     def integrate_to_steady_state(
         self,

@@ -125,11 +125,16 @@ class IntegratorProtocol(Protocol):
     def integrate(
         self,
         *,
-        t_end: float | None = None,
+        t_end: float,
         steps: int | None = None,
-        time_points: ArrayLike | None = None,
     ) -> tuple[ArrayLike | None, ArrayLike | None]:
         """Integrate the system."""
+        ...
+
+    def integrate_time_course(
+        self, *, time_points: ArrayLike
+    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+        """Integrate the system over a time course."""
         ...
 
     def integrate_to_steady_state(
