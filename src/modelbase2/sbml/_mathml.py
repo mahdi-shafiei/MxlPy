@@ -389,7 +389,7 @@ def handle_ast_real(
 ) -> str:
     value = str(node.getValue())
     if value == "inf":
-        return "np.infty"
+        return "np.inf"
     if value == "nan":
         return "np.nan"
     return value
