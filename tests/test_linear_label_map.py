@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from torch import Value
 
 from modelbase2.linear_label_map import (
     Derived,
@@ -62,27 +63,27 @@ def test_map_substrates_to_labelmap_valid() -> None:
     substrates = ["A", "B"]
     labelmap = [1, 0]
     result = _map_substrates_to_labelmap(substrates, labelmap)
-    assert result == {"A": 1, "B": 0}
+    assert result == ["B", "A"]
 
 
 def test_map_substrates_to_labelmap_empty() -> None:
     substrates = []
     labelmap = []
     result = _map_substrates_to_labelmap(substrates, labelmap)
-    assert result == {}
+    assert result == []
 
 
 def test_map_substrates_to_labelmap_single_entry() -> None:
     substrates = ["A"]
     labelmap = [0]
     result = _map_substrates_to_labelmap(substrates, labelmap)
-    assert result == {"A": 0}
+    assert result == ["A"]
 
 
 def test_map_substrates_to_labelmap_mismatched_lengths() -> None:
     substrates = ["A", "B"]
     labelmap = [1]
-    with pytest.raises(IndexError):
+    with pytest.raises(ValueError):
         _map_substrates_to_labelmap(substrates, labelmap)
 
 
@@ -111,7 +112,7 @@ def test_add_label_influx_or_efflux_more_substrates() -> None:
 def test_add_label_influx_or_efflux_more_products() -> None:
     substrates = ["A"]
     products = ["B", "C", "D"]
-    labelmap = [0]
+    labelmap = [0, 1, 2]
     result_substrates, result_products = _add_label_influx_or_efflux(
         substrates, products, labelmap
     )

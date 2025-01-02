@@ -76,7 +76,7 @@ class Parser:
         for i in range(doc.num_plugins):
             if doc.getPlugin(i).getPackageName() == "comp":
                 msg = "No support for comp package"
-                warnings.warn(msg, stacklevel=1)
+                raise NotImplementedError(msg)
 
         sbml_model = doc.getModel()
         if sbml_model is None:
@@ -84,7 +84,7 @@ class Parser:
 
         if bool(sbml_model.getConversionFactor()):
             msg = "Conversion factors are currently not supported"
-            warnings.warn(msg, stacklevel=1)
+            raise NotImplementedError(msg)
 
         self.parse_functions(sbml_model)
         self.parse_units(sbml_model)
@@ -99,6 +99,7 @@ class Parser:
 
         # Modifications
         self._convert_substance_amount_to_concentration()
+        # self._rename_species_references()
         return self
 
     ###############################################################################
@@ -107,11 +108,8 @@ class Parser:
 
     def parse_constraints(self, sbml_model: libsbml.Model) -> None:
         if len(sbml_model.getListOfConstraints()) > 0:
-            warnings.warn(
-                "modelbase does not support model constraints. "
-                "Check the file for hints of the range of stable solutions.",
-                stacklevel=1,
-            )
+            msg = "modelbase does not support model constraints. "
+            raise NotImplementedError(msg)
 
     def parse_events(self, sbml_model: libsbml.Model) -> None:
         if len(sbml_model.getListOfEvents()) > 0:
@@ -164,11 +162,8 @@ class Parser:
         for compound in sbml_model.getListOfSpecies():
             compound_id = _name_to_py(compound.getId())
             if bool(compound.getConversionFactor()):
-                warnings.warn(
-                    "modelbase does not support conversion factors. "
-                    f"Pleas check {compound_id} manually",
-                    stacklevel=1,
-                )
+                msg = "Conversion factors are not implemented. "
+                raise NotImplementedError(msg)
 
             # NOTE: What the shit is this?
             initial_amount = compound.getInitialAmount()
@@ -218,6 +213,7 @@ class Parser:
     def parse_initial_assignments(self, sbml_model: libsbml.Model) -> None:
         for assignment in sbml_model.getListOfInitialAssignments():
             name = _name_to_py(assignment.getSymbol())
+
             node = assignment.getMath()
             if node is None:
                 warnings.warn(
@@ -318,38 +314,47 @@ class Parser:
             for i, arg in enumerate(args):
                 args[i] = parameters_to_update.get(arg, arg)
 
+            dynamic_stoichiometry: dict[str, str] = {}
             parsed_reactants: defaultdict[str, int] = defaultdict(int)
             for substrate in reaction.getListOfReactants():
                 species = _name_to_py(substrate.getSpecies())
-                if species not in self.boundary_species:
-                    stoichiometry = substrate.getStoichiometry()
-                    if str(stoichiometry) == "nan":
-                        msg = f"Cannot parse stoichiometry: {stoichiometry}"
+                if (ref := substrate.getId()) != "":
+                    dynamic_stoichiometry[species] = ref
+                    self.parameters[ref] = Parameter(0.0, is_constant=False)
+
+                elif species not in self.boundary_species:
+                    factor = substrate.getStoichiometry()
+                    if str(factor) == "nan":
+                        msg = f"Cannot parse stoichiometry: {factor}"
                         raise ValueError(msg)
-                    parsed_reactants[species] -= stoichiometry
+                    parsed_reactants[species] -= factor
+
             parsed_products: defaultdict[str, int] = defaultdict(int)
             for product in reaction.getListOfProducts():
                 species = _name_to_py(product.getSpecies())
-                if species not in self.boundary_species:
-                    stoichiometry = product.getStoichiometry()
-                    if str(stoichiometry) == "nan":
-                        msg = f"Cannot parse stoichiometry: {stoichiometry}"
+                if (ref := product.getId()) != "":
+                    dynamic_stoichiometry[species] = ref
+                    self.parameters[ref] = Parameter(0.0, is_constant=False)
+                elif species not in self.boundary_species:
+                    factor = product.getStoichiometry()
+                    if str(factor) == "nan":
+                        msg = f"Cannot parse stoichiometry: {factor}"
                         raise ValueError(msg)
-                    parsed_products[species] += stoichiometry
+                    parsed_products[species] += factor
 
             # Combine stoichiometries
             # Hint: you can't just combine the dictionaries, as you have cases like
             # S1 + S2 -> 2S2, which have to be combined to S1 -> S2
-            stoichiometry = dict(parsed_reactants)
+            stoichiometries = dict(parsed_reactants)
             for species, value in parsed_products.items():
-                if species in stoichiometry:
-                    stoichiometry[species] = stoichiometry[species] + value
+                if species in stoichiometries:
+                    stoichiometries[species] = stoichiometries[species] + value
                 else:
-                    stoichiometry[species] = value
+                    stoichiometries[species] = value
 
             self.reactions[sbml_id] = Reaction(
                 body=body,
-                stoichiometry=stoichiometry,
+                stoichiometry=stoichiometries | dynamic_stoichiometry,
                 args=args,
             )
 
@@ -420,61 +425,6 @@ def _handle_fn(name: str, body: str, args: list[str]) -> Callable[..., float]:
     return python_func  # type: ignore
 
 
-# def _translate(sbml: Parser) -> Model:
-#     m = Model()
-
-#     # Parameters
-#     for k, v in sbml.parameters.items():
-#         if k in sbml.derived:
-#             continue
-#         m.add_parameter(k, v.value)
-
-#     # Variables
-#     for k, v in sbml.variables.items():
-#         if k in sbml.derived:
-#             continue
-#         m.add_variable(k, v.initial_amount)
-
-#     # Compartments
-#     for k, v in sbml.compartments.items():
-#         if k in sbml.derived:
-#             continue
-#         if v.is_constant:
-#             m.add_parameter(k, v.size)
-#         else:
-#             m.add_variable(k, v.size)
-
-#     # Derived
-#     for k, v in sbml.derived.items():
-#         m.add_derived(
-#             k,
-#             fn=_handle_fn(k, body=v.body, args=v.args),
-#             args=v.args,
-#         )
-
-#     # Globally create functions. Yes, this sucks
-#     for k, v in sbml.functions.items():
-#         _handle_fn(k, body=v.body, args=v.args)
-
-#     # Calculate initial assignments
-#     # FIXME: probably will need to sort these ...
-#     for k, v in sbml.initial_assignment.items():
-#         args = m.get_args(m.variables, include_readouts=False)
-#         fn = _handle_fn(k, body=v.body, args=v.args)
-#         m.update_variable(k, fn(*(args[arg] for arg in v.args)))
-
-#     # Reactions
-#     for k, v in sbml.reactions.items():
-#         m.add_reaction(
-#             name=k,
-#             fn=_handle_fn(k, body=v.body, args=v.args),
-#             stoichiometry=v.stoichiometry,
-#             args=v.args,
-#         )
-
-#     return m
-
-
 def _codegen_fn(name: str, body: str, args: list[str]) -> str:
     func_args = ", ".join(args)
     return "\n".join(
@@ -486,39 +436,32 @@ def _codegen_fn(name: str, body: str, args: list[str]) -> str:
     )
 
 
-# def handle_initial_assignments(self) -> None:
-#     for assignment in self.converted_initial_assignments.values():
-#         derived_parameter = assignment.derived_parameter
-#         if derived_parameter in self.parsed_species:
-#             species = self.parsed_species[derived_parameter]
-#             if species.is_concentration:
-#                 continue
-#             compartment = self.parsed_species[derived_parameter].compartment
-#             if compartment is not None:
-#                 if self.parsed_compartments[compartment].dimensions == 0:
-#                     continue
-#                 function_body = assignment.function_body
-#                 if compartment not in function_body:
-#                     assignment.function_body = f"({function_body}) * {compartment}"
-#                     assignment.function_args.append(compartment)
+def _codegen_initial_assignment(
+    k: str,
+    sbml: Parser,
+    parameters: dict[str, float],
+) -> str:
+    if k in parameters:
+        return f"m.update_parameter('{k}', _init_{k}(*(args[i] for i in {sbml.initial_assignment[k].args})) )"
 
-
-def _codegen_initial_assignment(k: str, sbml: Parser) -> str:
-    if k in sbml.parameters or k in sbml.compartments:
-        return f"m.update_parameter('{k}', {k}(*(args[i] for i in {sbml.initial_assignment[k].args})) )"
-
-    species = sbml.variables[k]
     ass = sbml.initial_assignment[k]
-    fn = f"{k}(*(args[i] for i in {ass.args}))"
+    fn = f"_init_{k}(*(args[i] for i in {ass.args}))"
 
-    compartment = species.compartment
+    if (species := sbml.variables.get(k)) is not None:
+        compartment = species.compartment
+        if compartment is not None and (
+            not species.is_concentration
+            or (species.has_only_substance_units and species.is_concentration)
+        ):
+            size = 1 if (c := sbml.compartments.get(compartment)) is None else c.size
+            if size != 0:
+                fn = f"{fn} * {size}"
+    elif k in sbml.compartments:
+        pass
+    else:
+        msg = "Initial assignment targeting unknown type"
+        raise NotImplementedError(msg)
 
-    if compartment is not None and (
-        not species.is_concentration
-        or (species.has_only_substance_units and species.is_concentration)
-    ):
-        size = 1 if (c := sbml.compartments.get(compartment)) is None else c.size
-        fn = f"{fn} * {size}"
     return f"m.update_variable('{k}', {fn})"
 
 
@@ -531,7 +474,7 @@ def _codgen(name: str, sbml: Parser) -> Path:
             sbml.functions.items(),
             sbml.derived.items(),
             sbml.reactions.items(),
-            sbml.initial_assignment.items(),
+            {f"_init_{k}": v for k, v in sbml.initial_assignment.items()}.items(),
         )
     }
 
@@ -564,13 +507,17 @@ def _codgen(name: str, sbml: Parser) -> Path:
 
     # Initial assignments
     initial_assignment_order = _sort_dependencies(
-        set(sbml.initial_assignment),
-        [(k, set(v.args)) for k, v in sbml.initial_assignment.items()],
+        available=set(sbml.initial_assignment) ^ set(parameters) ^ set(variables),
+        elements=[(k, set(v.args)) for k, v in sbml.initial_assignment.items()],
     )
 
-    initial_assignment_source = "\n    ".join(
-        _codegen_initial_assignment(k, sbml) for k in initial_assignment_order
-    )
+    if len(initial_assignment_order) > 0:
+        initial_assignment_source = "\n    ".join(
+            _codegen_initial_assignment(k, sbml, parameters=parameters)
+            for k in initial_assignment_order
+        )
+    else:
+        initial_assignment_source = ""
 
     file = f"""
 import math

@@ -10,12 +10,14 @@ from __future__ import annotations
 import copy
 import inspect
 import itertools as it
+import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Self, cast
 
 import numpy as np
 import pandas as pd
 
+from modelbase2 import fns
 from modelbase2.types import (
     Array,
     Derived,
@@ -44,7 +46,7 @@ class SortError(Exception):
         msg = (
             f"Exceeded max iterations on sorting derived. "
             "Check if there are circular references.\n"
-            f"Available: {unsorted}\n"
+            f"Unsorted: {unsorted}\n"
             f"Order: {order}"
         )
         super().__init__(msg)
@@ -137,7 +139,8 @@ def _sort_dependencies(
     from queue import Empty, SimpleQueue
 
     order = []
-    max_iterations = len(elements)
+    # FIXME: what is the worst case here?
+    max_iterations = len(elements) ** 2
     queue: SimpleQueue[tuple[str, set[str]]] = SimpleQueue()
     for k, v in elements:
         queue.put((k, v))
@@ -962,7 +965,7 @@ class Model:
         fn: RateFn,
         *,
         args: list[str],
-        stoichiometry: Mapping[str, float | Derived],
+        stoichiometry: Mapping[str, float | str | Derived],
     ) -> Self:
         """Adds a reaction to the model.
 
@@ -984,7 +987,12 @@ class Model:
 
         """
         self._insert_id(name=name, ctx="reaction")
-        self._reactions[name] = Reaction(fn=fn, stoichiometry=stoichiometry, args=args)
+
+        stoich: dict[str, Derived | float] = {
+            k: Derived(fns.constant, [v]) if isinstance(v, str) else v
+            for k, v in stoichiometry.items()
+        }
+        self._reactions[name] = Reaction(fn=fn, stoichiometry=stoich, args=args)
         return self
 
     def get_reaction_names(self) -> list[str]:
@@ -1007,7 +1015,7 @@ class Model:
         fn: RateFn | None = None,
         *,
         args: list[str] | None = None,
-        stoichiometry: Mapping[str, float | Derived] | None = None,
+        stoichiometry: Mapping[str, float | Derived | str] | None = None,
     ) -> Self:
         """Updates the properties of an existing reaction in the model.
 
@@ -1030,9 +1038,13 @@ class Model:
         """
         rxn = self._reactions[name]
         rxn.fn = rxn.fn if fn is None else fn
-        rxn.stoichiometry = (
-            rxn.stoichiometry if stoichiometry is None else stoichiometry
-        )
+
+        if stoichiometry is not None:
+            stoich = {
+                k: Derived(fns.constant, [v]) if isinstance(v, str) else v
+                for k, v in stoichiometry.items()
+            }
+            rxn.stoichiometry = stoich
         rxn.args = rxn.args if args is None else args
         return self
 

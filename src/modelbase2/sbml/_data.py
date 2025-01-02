@@ -12,6 +12,10 @@ __all__ = [
 ]
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 @dataclass
@@ -69,5 +73,5 @@ class Function:
 @dataclass
 class Reaction:
     body: str
-    stoichiometry: dict
+    stoichiometry: Mapping[str, float | str]
     args: list[str]

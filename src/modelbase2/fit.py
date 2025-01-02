@@ -170,7 +170,7 @@ def _time_course_residual(
             y0=y0,
             integrator=integrator,
         )
-        .simulate(time_points=data.index)  # type: ignore
+        .simulate_time_course(data.index)  # type: ignore
         .get_full_concs_and_fluxes()
     )
     if c_ss is None or v_ss is None:
