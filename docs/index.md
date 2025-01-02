@@ -139,3 +139,11 @@ These distributions can in turn be used with our [Monte-Carlo methods](monte-car
 
 
 [Start learning](parameterise.ipynb){ .md-button }
+
+
+## Experimental features
+
+A collection of experimental features for you to explore.
+Warning: all APIs shown should be considered unstable and may change without notice.
+
+[Start learning](experimental.ipynb){ .md-button }
