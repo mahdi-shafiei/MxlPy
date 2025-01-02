@@ -157,7 +157,7 @@ def handle_ast_function_abs(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_function_ceiling(node: ASTNode, func_arguments: list[str]) -> str:
     child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
-    return f"math.ceil({child})"
+    return f"np.ceil({child})"
 
 
 def handle_ast_function_delay(node: ASTNode, func_arguments: list[str]) -> str:
@@ -171,12 +171,12 @@ def handle_ast_function_exp(node: ASTNode, func_arguments: list[str]) -> str:
 
 def handle_ast_function_factorial(node: ASTNode, func_arguments: list[str]) -> str:
     child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
-    return f"math.factorial({child})"
+    return f"scipy.special.factorial({child})"
 
 
 def handle_ast_function_floor(node: ASTNode, func_arguments: list[str]) -> str:
     child = _handle_ast_node(node=node.getChild(0), func_arguments=func_arguments)
-    return f"math.floor({child})"
+    return f"np.floor({child})"
 
 
 def handle_ast_function_ln(node: ASTNode, func_arguments: list[str]) -> str:

@@ -223,7 +223,7 @@ def generate_model_code_py(model: Model) -> str:
 
     # Combine all the sources
     source = [
-        "from collections.abs import Iterable\n",
+        "from collections.abc import Iterable\n",
         "from modelbase2.types import Float\n",
         "def model(t: Float, y: Float) -> Iterable[Float]:",
         variable_source,
