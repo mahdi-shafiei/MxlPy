@@ -94,7 +94,7 @@ def parallelise[K: Hashable, Tin, Tout](
     fn: Callable[[Tin], Tout],
     inputs: Collection[tuple[K, Tin]],
     *,
-    cache: Cache | None,
+    cache: Cache | None = None,
     parallel: bool = True,
     max_workers: int | None = None,
     timeout: float | None = None,
