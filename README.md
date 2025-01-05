@@ -1,5 +1,17 @@
 # modelbase
 
+## Installation
+
+You can install modelbase using pip: `pip install modelbase2`
+
+If you want access to the sundials solver suite via the [assimulo](https://jmodelica.org/assimulo/) package, we recommend setting up a virtual environment via [pixi](https://pixi.sh/) or [mamba / conda](https://mamba.readthedocs.io/en/latest/) using the [conda-forge](https://conda-forge.org/) channel.
+
+```bash
+pixi init
+pixi add python assimulo
+pixi add --pypi modelbase2
+```
+
 
 ## Development setup
 
