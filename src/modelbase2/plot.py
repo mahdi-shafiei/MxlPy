@@ -399,7 +399,10 @@ def lines(
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
     ax.plot(x.index, x)
     _default_labels(ax, xlabel=x.index.name, ylabel=None)
-    ax.legend(x.columns)
+    if isinstance(x, pd.Series):
+        ax.legend([str(x.name)])
+    else:
+        ax.legend(x.columns)
     return fig, ax
 
 
