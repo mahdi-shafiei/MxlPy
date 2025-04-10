@@ -14,6 +14,7 @@ nav:
   - Label models: label-models.ipynb
   - Model parameterisation: parameterise.ipynb
   - Experimental: experimental.ipynb
+  - Tips: tips.ipynb
 
 theme:
   name: material
