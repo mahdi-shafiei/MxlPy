@@ -146,8 +146,11 @@ class LogUniform:
         """
         if rng is None:
             rng = RNG
-        return stats.loguniform.rvs(
-            self.lower_bound, self.upper_bound, size=num, random_state=rng
+        return cast(
+            Array,
+            stats.loguniform.rvs(
+                self.lower_bound, self.upper_bound, size=num, random_state=rng
+            ),
         )
 
 

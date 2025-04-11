@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -6,9 +7,10 @@ import torch
 import tqdm
 from torch import nn
 from torch.optim.adam import Adam
+from torch.optim.optimizer import ParamsT
 
-from modelbase2.types import AbstractSurrogate
 from modelbase2.nnarchitectures import MLP, DefaultDevice
+from modelbase2.types import AbstractSurrogate
 
 __all__ = ["TorchSurrogate", "train_torch_surrogate"]
 
@@ -124,7 +126,7 @@ def train_torch_surrogate(
     surrogate_stoichiometries: dict[str, dict[str, float]] | None = None,
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
-    optimimzer_cls: type[Adam] = Adam,
+    optimimzer_cls: Callable[[ParamsT], Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchSurrogate, pd.Series]:
     """Train a PyTorch surrogate model.

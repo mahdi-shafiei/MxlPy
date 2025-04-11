@@ -21,6 +21,8 @@ from modelbase2.integrators import DefaultIntegrator
 __all__ = ["Simulator"]
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from modelbase2.model import Model
     from modelbase2.types import ArrayLike, IntegratorProtocol
 
@@ -83,7 +85,9 @@ class Simulator:
         self,
         model: Model,
         y0: dict[str, float] | None = None,
-        integrator: type[IntegratorProtocol] = DefaultIntegrator,
+        integrator: Callable[
+            [Callable, ArrayLike], IntegratorProtocol
+        ] = DefaultIntegrator,
         *,
         test_run: bool = True,
     ) -> None:
@@ -93,7 +97,7 @@ class Simulator:
             model (Model): The model to be simulated.
             y0 (dict[str, float] | None, optional): Initial conditions for the model variables.
                 If None, the initial conditions are obtained from the model. Defaults to None.
-            integrator (type[IntegratorProtocol], optional): The integrator to use for the simulation.
+            integrator (Callable[[Callable, ArrayLike], IntegratorProtocol], optional): The integrator to use for the simulation.
                 Defaults to DefaultIntegrator.
             test_run (bool, optional): If True, performs a test run to ensure the model's methods
                 (get_full_concs, get_fluxes, get_right_hand_side) work correctly with the initial conditions.
@@ -104,7 +108,7 @@ class Simulator:
         y0 = model.get_initial_conditions() if y0 is None else y0
         self.y0 = [y0[k] for k in model.get_variable_names()]
 
-        self.integrator = integrator(self.model, y0=self.y0)
+        self.integrator = integrator(self.model, self.y0)
         self.concs = None
         self.args = None
         self.simulation_parameters = None

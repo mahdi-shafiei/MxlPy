@@ -23,7 +23,7 @@ __all__ = [
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import pandas as pd
@@ -34,6 +34,11 @@ from torch.optim.adam import Adam
 
 from modelbase2.nnarchitectures import MLP, DefaultDevice, LSTMnn
 from modelbase2.parallel import Cache
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from torch.optim.optimizer import ParamsT
 
 DefaultCache = Cache(Path(".cache"))
 
@@ -140,7 +145,7 @@ def train_torch_ss_estimator(
     epochs: int,
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
-    optimimzer_cls: type[Adam] = Adam,
+    optimimzer_cls: Callable[[ParamsT], Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchSSEstimator, pd.Series]:
     """Train a PyTorch steady state estimator.
@@ -206,7 +211,7 @@ def train_torch_time_course_estimator(
     epochs: int,
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
-    optimimzer_cls: type[Adam] = Adam,
+    optimimzer_cls: Callable[[ParamsT], Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchTimeCourseEstimator, pd.Series]:
     """Train a PyTorch time course estimator.

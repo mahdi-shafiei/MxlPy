@@ -19,6 +19,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -28,6 +29,11 @@ from torch import nn
 from torch.optim.adam import Adam
 
 from modelbase2.parallel import Cache
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from torch.optim.optimizer import ParamsT
 
 __all__ = [
     "AbstractSurrogate",
@@ -251,7 +257,7 @@ def train_torch_surrogate(
     surrogate_stoichiometries: dict[str, dict[str, float]],
     batch_size: int | None = None,
     approximator: nn.Module | None = None,
-    optimimzer_cls: type[Adam] = Adam,
+    optimimzer_cls: Callable[[ParamsT], Adam] = Adam,
     device: torch.device = DefaultDevice,
 ) -> tuple[TorchSurrogate, pd.Series]:
     """Train a PyTorch surrogate model.

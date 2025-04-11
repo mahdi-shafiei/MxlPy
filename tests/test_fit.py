@@ -30,7 +30,7 @@ def mock_ss_residual_fn(
     data: pd.Series,  # noqa: ARG001
     model: Model,  # noqa: ARG001
     y0: dict[str, float],  # noqa: ARG001
-    integrator: type[IntegratorProtocol],  # noqa: ARG001
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],  # noqa: ARG001
 ) -> float:
     return 0.0
 
@@ -41,7 +41,7 @@ def mock_ts_residual_fn(
     data: pd.DataFrame,  # noqa: ARG001
     model: Model,  # noqa: ARG001
     y0: dict[str, float],  # noqa: ARG001
-    integrator: type[IntegratorProtocol],  # noqa: ARG001
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],  # noqa: ARG001
 ) -> float:
     return 0.0
 
