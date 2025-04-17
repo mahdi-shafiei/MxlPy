@@ -10,7 +10,6 @@ from __future__ import annotations
 import copy
 import inspect
 import itertools as it
-import math
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Self, cast
 
