@@ -507,7 +507,11 @@ def _codgen(name: str, sbml: Parser) -> Path:
 
     # Initial assignments
     initial_assignment_order = _sort_dependencies(
-        available=set(sbml.initial_assignment) ^ set(parameters) ^ set(variables),
+        available=set(sbml.initial_assignment)
+        ^ set(parameters)
+        ^ set(variables)
+        ^ set(sbml.derived)
+        | {"time"},
         elements=[(k, set(v.args)) for k, v in sbml.initial_assignment.items()],
     )
 

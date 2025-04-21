@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from modelbase2.model import Model
+from modelbase2.model import CircularDependencyError, MissingDependenciesError, Model
 from modelbase2.types import MockSurrogate
 
 

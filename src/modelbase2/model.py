@@ -25,7 +25,13 @@ from modelbase2.types import (
     Readout,
 )
 
-__all__ = ["ArityMismatchError", "Model", "ModelCache", "SortError"]
+__all__ = [
+    "ArityMismatchError",
+    "CircularDependencyError",
+    "MissingDependenciesError",
+    "Model",
+    "ModelCache",
+]
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
@@ -34,19 +40,40 @@ if TYPE_CHECKING:
     from modelbase2.types import AbstractSurrogate, Callable, Param, RateFn, RetType
 
 
-class SortError(Exception):
+class MissingDependenciesError(Exception):
     """Raised when dependencies cannot be sorted topologically.
 
     This typically indicates circular dependencies in model components.
     """
 
-    def __init__(self, unsorted: list[str], order: list[str]) -> None:
+    def __init__(self, not_solvable: dict[str, list[str]]) -> None:
         """Initialise exception."""
+        missing_by_module = "\n".join(f"\t{k}: {v}" for k, v in not_solvable.items())
         msg = (
-            f"Exceeded max iterations on sorting derived. "
-            "Check if there are circular references.\n"
-            f"Unsorted: {unsorted}\n"
-            f"Order: {order}"
+            f"Dependencies cannot be solved. "
+            "Missing dependencies:\n"
+            f"{missing_by_module}"
+        )
+        super().__init__(msg)
+
+
+class CircularDependencyError(Exception):
+    """Raised when dependencies cannot be sorted topologically.
+
+    This typically indicates circular dependencies in model components.
+    """
+
+    def __init__(
+        self,
+        missing: dict[str, set[str]],
+    ) -> None:
+        """Initialise exception."""
+        missing_by_module = "\n".join(f"\t{k}: {v}" for k, v in missing.items())
+        msg = (
+            f"Exceeded max iterations on sorting dependencies.\n"
+            "Check if there are circular references. "
+            "Missing dependencies:\n"
+            f"{missing_by_module}"
         )
         super().__init__(msg)
 
@@ -119,6 +146,24 @@ def _invalidate_cache(method: Callable[Param, RetType]) -> Callable[Param, RetTy
     return wrapper  # type: ignore
 
 
+def _check_if_is_sortable(
+    available: set[str],
+    elements: list[tuple[str, set[str]]],
+) -> None:
+    all_available = available.copy()
+    for name, _ in elements:
+        all_available.add(name)
+
+    # Check if it can be sorted in the first place
+    not_solvable = {}
+    for name, args in elements:
+        if not args.issubset(all_available):
+            not_solvable[name] = sorted(args.difference(all_available))
+
+    if not_solvable:
+        raise MissingDependenciesError(not_solvable=not_solvable)
+
+
 def _sort_dependencies(
     available: set[str], elements: list[tuple[str, set[str]]]
 ) -> list[str]:
@@ -136,6 +181,8 @@ def _sort_dependencies(
 
     """
     from queue import Empty, SimpleQueue
+
+    _check_if_is_sortable(available, elements)
 
     order = []
     # FIXME: what is the worst case here?
@@ -170,7 +217,10 @@ def _sort_dependencies(
                     unsorted.append(queue.get_nowait()[0])
                 except Empty:
                     break
-            raise SortError(unsorted=unsorted, order=order)
+
+            mod_to_args: dict[str, set[str]] = dict(elements)
+            missing = {k: mod_to_args[k].difference(available) for k in unsorted}
+            raise CircularDependencyError(missing=missing)
     return order
 
 

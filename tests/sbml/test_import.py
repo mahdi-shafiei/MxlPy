@@ -12,6 +12,7 @@ from outcome import Value
 
 from modelbase2 import Simulator
 from modelbase2.integrators.int_scipy import Scipy
+from modelbase2.model import MissingDependenciesError
 from modelbase2.sbml import read
 
 if TYPE_CHECKING:
@@ -5439,12 +5440,12 @@ def test_01223() -> None:
 
 
 def test_01224() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingDependenciesError):
         routine(test=1224)
 
 
 def test_01225() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingDependenciesError):
         routine(test=1225)
 
 
@@ -5484,7 +5485,7 @@ def test_01232() -> None:
 
 
 def test_01233() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingDependenciesError):
         routine(test=1233)
 
 
@@ -5804,12 +5805,12 @@ def test_01299() -> None:
 
 
 def test_01300() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingDependenciesError):
         routine(test=1300)
 
 
 def test_01301() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingDependenciesError):
         routine(test=1301)
 
 
@@ -5834,7 +5835,7 @@ def test_01305() -> None:
 
 
 def test_01306() -> None:
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingDependenciesError):
         routine(test=1306)
 
 
