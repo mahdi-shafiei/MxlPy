@@ -818,7 +818,7 @@ def relative_label_distribution(
                 isos = mapper.get_isotopomers_of_at_position(name, i)
                 labels = cast(pd.DataFrame, concs.loc[:, isos])
                 total = concs.loc[:, f"{name}__total"]
-                ax.plot(labels.index, (labels.sum(axis=1) / total), label=f"C{i+1}")
+                ax.plot(labels.index, (labels.sum(axis=1) / total), label=f"C{i + 1}")
             ax.set_title(name)
             ax.legend()
     else:
@@ -827,6 +827,6 @@ def relative_label_distribution(
         ):
             ax.plot(concs.index, concs.loc[:, isos])
             ax.set_title(name)
-            ax.legend([f"C{i+1}" for i in range(len(isos))])
+            ax.legend([f"C{i + 1}" for i in range(len(isos))])
 
     return fig, axs

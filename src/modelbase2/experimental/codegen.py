@@ -211,7 +211,7 @@ def generate_model_code_py(model: Model) -> str:
     stoich_source = []
     for variable, stoich in stoichiometries.items():
         stoich_source.append(
-            f"    d{variable}dt = {conditional_join(stoich, lambda x: x.startswith("-"), " ", " + ")}"
+            f"    d{variable}dt = {conditional_join(stoich, lambda x: x.startswith('-'), ' ', ' + ')}"
         )
 
     # Surrogates

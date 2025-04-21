@@ -50,9 +50,7 @@ class MissingDependenciesError(Exception):
         """Initialise exception."""
         missing_by_module = "\n".join(f"\t{k}: {v}" for k, v in not_solvable.items())
         msg = (
-            f"Dependencies cannot be solved. "
-            "Missing dependencies:\n"
-            f"{missing_by_module}"
+            f"Dependencies cannot be solved. Missing dependencies:\n{missing_by_module}"
         )
         super().__init__(msg)
 
