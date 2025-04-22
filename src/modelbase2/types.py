@@ -153,7 +153,6 @@ class Derived:
 
     fn: RateFn
     args: list[str]
-    math: str | None = None
 
 
 @dataclass(slots=True)
@@ -171,7 +170,6 @@ class Reaction:
     fn: RateFn
     stoichiometry: Mapping[str, float | Derived]
     args: list[str]
-    math: str | None = None
 
     def get_modifiers(self, model: Model) -> list[str]:
         """Get the modifiers of the reaction."""
