@@ -4795,8 +4795,8 @@ packages:
   requires_python: '>=3.9,<3.13'
 - pypi: .
   name: modelbase2
-  version: 0.4.0
-  sha256: 842487d90d7c7c4a2e9ec661311cfbdd7d26a7b11c2902d819323f6bb0e09035
+  version: 0.5.0
+  sha256: a83429f35b17ccfd7b216cc09b9879e3a2d069ca789ceb2ad35d6269aaf0dc97
   requires_dist:
   - dill>=0.3.9
   - latexify-py>=0.4.4

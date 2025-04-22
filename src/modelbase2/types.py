@@ -147,26 +147,93 @@ class IntegratorProtocol(Protocol):
         ...
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class Derived:
     """Container for a derived value."""
 
+    name: str
     fn: RateFn
     args: list[str]
 
+    def calculate(self, dependent: dict[str, float]) -> float:
+        """Calculate the derived value.
 
-@dataclass(slots=True)
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        Returns:
+            The calculated derived value.
+
+        """
+        return cast(float, self.fn(*(dependent[arg] for arg in self.args)))
+
+    def calculate_inpl(self, dependent: dict[str, float]) -> None:
+        """Calculate the derived value in place.
+
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        """
+        dependent[self.name] = cast(
+            float, self.fn(*(dependent[arg] for arg in self.args))
+        )
+
+    def calculate_inpl_time_course(self, dependent: pd.DataFrame) -> None:
+        """Calculate the derived value in place.
+
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        """
+        dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+
+
+@dataclass(kw_only=True, slots=True)
 class Readout:
     """Container for a readout."""
 
+    name: str
     fn: RateFn
     args: list[str]
 
+    def calculate(self, dependent: dict[str, float]) -> float:
+        """Calculate the derived value.
 
-@dataclass(slots=True)
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        Returns:
+            The calculated derived value.
+
+        """
+        return cast(float, self.fn(*(dependent[arg] for arg in self.args)))
+
+    def calculate_inpl(self, dependent: dict[str, float]) -> None:
+        """Calculate the readout in place.
+
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        """
+        dependent[self.name] = cast(
+            float, self.fn(*(dependent[arg] for arg in self.args))
+        )
+
+    def calculate_inpl_time_course(self, dependent: pd.DataFrame) -> None:
+        """Calculate the derived value in place.
+
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        """
+        dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+
+
+@dataclass(kw_only=True, slots=True)
 class Reaction:
     """Container for a reaction."""
 
+    name: str
     fn: RateFn
     stoichiometry: Mapping[str, float | Derived]
     args: list[str]
@@ -178,8 +245,44 @@ class Reaction:
 
         return [k for k in self.args if k in include and k not in exclude]
 
+    def calculate(self, dependent: dict[str, float]) -> float:
+        """Calculate the derived value.
 
-@dataclass(slots=True)
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        Returns:
+            The calculated derived value.
+
+        """
+        return cast(float, self.fn(*(dependent[arg] for arg in self.args)))
+
+    def calculate_inpl(self, dependent: dict[str, float]) -> None:
+        """Calculate the reaction in place.
+
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        """
+        dependent[self.name] = cast(
+            float, self.fn(*(dependent[arg] for arg in self.args))
+        )
+
+    def calculate_inpl_time_course(self, dependent: pd.DataFrame) -> None:
+        """Calculate the derived value in place.
+
+        Args:
+            dependent: Dictionary of dependent variables.
+
+        """
+        try:
+            dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+        except ValueError:  # e.g. numpy.where
+            sub = dependent.loc[:, self.args].to_numpy()
+            dependent[self.name] = [self.fn(*row) for row in sub]
+
+
+@dataclass(kw_only=True, slots=True)
 class ResponseCoefficients:
     """Container for response coefficients."""
 
@@ -196,7 +299,7 @@ class ResponseCoefficients:
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class ResponseCoefficientsByPars:
     """Container for response coefficients by parameter."""
 
@@ -214,7 +317,7 @@ class ResponseCoefficientsByPars:
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class SteadyStates:
     """Container for steady states."""
 
@@ -232,7 +335,7 @@ class SteadyStates:
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class McSteadyStates:
     """Container for Monte Carlo steady states."""
 
@@ -251,7 +354,7 @@ class McSteadyStates:
         return pd.concat((self.concs, self.fluxes), axis=1)
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class TimeCourseByPars:
     """Container for time courses by parameter."""
 
@@ -283,7 +386,7 @@ class TimeCourseByPars:
         return cast(pd.DataFrame, mean.unstack().T)
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class ProtocolByPars:
     """Container for protocols by parameter."""
 
@@ -346,14 +449,25 @@ class AbstractSurrogate:
             )
         )
 
+    def calculate_inpl(self, args: dict[str, float]) -> None:
+        """Predict outputs based on input data."""
+        args |= self.predict(np.array([args[arg] for arg in self.args]))
+
+    def calculate_inpl_time_course(self, args: pd.DataFrame) -> None:
+        args[list(self.stoichiometries)] = pd.DataFrame(
+            [self.predict(y) for y in args.loc[:, self.args].to_numpy()],
+            index=args.index,
+            dtype=float,
+        )
+
 
 @dataclass(kw_only=True)
 class MockSurrogate(AbstractSurrogate):
     """Mock surrogate model for testing purposes."""
 
-    def predict_raw(
+    def predict(
         self,
         y: np.ndarray,
-    ) -> np.ndarray:
+    ) -> dict[str, float]:
         """Predict outputs based on input data."""
-        return y
+        return dict(zip(self.stoichiometries, y, strict=True))

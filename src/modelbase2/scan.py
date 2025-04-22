@@ -467,7 +467,7 @@ def steady_state(
     )
     concs.index = idx
     fluxes.index = idx
-    return SteadyStates(concs, fluxes, parameters=parameters)
+    return SteadyStates(concs=concs, fluxes=fluxes, parameters=parameters)
 
 
 def time_course(

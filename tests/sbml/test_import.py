@@ -62,7 +62,7 @@ def add_constant_species_to_results(
         pd.DataFrame: The updated result DataFrame with the constant species added.
 
     """
-    args = model.get_args()
+    args = model.get_dependent()
     for name in expected.columns.difference(result.columns):
         species = args[name]
         species = pd.Series(
@@ -5445,8 +5445,7 @@ def test_01224() -> None:
 
 
 def test_01225() -> None:
-    with pytest.raises(MissingDependenciesError):
-        routine(test=1225)
+    routine(test=1225)
 
 
 def test_01226() -> None:
@@ -5475,8 +5474,7 @@ def test_01230() -> None:
 
 
 def test_01231() -> None:
-    with pytest.raises(KeyError):
-        routine(test=1231)
+    routine(test=1231)
 
 
 def test_01232() -> None:
@@ -5810,8 +5808,7 @@ def test_01300() -> None:
 
 
 def test_01301() -> None:
-    with pytest.raises(MissingDependenciesError):
-        routine(test=1301)
+    routine(test=1301)
 
 
 def test_01302() -> None:
@@ -5835,8 +5832,7 @@ def test_01305() -> None:
 
 
 def test_01306() -> None:
-    with pytest.raises(MissingDependenciesError):
-        routine(test=1306)
+    routine(test=1306)
 
 
 # def test_01307() -> None:  # FIXME

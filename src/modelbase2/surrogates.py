@@ -16,7 +16,6 @@ Functions:
 
 from __future__ import annotations
 
-from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -29,6 +28,7 @@ from torch import nn
 from torch.optim.adam import Adam
 
 from modelbase2.parallel import Cache
+from modelbase2.types import AbstractSurrogate
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -36,11 +36,9 @@ if TYPE_CHECKING:
     from torch.optim.optimizer import ParamsT
 
 __all__ = [
-    "AbstractSurrogate",
     "Approximator",
     "DefaultCache",
     "DefaultDevice",
-    "MockSurrogate",
     "TorchSurrogate",
     "train_torch_surrogate",
 ]
@@ -48,39 +46,6 @@ __all__ = [
 
 DefaultDevice = torch.device("cpu")
 DefaultCache = Cache(Path(".cache"))
-
-
-@dataclass(kw_only=True)
-class AbstractSurrogate:
-    """Abstract base class for surrogate models.
-
-    Attributes:
-        inputs: List of input variable names.
-        stoichiometries: Dictionary mapping reaction names to stoichiometries.
-
-    Methods:
-        predict: Abstract method to predict outputs based on input data.
-
-    """
-
-    inputs: list[str]
-    stoichiometries: dict[str, dict[str, float]]
-
-    @abstractmethod
-    def predict(self, y: np.ndarray) -> dict[str, float]:
-        """Predict outputs based on input data."""
-
-
-@dataclass(kw_only=True)
-class MockSurrogate(AbstractSurrogate):
-    """Mock surrogate model for testing purposes."""
-
-    def predict(
-        self,
-        y: np.ndarray,
-    ) -> dict[str, float]:
-        """Predict outputs based on input data."""
-        return dict(zip(self.stoichiometries, y, strict=True))
 
 
 @dataclass(kw_only=True)
@@ -316,7 +281,7 @@ def train_torch_surrogate(
         )
     surrogate = TorchSurrogate(
         model=approximator,
-        inputs=surrogate_inputs,
+        args=surrogate_inputs,
         stoichiometries=surrogate_stoichiometries,
     )
     return surrogate, losses

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-from torch import Value
 
 from modelbase2.linear_label_map import (
     Derived,
@@ -36,7 +35,7 @@ def test_unpack_stoichiometries_valid() -> None:
 
 
 def test_unpack_stoichiometries_with_derived() -> None:
-    stoichiometries = {"A": Derived(lambda x: x, []), "B": 2.0}
+    stoichiometries = {"A": Derived(name="A", fn=lambda x: x, args=[]), "B": 2.0}
     with pytest.raises(NotImplementedError):
         _unpack_stoichiometries(stoichiometries)
 

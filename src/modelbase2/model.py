@@ -20,7 +20,6 @@ from modelbase2 import fns
 from modelbase2.types import (
     Array,
     Derived,
-    Float,
     Reaction,
     Readout,
 )
@@ -238,6 +237,7 @@ class ModelCache:
     """
 
     var_names: list[str]
+    order: list[str]
     all_parameter_values: dict[str, float]
     derived_parameter_names: list[str]
     derived_variable_names: list[str]
@@ -293,22 +293,26 @@ class Model:
         # Sanity checks
         for name, el in it.chain(
             self._derived.items(),
-            self._readouts.items(),
             self._reactions.items(),
+            self._readouts.items(),
         ):
             if not _check_function_arity(el.fn, len(el.args)):
                 raise ArityMismatchError(name, el.fn, el.args)
 
-        # Sort derived
-        derived_order = _sort_dependencies(
+        # Sort derived & reactions
+        to_sort = self._derived | self._reactions | self._surrogates
+        order = _sort_dependencies(
             available=set(self._parameters) | set(self._variables) | {"time"},
-            elements=[(k, set(v.args)) for k, v in self._derived.items()],
+            elements=[(k, set(v.args)) for k, v in to_sort.items()],
         )
 
         # Split derived into parameters and variables
+        # for user convenience
         derived_variable_names: list[str] = []
         derived_parameter_names: list[str] = []
-        for name in derived_order:
+        for name in order:
+            if name in self._reactions or name in self._surrogates:
+                continue
             derived = self._derived[name]
             if all(i in all_parameter_names for i in derived.args):
                 all_parameter_names.add(name)
@@ -348,6 +352,7 @@ class Model:
 
         self._cache = ModelCache(
             var_names=var_names,
+            order=order,
             all_parameter_values=all_parameter_values,
             stoich_by_cpds=stoich_by_compounds,
             dyn_stoich_by_cpds=dyn_stoich_by_compounds,
@@ -886,7 +891,7 @@ class Model:
 
         """
         self._insert_id(name=name, ctx="derived")
-        self._derived[name] = Derived(fn, args)
+        self._derived[name] = Derived(name=name, fn=fn, args=args)
         return self
 
     def get_derived_parameter_names(self) -> list[str]:
@@ -995,7 +1000,7 @@ class Model:
         """
         if (cache := self._cache) is None:
             cache = self._create_cache()
-        args = self.get_args(concs=concs, time=time)
+        args = self.get_dependent(concs=concs, time=time)
 
         stoich_by_cpds = copy.deepcopy(cache.stoich_by_cpds)
         for cpd, stoich in cache.dyn_stoich_by_cpds.items():
@@ -1036,10 +1041,12 @@ class Model:
         self._insert_id(name=name, ctx="reaction")
 
         stoich: dict[str, Derived | float] = {
-            k: Derived(fns.constant, [v]) if isinstance(v, str) else v
+            k: Derived(name=k, fn=fns.constant, args=[v]) if isinstance(v, str) else v
             for k, v in stoichiometry.items()
         }
-        self._reactions[name] = Reaction(fn=fn, stoichiometry=stoich, args=args)
+        self._reactions[name] = Reaction(
+            name=name, fn=fn, stoichiometry=stoich, args=args
+        )
         return self
 
     def get_reaction_names(self) -> list[str]:
@@ -1088,7 +1095,9 @@ class Model:
 
         if stoichiometry is not None:
             stoich = {
-                k: Derived(fns.constant, [v]) if isinstance(v, str) else v
+                k: Derived(name=k, fn=fns.constant, args=[v])
+                if isinstance(v, str)
+                else v
                 for k, v in stoichiometry.items()
             }
             rxn.stoichiometry = stoich
@@ -1162,7 +1171,7 @@ class Model:
 
         """
         self._insert_id(name=name, ctx="readout")
-        self._readouts[name] = Readout(fn, args)
+        self._readouts[name] = Readout(name=name, fn=fn, args=args)
         return self
 
     def get_readout_names(self) -> list[str]:
@@ -1283,26 +1292,31 @@ class Model:
         return self
 
     ##########################################################################
-    # Get args
+    # Get dependent values. This includes
+    # - derived parameters
+    # - derived variables
+    # - fluxes
+    # - readouts
     ##########################################################################
 
-    def _get_args(
+    def _get_dependent(
         self,
         concs: dict[str, float],
         time: float = 0.0,
         *,
-        include_readouts: bool,
+        cache: ModelCache,
     ) -> dict[str, float]:
-        """Generate a dictionary of arguments for model calculations.
+        """Generate a dictionary of model components dependent on other components.
 
         Examples:
-            >>> model._get_args({"x1": 1.0, "x2": 2.0}, time=0.0)
+            >>> model._get_dependent({"x1": 1.0, "x2": 2.0}, time=0.0)
                 {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 0.0}
 
         Args:
             concs: A dictionary of concentrations with keys as the names of the substances
                    and values as their respective concentrations.
             time: The time point for the calculation
+            cache: A ModelCache object containing precomputed values and dependencies.
             include_readouts: A flag indicating whether to include readout values in the returned dictionary.
 
         Returns:
@@ -1311,23 +1325,16 @@ class Model:
                 with their respective names as keys and their calculated values as values.
 
         """
-        if (cache := self._cache) is None:
-            cache = self._create_cache()
-
         args: dict[str, float] = cache.all_parameter_values | concs
         args["time"] = time
 
-        derived = self._derived
-        for name in cache.derived_variable_names:
-            dv = derived[name]
-            args[name] = cast(float, dv.fn(*(args[arg] for arg in dv.args)))
+        containers = self._derived | self._reactions | self._surrogates
+        for name in cache.order:
+            containers[name].calculate_inpl(args)
 
-        if include_readouts:
-            for name, ro in self._readouts.items():
-                args[name] = cast(float, ro.fn(*(args[arg] for arg in ro.args)))
         return args
 
-    def get_args(
+    def get_dependent(
         self,
         concs: dict[str, float] | None = None,
         time: float = 0.0,
@@ -1358,16 +1365,22 @@ class Model:
             A pandas Series containing the generated arguments with float dtype.
 
         """
-        return pd.Series(
-            self._get_args(
-                concs=self.get_initial_conditions() if concs is None else concs,
-                time=time,
-                include_readouts=include_readouts,
-            ),
-            dtype=float,
+        if (cache := self._cache) is None:
+            cache = self._create_cache()
+
+        args = self._get_dependent(
+            concs=self.get_initial_conditions() if concs is None else concs,
+            time=time,
+            cache=cache,
         )
 
-    def get_args_time_course(
+        if include_readouts:
+            for ro in self._readouts.values():  # FIXME: order?
+                ro.calculate_inpl(args)
+
+        return pd.Series(args, dtype=float)
+
+    def get_dependent_time_course(
         self,
         concs: pd.DataFrame,
         *,
@@ -1410,10 +1423,9 @@ class Model:
         args = pd.concat((concs, pars_df), axis=1)
         args["time"] = args.index
 
-        derived = self._derived
-        for name in cache.derived_variable_names:
-            dv = derived[name]
-            args[name] = dv.fn(*args.loc[:, dv.args].to_numpy().T)
+        containers = self._derived | self._reactions | self._surrogates
+        for name in cache.order:
+            containers[name].calculate_inpl_time_course(args)
 
         if include_readouts:
             for name, ro in self._readouts.items():
@@ -1421,48 +1433,91 @@ class Model:
         return args
 
     ##########################################################################
-    # Get full concs
+    # Get args
     ##########################################################################
 
-    def get_full_concs(
+    def get_args(
         self,
         concs: dict[str, float] | None = None,
         time: float = 0.0,
         *,
-        include_readouts: bool = True,
+        include_derived: bool = True,
+        include_readouts: bool = False,
     ) -> pd.Series:
-        """Get the full concentrations as a pandas Series.
+        """Generate a pandas Series of arguments for the model.
 
         Examples:
-            >>> model.get_full_concs({"x1": 1.0, "x2": 2.0}, time=0.0)
-                pd.Series({
-                    "x1": 1.0,
-                    "x2": 2.0,
-                    "d1": 3.0,
-                    "d2": 4.0,
-                    "r1": 0.1,
-                    "r2": 0.2,
-                    "energy_state": 0.5,
-                })
+            # Using initial conditions
+            >>> model.get_args()
+                {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 0.0}
+
+            # With custom concentrations
+            >>> model.get_args({"x1": 1.0, "x2": 2.0})
+                {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 0.0}
+
+            # With custom concentrations and time
+            >>> model.get_args({"x1": 1.0, "x2": 2.0}, time=1.0)
+                {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 1.0}
 
         Args:
-            concs (dict[str, float]): A dictionary of concentrations with variable names as keys and their corresponding values as floats.
-            time (float, optional): The time point at which to get the concentrations. Default is 0.0.
-            include_readouts (bool, optional): Whether to include readout variables in the result. Default is True.
+            concs: A dictionary where keys are the names of the concentrations and values are their respective float values.
+            time: The time point at which the arguments are generated.
+            include_derived: Whether to include derived variables in the arguments.
+            include_readouts: Whether to include readouts in the arguments.
 
         Returns:
-        pd.Series: A pandas Series containing the full concentrations for the specified variables.
+            A pandas Series containing the generated arguments with float dtype.
 
         """
-        names = self.get_variable_names() + self.get_derived_variable_names()
+        names = self.get_variable_names()
+        if include_derived:
+            names.extend(self.get_derived_variable_names())
         if include_readouts:
-            names.extend(self.get_readout_names())
+            names.extend(self._readouts)
 
-        return self.get_args(
-            concs=concs,
-            time=time,
-            include_readouts=include_readouts,
-        ).loc[names]
+        args = self.get_dependent(
+            concs=concs, time=time, include_readouts=include_readouts
+        )
+        return args.loc[names]
+
+    def get_args_time_course(
+        self,
+        concs: pd.DataFrame,
+        *,
+        include_derived: bool = True,
+        include_readouts: bool = False,
+    ) -> pd.DataFrame:
+        """Generate a DataFrame containing time course arguments for model evaluation.
+
+        Examples:
+            >>> model.get_args_time_course(
+            ...     pd.DataFrame({"x1": [1.0, 2.0], "x2": [2.0, 3.0]}
+            ... )
+                pd.DataFrame({
+                    "x1": [1.0, 2.0],
+                    "x2": [2.0, 3.0],
+                    "k1": [0.1, 0.1],
+                    "time": [0.0, 1.0]},
+                )
+
+        Args:
+            concs: A DataFrame containing concentration data with time as the index.
+            include_derived: Whether to include derived variables in the arguments.
+            include_readouts: If True, include readout variables in the resulting DataFrame.
+
+        Returns:
+            A DataFrame containing the combined concentration data, parameter values,
+            derived variables, and optionally readout variables, with time as an additional column.
+
+        """
+        names = self.get_variable_names()
+        if include_derived:
+            names.extend(self.get_derived_variable_names())
+
+        args = self.get_dependent_time_course(
+            concs=concs, include_readouts=include_readouts
+        )
+        return args.loc[:, names]
 
     ##########################################################################
     # Get fluxes
@@ -1518,19 +1573,16 @@ class Model:
             Fluxes: A pandas Series containing the fluxes for each reaction.
 
         """
-        args = self.get_args(
+        names = self.get_reaction_names()
+        for surrogate in self._surrogates.values():
+            names.extend(surrogate.stoichiometries)
+
+        args = self.get_dependent(
             concs=concs,
             time=time,
             include_readouts=False,
         )
-
-        fluxes: dict[str, float] = {}
-        for name, rxn in self._reactions.items():
-            fluxes[name] = cast(float, rxn.fn(*args.loc[rxn.args]))
-
-        for surrogate in self._surrogates.values():
-            fluxes |= surrogate.predict(args.loc[surrogate.args].to_numpy())
-        return pd.Series(fluxes, dtype=float)
+        return args.loc[names]
 
     def get_fluxes_time_course(self, args: pd.DataFrame) -> pd.DataFrame:
         """Generate a time course of fluxes for the given reactions and surrogates.
@@ -1554,20 +1606,15 @@ class Model:
                           the index of the input arguments.
 
         """
-        fluxes: dict[str, Float] = {}
-        for name, rate in self._reactions.items():
-            fluxes[name] = rate.fn(*args.loc[:, rate.args].to_numpy().T)
-
-        # Create df here already to avoid having to play around with
-        # shape of surrogate outputs
-        flux_df = pd.DataFrame(fluxes, index=args.index)
+        names = self.get_reaction_names()
         for surrogate in self._surrogates.values():
-            outputs = pd.DataFrame(
-                [surrogate.predict(y) for y in args.loc[:, surrogate.args].to_numpy()],
-                index=args.index,
-            )
-            flux_df = pd.concat((flux_df, outputs), axis=1)
-        return flux_df
+            names.extend(surrogate.stoichiometries)
+
+        args = self.get_dependent_time_course(
+            concs=args,
+            include_readouts=False,
+        )
+        return args.loc[:, names]
 
     ##########################################################################
     # Get rhs
@@ -1601,22 +1648,21 @@ class Model:
                 strict=True,
             )
         )
-        args: dict[str, float] = self._get_args(
+        dependent: dict[str, float] = self._get_dependent(
             concs=concsd,
             time=time,
-            include_readouts=False,
+            cache=cache,
         )
-        fluxes: dict[str, float] = self._get_fluxes(args)
 
         dxdt = cache.dxdt
         dxdt[:] = 0
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
-                dxdt[k] += n * fluxes[flux]
+                dxdt[k] += n * dependent[flux]
         for k, sd in cache.dyn_stoich_by_cpds.items():
             for flux, dv in sd.items():
-                n = dv.fn(*(args[i] for i in dv.args))
-                dxdt[k] += n * fluxes[flux]
+                n = dv.calculate(dependent)
+                dxdt[k] += n * dependent[flux]
         return cast(Array, dxdt.to_numpy())
 
     def get_right_hand_side(
@@ -1650,19 +1696,18 @@ class Model:
         if (cache := self._cache) is None:
             cache = self._create_cache()
         var_names = self.get_variable_names()
-        args = self._get_args(
+        dependent = self._get_dependent(
             concs=self.get_initial_conditions() if concs is None else concs,
             time=time,
-            include_readouts=False,
+            cache=cache,
         )
-        fluxes = self._get_fluxes(args)
         dxdt = pd.Series(np.zeros(len(var_names), dtype=float), index=var_names)
         for k, stoc in cache.stoich_by_cpds.items():
             for flux, n in stoc.items():
-                dxdt[k] += n * fluxes[flux]
+                dxdt[k] += n * dependent[flux]
 
         for k, sd in cache.dyn_stoich_by_cpds.items():
             for flux, dv in sd.items():
-                n = dv.fn(*(args[i] for i in dv.args))
-                dxdt[k] += n * fluxes[flux]
+                n = dv.fn(*(dependent[i] for i in dv.args))
+                dxdt[k] += n * dependent[flux]
         return dxdt

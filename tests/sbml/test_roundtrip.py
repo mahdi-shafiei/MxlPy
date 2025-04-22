@@ -89,7 +89,7 @@ def test_roundtrip_derived_stoichiometry_explicit() -> None:
             "v1",
             fns.constant,
             args=["k1"],
-            stoichiometry={"x": Derived(fns.constant, args=["k1"])},
+            stoichiometry={"x": Derived(name="x", fn=fns.constant, args=["k1"])},
         )
     )
     assert soft_eq(
