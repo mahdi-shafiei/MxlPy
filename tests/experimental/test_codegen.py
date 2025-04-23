@@ -10,6 +10,8 @@ from modelbase2.experimental.codegen import (
     IdentifierReplacer,
     ReturnRemover,
     conditional_join,
+    generate_model_code_py,
+    generate_modelbase_code,
     get_fn_source,
     handle_fn,
 )
@@ -149,3 +151,48 @@ def test_conditional_join() -> None:
 
     # Fix expected output to match actual implementation
     assert result == "1 - -2 + 3 - -4"
+
+
+def test_generate_modelbase_code(simple_model: Model) -> None:
+    code = generate_modelbase_code(simple_model)
+
+    assert "from modelbase2 import Model" in code
+    assert "def create_model() -> Model:" in code
+    assert ".add_parameters({'k1': 1.0, 'k2': 2.0})" in code
+    assert ".add_variables({'S': 10.0, 'P': 0.0})" in code
+    # Fix the assertion format to match the actual output
+    assert "add_reaction(" in code
+    assert "stoichiometry={'S': -1.0, 'P': 1.0}" in code
+    assert "stoichiometry={'P': -1.0}" in code
+
+
+def test_generate_model_code_py(simple_model: Model) -> None:
+    code = generate_model_code_py(simple_model)
+
+    assert "from collections.abc import Iterable" in code
+    assert "from modelbase2.types import Float" in code
+    assert "def model(t: Float, y: Float) -> Iterable[Float]:" in code
+    assert "S, P = y" in code
+    assert "k1 = 1.0" in code
+    assert "k2 = 2.0" in code
+    assert "D1 = S + P" in code
+    assert "v1 = k1 * S" in code
+    assert "v2 = k2 * P" in code
+    assert "dSdt = - v1" in code
+    assert "dPdt = v1 - v2" in code
+    assert "return dSdt, dPdt" in code
+
+
+def test_generate_model_code_py_with_derived_stoichiometry(
+    model_with_derived_stoichiometry: Model,
+) -> None:
+    code = generate_model_code_py(model_with_derived_stoichiometry)
+
+    assert "from collections.abc import Iterable" in code
+    assert "def model(t: Float, y: Float) -> Iterable[Float]:" in code
+    assert "S, P = y" in code
+    assert "k1 = 1.0" in code
+    assert "v1 = k1 * S" in code
+    assert "dSdt = -S / 10 * v1" in code
+    assert "dPdt = v1" in code
+    assert "return dSdt, dPdt" in code

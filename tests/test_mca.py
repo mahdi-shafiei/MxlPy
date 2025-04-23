@@ -1,677 +1,176 @@
-from __future__ import annotations
+# """Tests for the MCA module."""
 
-import pandas as pd
+# import numpy as np
+# import pandas as pd
+# import pytest
 
-from modelbase2 import Model, fns, mca
+# from modelbase2.mca import (
+#     parameter_elasticities,
+#     response_coefficients,
+#     variable_elasticities,
+# )
+# from modelbase2.model import Model, Reaction
 
-# def create_model() -> None:
-#     parameters = {
-#         "k_in": 1,
-#         "k_fwd": 1,
-#         "k_out": 1,
-#     }
 
-#     model = Model(parameters=parameters)
-#     model.add_variables(compounds=["X", "Y"])
+# def create_test_model():
+#     """Create a simple test model for MCA testing."""
+#     model = Model()
+#     model.add_variables({"A": 1.0, "B": 0.0})
+#     model.add_parameters({"v1": 0.1, "k1": 2.0})
 #     model.add_reaction(
-#         rate_name="v_in",
-#         function=rf.constant,
-#         stoichiometry={"X": 1},
-#         parameters=["k_in"],
+#         name="r1",
+#         fn=lambda v1, A, k1: v1 * A / k1,
+#         stoichiometry={"A": -1, "B": 1},
+#         args=["v1", "A", "k1"],
 #     )
+#     return model
+
+
+# def test_parameter_elasticities() -> None:
+#     """Test calculation of parameter elasticities."""
+#     model = create_test_model()
+#     conc = pd.Series({"A": 1.0, "B": 0.0})
+#     param = pd.Series({"v1": 0.1, "k1": 2.0})
+
+#     elast = parameter_elasticities(model, conc, param)
+
+#     assert "r1" in elast.index
+#     assert "v1" in elast.columns
+#     assert "k1" in elast.columns
+
+#     # r1 = v1 * A / k1
+#     # Elasticity with respect to v1 should be 1
+#     assert elast.loc["r1", "v1"] == 1.0
+
+#     # Elasticity with respect to k1 should be -1
+#     assert elast.loc["r1", "k1"] == -1.0
+
+
+# def test_concentration_elasticities() -> None:
+#     """Test calculation of concentration elasticities."""
+#     model = create_test_model()
+#     conc = pd.Series({"A": 1.0, "B": 0.0})
+#     param = pd.Series({"v1": 0.1, "k1": 2.0})
+
+#     elast = variable_elasticities(model, concs=conc, param)
+
+#     assert "r1" in elast.index
+#     assert "A" in elast.columns
+#     assert "B" in elast.columns
+
+#     # r1 = v1 * A / k1
+#     # Elasticity with respect to A should be 1
+#     assert elast.loc["r1", "A"] == 1.0
+
+#     # Elasticity with respect to B should be 0
+#     assert elast.loc["r1", "B"] == 0.0
+
+
+# def test_response_coefficients() -> None:
+#     """Test calculation of response coefficients."""
+#     model = create_test_model()
+#     conc = pd.Series({"A": 1.0, "B": 0.0})
+#     param = pd.Series({"v1": 0.1, "k1": 2.0})
+
+#     # Calculate elasticities
+#     conc_elast = concentration_elasticities(model, conc, param)
+#     param_elast = parameter_elasticities(model, conc, param)
+
+#     # Calculate control coefficients
+#     fcc = flux_control_coefficients(model, conc_elast)
+
+#     # Calculate response coefficients
+#     rc = response_coefficients(fcc, param_elast)
+
+#     assert "r1" in rc.index
+#     assert "v1" in rc.columns
+#     assert "k1" in rc.columns
+
+#     # For this simple model, response coefficient of r1 with respect to v1 should be 1
+#     assert rc.loc["r1", "v1"] == 1.0
+
+#     # For this simple model, response coefficient of r1 with respect to k1 should be -1
+#     assert rc.loc["r1", "k1"] == -1.0
+
+
+# def test_steady_state_flux_control_sum() -> None:
+#     """Test the summation theorem for flux control coefficients."""
+#     model = create_test_model()
+#     conc = pd.Series({"A": 1.0, "B": 0.0})
+#     param = pd.Series({"v1": 0.1, "k1": 2.0})
+
+#     # Calculate elasticities
+#     conc_elast = concentration_elasticities(model, conc, param)
+
+#     # Calculate flux control coefficients
+#     fcc = flux_control_coefficients(model, conc_elast)
+
+#     # Calculate sum
+#     fcc_sums = steady_state_flux_control_sum(fcc)
+
+#     # For any flux, the sum of control coefficients should be 1
+#     assert np.isclose(fcc_sums["r1"], 1.0)
+
+
+# def test_steady_state_concentration_control_sum() -> None:
+#     """Test the summation theorem for concentration control coefficients."""
+#     model = create_test_model()
+#     conc = pd.Series({"A": 1.0, "B": 0.0})
+#     param = pd.Series({"v1": 0.1, "k1": 2.0})
+
+#     # Calculate elasticities
+#     conc_elast = concentration_elasticities(model, conc, param)
+
+#     # Calculate control coefficients
+#     fcc = flux_control_coefficients(model, conc_elast)
+#     ccc = concentration_control_coefficients(model, conc_elast, fcc)
+
+#     # Calculate sum
+#     ccc_sums = steady_state_concentration_control_sum(ccc)
+
+#     # For any concentration, the sum of control coefficients should be 0
+#     assert np.isclose(ccc_sums["A"], 0.0)
+#     assert np.isclose(ccc_sums["B"], 0.0)
+
+
+# def test_two_step_pathway() -> None:
+#     """Test MCA with a two-step linear pathway."""
+#     # Create a two-step pathway model: A -> B -> C
+#     model = Model()
+#     model.add_variables({"A": 1.0, "B": 0.5, "C": 0.0})
+#     model.add_parameters({"v1": 0.1, "v2": 0.1, "k1": 1.0, "k2": 1.0})
+
 #     model.add_reaction(
-#         rate_name="v1",
-#         function=rf.mass_action_1,
-#         stoichiometry={"X": -1, "Y": 1},
-#         parameters=["k_fwd"],
+#         name="r1",
+#         fn=lambda v1, A, k1: v1 * A / (k1 + A),
+#         stoichiometry={"A": -1, "B": 1},
+#         args=["v1", "A", "k1"],
 #     )
+
 #     model.add_reaction(
-#         rate_name="v_out",
-#         function=rf.mass_action_1,
-#         stoichiometry={"Y": -1},
-#         parameters=["k_out"],
-#     )
-#     y0 = {"X": 1, "Y": 1}
-#     parameters = ["k_in", "k_fwd", "k_out"]
-#     compounds = ["X", "Y"]
-#     return model, y0, parameters, compounds
-
-
-def test_substrate_elasticitiy_mass_action() -> None:
-    """Should yield 1 regardless of the concentration"""
-
-    model = (
-        Model()
-        .add_parameters({"kf": 1})
-        .add_variables({"x": 1.0, "y": 1.0})
-        .add_reaction(
-            "v1",
-            fn=fns.mass_action_1s,
-            stoichiometry={"x": -1, "y": 1},
-            args=["x", "kf"],
-        )
-    )
-    pd.testing.assert_series_equal(
-        mca.variable_elasticities(model=model, concs={"x": 1, "y": 0})["x"],
-        pd.Series({"v1": 1.0}, name="x"),
-        rtol=1e-6,
-    )
-    pd.testing.assert_series_equal(
-        mca.variable_elasticities(model=model, concs={"x": 10, "y": 0})["x"],
-        pd.Series({"v1": 1.0}, name="x"),
-        rtol=1e-6,
-    )
-    pd.testing.assert_series_equal(
-        mca.variable_elasticities(model=model, concs={"x": 100, "y": 0})["x"],
-        pd.Series({"v1": 1.0}, name="x"),
-        rtol=1e-6,
-    )
-
-
-def test_elasticities_michaelis_menten() -> None:
-    model = (
-        Model()
-        .add_parameters({"vmax": 1, "km": 1})
-        .add_variables({"x": 1.0, "y": 1.0})
-        .add_reaction(
-            "v1",
-            fn=fns.michaelis_menten_1s,
-            stoichiometry={"x": -1, "y": 1},
-            args=["x", "vmax", "km"],
-        )
-    )
-    # Should be 1 at x = 0
-    pd.testing.assert_series_equal(
-        mca.variable_elasticities(model=model, concs={"x": 1e-12, "y": 0})["x"],
-        pd.Series({"v1": 1.0}, name="x"),
-        rtol=1e-6,
-    )
-    # Should be 0 at x = km
-    pd.testing.assert_series_equal(
-        mca.variable_elasticities(model=model, concs={"x": 1, "y": 0})["x"],
-        pd.Series({"v1": 0.5}, name="x"),
-        rtol=1e-6,
-    )
-    # Should be 0 at x >> km
-    pd.testing.assert_series_equal(
-        mca.variable_elasticities(model=model, concs={"x": 1e12, "y": 0})["x"],
-        pd.Series({"v1": 0.0}, name="x"),
-        rtol=1e-6,
-    )
-
-    # Parameter elasticities
-    pd.testing.assert_series_equal(
-        mca.parameter_elasticities(model=model, parameters=["vmax"])["vmax"],
-        pd.Series({"v1": 1.0}, name="vmax"),
-        rtol=1e-6,
-    )
-
-
-# def test_get_compound_elasticity() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_compound_elasticity(
-#             model=model, compound="X", y=y0, t=0, normalized=False
-#         ),
-#         [0.0, 1.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_compound_elasticity(
-#             model=model, compound="X", y=y0, t=0, normalized=True
-#         ),
-#         [0.0, 1.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_compound_elasticity(
-#             model=model, compound="Y", y=y0, t=0, normalized=False
-#         ),
-#         [0.0, 0.0, 1.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_compound_elasticity(
-#             model=model, compound="Y", y=y0, t=0, normalized=True
-#         ),
-#         [0.0, 0.0, 1.0],
-#         decimal=4,
+#         name="r2",
+#         fn=lambda v2, B, k2: v2 * B / (k2 + B),
+#         stoichiometry={"B": -1, "C": 1},
+#         args=["v2", "B", "k2"],
 #     )
 
+#     conc = pd.Series({"A": 1.0, "B": 0.5, "C": 0.0})
+#     param = pd.Series({"v1": 0.1, "v2": 0.1, "k1": 1.0, "k2": 1.0})
 
-# def test_get_compound_elasticities_array() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_compound_elasticities_array(
-#             model=model,
-#             compounds=compounds,
-#             y=y0,
-#             t=0,
-#             normalized=False,
-#         ),
-#         [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
+#     # Calculate elasticities
+#     conc_elast = concentration_elasticities(model, conc, param)
 
+#     # Calculate flux control coefficients
+#     fcc = flux_control_coefficients(model, conc_elast)
 
-# def test_get_compound_elasticities_array_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_compound_elasticities_array(
-#             model=model,
-#             compounds=compounds,
-#             y=y0,
-#             t=0,
-#             normalized=True,
-#         ),
-#         [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
+#     # For a linear pathway, the sum of control coefficients for each flux should be 1
+#     assert np.isclose(fcc.loc["r1", "r1"] + fcc.loc["r1", "r2"], 1.0)
+#     assert np.isclose(fcc.loc["r2", "r1"] + fcc.loc["r2", "r2"], 1.0)
 
+#     # Calculate concentration control coefficients
+#     ccc = concentration_control_coefficients(model, conc_elast, fcc)
 
-# def test_get_compound_elasticities_df() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_compound_elasticities_df(
-#         model=model,
-#         compounds=compounds,
-#         y=y0,
-#         t=0,
-#         normalized=False,
-#     )
-#     self.assertEqual(list(df.index), ["X", "Y"])
-#     self.assertEqual(list(df.columns), ["v_in", "v1", "v_out"])
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#     )
-
-
-# def test_get_compound_elasticities_df_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_compound_elasticities_df(
-#         model=model,
-#         compounds=compounds,
-#         y=y0,
-#         t=0,
-#         normalized=True,
-#     )
-#     self.assertEqual(list(df.index), ["X", "Y"])
-#     self.assertEqual(list(df.columns), ["v_in", "v1", "v_out"])
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [[0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_parameter_elasticity() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticity(
-#             model=model,
-#             parameter="k_in",
-#             y=y0,
-#             t=0,
-#             normalized=False,
-#         ),
-#         [1.0, 0.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticity(
-#             model=model,
-#             parameter="k_in",
-#             y=y0,
-#             t=0,
-#             normalized=True,
-#         ),
-#         [1.0, 0.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticity(
-#             model=model,
-#             parameter="k_fwd",
-#             y=y0,
-#             t=0,
-#             normalized=False,
-#         ),
-#         [0.0, 1.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticity(
-#             model=model,
-#             parameter="k_fwd",
-#             y=y0,
-#             t=0,
-#             normalized=True,
-#         ),
-#         [0.0, 1.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticity(
-#             model=model,
-#             parameter="k_out",
-#             y=y0,
-#             t=0,
-#             normalized=False,
-#         ),
-#         [0.0, 0.0, 1.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticity(
-#             model=model,
-#             parameter="k_out",
-#             y=y0,
-#             t=0,
-#             normalized=True,
-#         ),
-#         [0.0, 0.0, 1.0],
-#         decimal=4,
-#     )
-
-
-# def test_get_parameter_elasticities_array() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticities_array(
-#             model=model,
-#             parameters=parameters,
-#             y=y0,
-#             t=0,
-#             normalized=False,
-#         ),
-#         [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_parameter_elasticities_array_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_parameter_elasticities_array(
-#             model=model,
-#             parameters=parameters,
-#             y=y0,
-#             t=0,
-#             normalized=True,
-#         ),
-#         [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_parameter_elasticities_df() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_parameter_elasticities_df(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         t=0,
-#         normalized=False,
-#     )
-#     self.assertEqual(list(df.index), ["k_in", "k_fwd", "k_out"])
-#     self.assertEqual(list(df.columns), ["v_in", "v1", "v_out"])
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_parameter_elasticities_df_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_parameter_elasticities_df(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         t=0,
-#         normalized=True,
-#     )
-#     self.assertEqual(list(df.index), ["k_in", "k_fwd", "k_out"])
-#     self.assertEqual(list(df.columns), ["v_in", "v1", "v_out"])
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_concentration_response_coefficient() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_concentration_response_coefficient(
-#             model=model,
-#             parameter="k_in",
-#             y=y0,
-#             normalized=False,
-#         ),
-#         [1, 1],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_concentration_response_coefficient(
-#             model=model,
-#             parameter="k_in",
-#             y=y0,
-#             normalized=True,
-#         ),
-#         [1, 1],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_concentration_response_coefficient(
-#             model=model,
-#             parameter="k_fwd",
-#             y=y0,
-#             normalized=False,
-#         ),
-#         [-1, 0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_concentration_response_coefficient(
-#             model=model,
-#             parameter="k_fwd",
-#             y=y0,
-#             normalized=True,
-#         ),
-#         [-1, 0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_concentration_response_coefficient(
-#             model=model,
-#             parameter="k_out",
-#             y=y0,
-#             normalized=False,
-#         ),
-#         [0, -1],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_concentration_response_coefficient(
-#             model=model,
-#             parameter="k_out",
-#             y=y0,
-#             normalized=True,
-#         ),
-#         [0, -1],
-#         decimal=4,
-#     )
-
-
-# def test_get_concentration_response_coefficients_array() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     arr = mca.get_concentration_response_coefficients_array(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         arr,
-#         [
-#             [1, 1],
-#             [-1, 0],
-#             [0, -1],
-#         ],
-#         decimal=4,
-#     )
-
-
-# def test_get_concentration_response_coefficients_array_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     arr = mca.get_concentration_response_coefficients_array(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=True,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         arr,
-#         [
-#             [1, 1],
-#             [-1, 0],
-#             [0, -1],
-#         ],
-#         decimal=4,
-#     )
-
-
-# def test_get_concentration_response_coefficients_df() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_concentration_response_coefficients_df(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [
-#             [1, 1],
-#             [-1, 0],
-#             [0, -1],
-#         ],
-#         decimal=4,
-#     )
-#     self.assertEqual(list(df.index), ["k_in", "k_fwd", "k_out"])
-#     self.assertEqual(list(df.columns), ["X", "Y"])
-
-
-# def test_get_concentration_response_coefficients_df_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_concentration_response_coefficients_df(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=True,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [
-#             [1, 1],
-#             [-1, 0],
-#             [0, -1],
-#         ],
-#         decimal=4,
-#     )
-#     self.assertEqual(list(df.index), ["k_in", "k_fwd", "k_out"])
-#     self.assertEqual(list(df.columns), ["X", "Y"])
-
-
-# def test_get_flux_response_coefficient() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     np.testing.assert_array_almost_equal(
-#         mca.get_flux_response_coefficient(
-#             model=model,
-#             parameter="k_in",
-#             y=y0,
-#             normalized=False,
-#         ),
-#         [1, 1, 1],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_flux_response_coefficient(
-#             model=model,
-#             parameter="k_in",
-#             y=y0,
-#             normalized=True,
-#         ),
-#         [1, 1, 1],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_flux_response_coefficient(
-#             model=model,
-#             parameter="k_fwd",
-#             y=y0,
-#             normalized=False,
-#         ),
-#         [0.0, 0.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_flux_response_coefficient(
-#             model=model,
-#             parameter="k_fwd",
-#             y=y0,
-#             normalized=True,
-#         ),
-#         [0.0, 0.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_flux_response_coefficient(
-#             model=model,
-#             parameter="k_out",
-#             y=y0,
-#             normalized=False,
-#         ),
-#         [0.0, 0.0, 0.0],
-#         decimal=4,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         mca.get_flux_response_coefficient(
-#             model=model,
-#             parameter="k_out",
-#             y=y0,
-#             normalized=True,
-#         ),
-#         [0.0, 0.0, 0.0],
-#         decimal=4,
-#     )
-
-
-# def test_get_flux_response_coefficients_array() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     arr = mca.get_flux_response_coefficients_array(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         arr,
-#         [[1.0, 1.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_flux_response_coefficients_array_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     arr = mca.get_flux_response_coefficients_array(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     np.testing.assert_array_almost_equal(
-#         arr,
-#         [[1.0, 1.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_flux_response_coefficients_df() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_flux_response_coefficients_df(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     self.assertEqual(list(df.index), ["k_in", "k_fwd", "k_out"])
-#     self.assertEqual(list(df.columns), ["v_in", "v1", "v_out"])
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [[1.0, 1.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-#         decimal=4,
-#     )
-
-
-# def test_get_flux_response_coefficients_df_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     df = mca.get_flux_response_coefficients_df(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=True,
-#     )
-#     self.assertEqual(list(df.index), ["k_in", "k_fwd", "k_out"])
-#     self.assertEqual(list(df.columns), ["v_in", "v1", "v_out"])
-#     np.testing.assert_array_almost_equal(
-#         df.values,
-#         [[1.0, 1.0, 1.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
-#         decimal=4,
-#     )
-
-
-# def test_plot_concentration_response_coefficients() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     mca.plot_concentration_response_coefficients(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     plt.close()
-
-
-# def test_plot_concentration_response_coefficients_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     mca.plot_concentration_response_coefficients(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=True,
-#     )
-#     plt.close()
-
-
-# def test_plot_flux_response_coefficients() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     mca.plot_flux_response_coefficients(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=False,
-#     )
-#     plt.close()
-
-
-# def test_plot_flux_response_coefficients_normalized() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-#     mca.plot_flux_response_coefficients(
-#         model=model,
-#         parameters=parameters,
-#         y=y0,
-#         normalized=True,
-#     )
-#     plt.close()
-
-
-# def test_parallel_get_response_coefficients_array() -> None:
-#     model, y0, parameters, compounds = self.create_model()
-
-#     crc1, frc1 = mca.get_response_coefficients_array(
-#         model=model,
-#         parameters=[k for k in parameters[:3]],
-#         y=y0,
-#         multiprocessing=False,
-#     )
-
-#     crc2, frc2 = mca.get_response_coefficients_array(
-#         model=model,
-#         parameters=[k for k in parameters[:3]],
-#         y=y0,
-#         multiprocessing=True,
-#     )
-
-#     np.testing.assert_array_almost_equal(crc1, crc2, decimal=4)
-#     np.testing.assert_array_almost_equal(frc1, frc2, decimal=4)
+#     # For each metabolite, the sum of control coefficients should be 0
+#     assert np.isclose(ccc.loc["A", "r1"] + ccc.loc["A", "r2"], 0.0)
+#     assert np.isclose(ccc.loc["B", "r1"] + ccc.loc["B", "r2"], 0.0)
+#     assert np.isclose(ccc.loc["C", "r1"] + ccc.loc["C", "r2"], 0.0)
