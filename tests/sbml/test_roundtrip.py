@@ -1,5 +1,5 @@
 from modelbase2 import Model, fns
-from modelbase2.experimental.diff import model_diff, soft_eq
+from modelbase2.experimental.diff import soft_eq
 from modelbase2.paths import default_tmp_dir
 from modelbase2.sbml import read, write
 from modelbase2.types import Derived

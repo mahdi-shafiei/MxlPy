@@ -2,17 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 
-from modelbase2 import make_protocol
 from modelbase2.model import Model
 from modelbase2.scan import (
     TimeCourse,
     TimePoint,
     steady_state,
-    time_course,
-    time_course_over_protocol,
 )
 
 if TYPE_CHECKING:

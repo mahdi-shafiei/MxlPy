@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from functools import partial
 from pathlib import Path
-from types import NotImplementedType
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import pytest
-from outcome import Value
 
 from modelbase2 import Simulator
 from modelbase2.integrators.int_scipy import Scipy

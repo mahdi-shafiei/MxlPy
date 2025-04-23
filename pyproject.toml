@@ -137,6 +137,7 @@ ignore = [
   "D",       # all of documentation
   "PLR2004", # magic comparisons
   "SLF",
+  "PD901",   # "df" name
 ]
 
 [tool.tomlsort]

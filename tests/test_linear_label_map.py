@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from modelbase2 import fns
 from modelbase2.linear_label_map import (
     Derived,
     _add_label_influx_or_efflux,
@@ -35,7 +36,7 @@ def test_unpack_stoichiometries_valid() -> None:
 
 
 def test_unpack_stoichiometries_with_derived() -> None:
-    stoichiometries = {"A": Derived(name="A", fn=lambda x: x, args=[]), "B": 2.0}
+    stoichiometries = {"A": Derived(name="A", fn=fns.constant, args=[]), "B": 2.0}
     with pytest.raises(NotImplementedError):
         _unpack_stoichiometries(stoichiometries)
 

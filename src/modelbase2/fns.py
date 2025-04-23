@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from modelbase2.types import Float
 
 __all__ = [
+    "add",
     "constant",
     "diffusion_1s_1p",
     "div",
@@ -73,6 +74,11 @@ def neg_div(x: Float, y: Float) -> Float:
 def twice(x: Float) -> Float:
     """Twice function."""
     return x * 2
+
+
+def add(x: Float, y: Float) -> Float:
+    """Proportional function."""
+    return x + y
 
 
 def proportional(x: Float, y: Float) -> Float:
