@@ -582,7 +582,7 @@ class Simulator:
             return None
         return pd.concat((c, v), axis=1)
 
-    def get_full_results(self) -> pd.DataFrame | None:
+    def get_full_results(self, *, include_readouts: bool) -> pd.DataFrame | None:
         """Get the combined full results of concentrations and fluxes.
 
         Examples:
@@ -593,7 +593,7 @@ class Simulator:
             0.000200   0.999800   0.999800   0.999800   0.999800
 
         """
-        c, v = self.get_full_concs_and_fluxes()
+        c, v = self.get_full_concs_and_fluxes(include_readouts=include_readouts)
         if c is None or v is None:
             return None
         return pd.concat((c, v), axis=1)
