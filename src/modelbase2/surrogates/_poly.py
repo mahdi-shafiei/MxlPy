@@ -1,14 +1,18 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Literal
 
 import numpy as np
 import pandas as pd
 from numpy import polynomial
-from typing import Union, Literal
 
 from modelbase2.types import AbstractSurrogate, ArrayLike
 
-__all__ = ["PolySurrogate", "PolynomialExpansion", "train_polynomial_surrogate"]
+__all__ = [
+    "PolySurrogate",
+    "PolynomialExpansion",
+    "train_polynomial_surrogate",
+]
 
 # define custom type
 PolynomialExpansion = (

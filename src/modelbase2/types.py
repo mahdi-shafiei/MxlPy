@@ -454,6 +454,7 @@ class AbstractSurrogate:
         args |= self.predict(np.array([args[arg] for arg in self.args]))
 
     def calculate_inpl_time_course(self, args: pd.DataFrame) -> None:
+        """Predict outputs based on input data."""
         args[list(self.stoichiometries)] = pd.DataFrame(
             [self.predict(y) for y in args.loc[:, self.args].to_numpy()],
             index=args.index,
