@@ -11,7 +11,13 @@ import latexify
 
 from modelbase2.types import Derived, RateFn
 
-__all__ = ["TexExport", "TexReaction", "default_init", "get_model_tex_diff", "to_tex"]
+__all__ = [
+    "TexExport",
+    "TexReaction",
+    "default_init",
+    "get_model_tex_diff",
+    "to_tex",
+]
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping

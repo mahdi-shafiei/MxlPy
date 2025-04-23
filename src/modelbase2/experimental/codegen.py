@@ -124,7 +124,7 @@ def generate_modelbase_code(model: Model) -> str:
         functions[fn_name] = inspect.getsource(fn)
 
         derived_source.append(
-            f""".add_derived(
+            f"""        .add_derived(
                 "{k}",
                 fn={fn_name},
                 args={v.args},
@@ -178,25 +178,32 @@ def generate_modelbase_code(model: Model) -> str:
 
 def generate_model_code_py(model: Model) -> str:
     """Transform the model into a single function, inlining the function calls."""
+    source = [
+        "from collections.abc import Iterable\n",
+        "from modelbase2.types import Float\n",
+        "def model(t: Float, y: Float) -> Iterable[Float]:",
+    ]
+
     # Variables
     variables = model.variables
-    variable_source = "    {} = y".format(", ".join(variables))
+    if len(variables) > 0:
+        source.append("    {} = y".format(", ".join(variables)))
 
     # Parameters
-    parameter_source = "\n".join(f"    {k} = {v}" for k, v in model.parameters.items())
+    parameters = model.parameters
+    if len(parameters) > 0:
+        source.append("\n".join(f"    {k} = {v}" for k, v in model.parameters.items()))
 
     # Derived
-    derived_source = []
     for name, derived in model.derived.items():
-        derived_source.append(f"    {name} = {handle_fn(derived.fn, derived.args)}")
+        source.append(f"    {name} = {handle_fn(derived.fn, derived.args)}")
 
     # Reactions
-    reactions = []
     for name, rxn in model.reactions.items():
-        reactions.append(f"    {name} = {handle_fn(rxn.fn, rxn.args)}")
+        source.append(f"    {name} = {handle_fn(rxn.fn, rxn.args)}")
 
     # Stoichiometries
-    stoichiometries = {}
+    stoich_srcs = {}
     for rxn_name, rxn in model.reactions.items():
         for cpd_name, factor in rxn.stoichiometry.items():
             if isinstance(factor, Derived):
@@ -207,10 +214,9 @@ def generate_model_code_py(model: Model) -> str:
                 src = f"- {rxn_name}"
             else:
                 src = f"{factor} * {rxn_name}"
-            stoichiometries.setdefault(cpd_name, []).append(src)
-    stoich_source = []
-    for variable, stoich in stoichiometries.items():
-        stoich_source.append(
+            stoich_srcs.setdefault(cpd_name, []).append(src)
+    for variable, stoich in stoich_srcs.items():
+        source.append(
             f"    d{variable}dt = {conditional_join(stoich, lambda x: x.startswith('-'), ' ', ' + ')}"
         )
 
@@ -221,19 +227,14 @@ def generate_model_code_py(model: Model) -> str:
             stacklevel=1,
         )
 
-    # Combine all the sources
-    source = [
-        "from collections.abc import Iterable\n",
-        "from modelbase2.types import Float\n",
-        "def model(t: Float, y: Float) -> Iterable[Float]:",
-        variable_source,
-        parameter_source,
-        *derived_source,
-        *reactions,
-        *stoich_source,
-        "    return {}".format(
-            ", ".join(f"d{i}dt" for i in variables),
-        ),
-    ]
+    # Return
+    if len(variables) > 0:
+        source.append(
+            "    return {}".format(
+                ", ".join(f"d{i}dt" for i in variables),
+            ),
+        )
+    else:
+        source.append("    return ()")
 
     return "\n".join(source)

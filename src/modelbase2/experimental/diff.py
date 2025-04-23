@@ -1,7 +1,7 @@
 """Diffing utilities for comparing models."""
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Mapping
 
 from modelbase2.model import Model
 from modelbase2.types import Derived
@@ -128,9 +128,8 @@ def _soft_eq_stoichiometries(
                 return False
             if v1.args != v2.args:
                 return False
-        else:
-            if v1 != v2:
-                return False
+        elif v1 != v2:
+            return False
 
     return True
 

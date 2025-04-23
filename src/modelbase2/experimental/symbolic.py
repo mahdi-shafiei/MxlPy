@@ -11,7 +11,12 @@ import sympy
 
 from modelbase2.model import Model
 
-__all__ = ["Context", "SymbolicModel", "model_fn_to_sympy", "to_symbolic_model"]
+__all__ = [
+    "Context",
+    "SymbolicModel",
+    "model_fn_to_sympy",
+    "to_symbolic_model",
+]
 
 
 @dataclass
