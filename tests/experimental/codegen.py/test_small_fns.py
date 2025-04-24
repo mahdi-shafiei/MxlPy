@@ -7,9 +7,9 @@ from modelbase2.experimental.codegen import (
     IdentifierReplacer,
     ReturnRemover,
     conditional_join,
-    get_fn_source,
     handle_fn,
 )
+from modelbase2.experimental.source_tools import get_fn_ast
 
 
 def sample_function(x: float, y: float) -> float:
@@ -70,7 +70,7 @@ def test_return_remover() -> None:
 
 
 def test_get_fn_source() -> None:
-    fn_def = get_fn_source(sample_function)
+    fn_def = get_fn_ast(sample_function)
 
     assert isinstance(fn_def, ast.FunctionDef)
     assert fn_def.name == "sample_function"

@@ -1,10 +1,10 @@
 """Module to export models as code."""
 
 import ast
-import inspect
 import warnings
 from collections.abc import Callable, Generator, Iterable, Iterator
 
+from modelbase2.experimental.source_tools import get_fn_ast, get_fn_source
 from modelbase2.model import Model
 from modelbase2.types import Derived
 
@@ -15,7 +15,6 @@ __all__ = [
     "conditional_join",
     "generate_model_code_py",
     "generate_modelbase_code",
-    "get_fn_source",
     "handle_fn",
 ]
 
@@ -55,28 +54,9 @@ class ReturnRemover(ast.NodeTransformer):
         return node.value
 
 
-def get_fn_source(fn: Callable) -> ast.FunctionDef:
-    """Get the source code of a function as an AST."""
-    import inspect
-    import textwrap
-
-    import dill
-
-    try:
-        source = inspect.getsource(fn)
-    except OSError:  # could not get source code
-        source = dill.source.getsource(fn)
-
-    tree = ast.parse(textwrap.dedent(source))
-    if not isinstance(fn_def := tree.body[0], ast.FunctionDef):
-        msg = "Not a function"
-        raise TypeError(msg)
-    return fn_def
-
-
 def handle_fn(fn: Callable, args: list[str]) -> str:
     """Get the source code of a function, removing docstrings and return statements."""
-    tree = get_fn_source(fn)
+    tree = get_fn_ast(fn)
 
     argmap = dict(zip([i.arg for i in tree.args.args], args, strict=True))
     tree = DocstringRemover().visit(tree)
@@ -121,7 +101,7 @@ def generate_modelbase_code(model: Model) -> str:
     for k, rxn in model.derived.items():
         fn = rxn.fn
         fn_name = fn.__name__
-        functions[fn_name] = inspect.getsource(fn)
+        functions[fn_name] = get_fn_source(fn)
 
         derived_source.append(
             f"""        .add_derived(
@@ -136,11 +116,11 @@ def generate_modelbase_code(model: Model) -> str:
     for k, rxn in model.reactions.items():
         fn = rxn.fn
         fn_name = fn.__name__
-        functions[fn_name] = inspect.getsource(fn)
+        functions[fn_name] = get_fn_source(fn)
         stoichiometry: list[str] = []
         for var, stoich in rxn.stoichiometry.items():
             if isinstance(stoich, Derived):
-                functions[fn_name] = inspect.getsource(fn)
+                functions[fn_name] = get_fn_source(fn)
                 args = ", ".join(f'"{k}"' for k in stoich.args)
                 stoich = (  # noqa: PLW2901
                     f"""Derived(name="{var}", fn={fn.__name__}, args=[{args}])"""

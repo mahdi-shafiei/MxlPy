@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import ast
-import inspect
 import re
-import textwrap
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
 
-import dill
 import libsbml
 import numpy as np
 
+from modelbase2.experimental.source_tools import get_fn_ast
 from modelbase2.sbml._data import AtomicUnit, Compartment
 from modelbase2.types import Derived
 
@@ -322,17 +320,7 @@ def _tree_to_sbml(
 
 
 def _sbmlify_fn(fn: Callable, user_args: list[str]) -> libsbml.ASTNode:
-    try:
-        source = inspect.getsource(fn)
-    except OSError:  # could not get source code
-        source = dill.source.getsource(fn)
-
-    tree = ast.parse(textwrap.dedent(source))
-    if not isinstance(fn_def := tree.body[0], ast.FunctionDef):
-        msg = "Not a function"
-        raise TypeError(msg)
-
-    return _tree_to_sbml(fn_def, args=user_args)
+    return _tree_to_sbml(get_fn_ast(fn), args=user_args)
 
 
 ##########################################################################

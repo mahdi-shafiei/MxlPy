@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import ast
-import inspect
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
 import latexify
 
+from modelbase2.experimental.source_tools import get_fn_ast
 from modelbase2.types import Derived, RateFn
 
 __all__ = [
@@ -73,9 +72,7 @@ def _escape_non_math(s: str) -> str:
 
 
 def _fn_to_latex(fn: Callable, arg_names: list[str]) -> str:
-    code = inspect.getsource(fn)
-    src = cast(ast.Module, ast.parse(code))
-    fn_def = cast(ast.FunctionDef, src.body[0])
+    fn_def = get_fn_ast(fn)
     args: list[str] = [i.arg for i in fn_def.args.args]
     arg_mapping: dict[str, str] = dict(zip(args, arg_names, strict=True))
     return cast(

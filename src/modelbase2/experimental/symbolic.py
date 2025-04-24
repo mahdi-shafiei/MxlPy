@@ -2,13 +2,13 @@
 
 import ast
 import inspect
-import textwrap
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, cast
 
 import sympy
 
+from modelbase2.experimental.source_tools import get_fn_ast
 from modelbase2.model import Model
 
 __all__ = [
@@ -75,14 +75,8 @@ def to_symbolic_model(model: Model) -> SymbolicModel:
 def model_fn_to_sympy(
     fn: Callable, model_args: list[sympy.Symbol | sympy.Expr] | None = None
 ) -> sympy.Expr:
-    source = textwrap.dedent(inspect.getsource(fn))
-
-    if not isinstance(fn_def := ast.parse(source).body[0], ast.FunctionDef):
-        msg = "Expected a function definition"
-        raise TypeError(msg)
-
+    fn_def = get_fn_ast(fn)
     fn_args = [str(arg.arg) for arg in fn_def.args.args]
-
     sympy_expr = _handle_fn_body(
         fn_def.body,
         ctx=Context(
@@ -90,10 +84,8 @@ def model_fn_to_sympy(
             caller=fn,
         ),
     )
-
     if model_args is not None:
         sympy_expr = sympy_expr.subs(dict(zip(fn_args, model_args, strict=True)))
-
     return cast(sympy.Expr, sympy_expr)
 
 
