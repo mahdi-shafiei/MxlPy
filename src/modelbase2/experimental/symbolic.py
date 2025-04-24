@@ -4,6 +4,7 @@ import ast
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
+from types import ModuleType
 from typing import Any, cast
 
 import sympy
@@ -23,6 +24,21 @@ __all__ = [
 class Context:
     symbols: dict[str, sympy.Symbol | sympy.Expr]
     caller: Callable
+    parent_module: ModuleType | None
+
+    def updated(
+        self,
+        symbols: dict[str, sympy.Symbol | sympy.Expr] | None = None,
+        caller: Callable | None = None,
+        parent_module: ModuleType | None = None,
+    ) -> "Context":
+        return Context(
+            symbols=self.symbols if symbols is None else symbols,
+            caller=self.caller if caller is None else caller,
+            parent_module=self.parent_module
+            if parent_module is None
+            else parent_module,
+        )
 
 
 @dataclass
@@ -30,46 +46,6 @@ class SymbolicModel:
     variables: dict[str, sympy.Symbol]
     parameters: dict[str, sympy.Symbol]
     eqs: list[sympy.Expr]
-
-
-def to_symbolic_model(model: Model) -> SymbolicModel:
-    cache = model._create_cache()  # noqa: SLF001
-
-    variables = dict(
-        zip(model.variables, sympy.symbols(list(model.variables)), strict=True)
-    )
-    parameters = dict(
-        zip(model.parameters, sympy.symbols(list(model.parameters)), strict=True)
-    )
-    symbols = variables | parameters
-
-    for k, v in model.derived.items():
-        symbols[k] = model_fn_to_sympy(v.fn, [symbols[i] for i in v.args])
-
-    rxns = {
-        k: model_fn_to_sympy(v.fn, [symbols[i] for i in v.args])
-        for k, v in model.reactions.items()
-    }
-
-    eqs: dict[str, sympy.Expr] = {}
-    for cpd, stoich in cache.stoich_by_cpds.items():
-        for rxn, stoich_value in stoich.items():
-            eqs[cpd] = (
-                eqs.get(cpd, sympy.Float(0.0)) + sympy.Float(stoich_value) * rxns[rxn]  # type: ignore
-            )
-
-    for cpd, dstoich in cache.dyn_stoich_by_cpds.items():
-        for rxn, der in dstoich.items():
-            eqs[cpd] = eqs.get(cpd, sympy.Float(0.0)) + model_fn_to_sympy(
-                der.fn,
-                [symbols[i] for i in der.args] * rxns[rxn],  # type: ignore
-            )  # type: ignore
-
-    return SymbolicModel(
-        variables=variables,
-        parameters=parameters,
-        eqs=[eqs[i] for i in cache.var_names],
-    )
 
 
 def model_fn_to_sympy(
@@ -82,6 +58,7 @@ def model_fn_to_sympy(
         ctx=Context(
             symbols={name: sympy.Symbol(name) for name in fn_args},
             caller=fn,
+            parent_module=inspect.getmodule(fn),
         ),
     )
     if model_args is not None:
@@ -212,18 +189,45 @@ def _handle_binop(node: ast.BinOp, ctx: Context) -> sympy.Expr:
 
 
 def _handle_call(node: ast.Call, ctx: Context) -> sympy.Expr:
-    if not isinstance(callee := node.func, ast.Name):
-        msg = "Only function calls with names are supported"
-        raise TypeError(msg)
+    # direct call, e.g. mass_action(x, k1)
+    if isinstance(callee := node.func, ast.Name):
+        fn_name = str(callee.id)
+        fns = dict(inspect.getmembers(ctx.parent_module, predicate=callable))
 
-    fn_name = str(callee.id)
-    parent_module = inspect.getmodule(ctx.caller)
-    fns = dict(inspect.getmembers(parent_module, predicate=callable))
+        return model_fn_to_sympy(
+            fns[fn_name],
+            model_args=[_handle_expr(i, ctx) for i in node.args],
+        )
 
-    return model_fn_to_sympy(
-        fns[fn_name],
-        model_args=[_handle_expr(i, ctx) for i in node.args],
-    )
+    # search for fn in other namespace
+    if isinstance(attr := node.func, ast.Attribute):
+        imports = dict(inspect.getmembers(ctx.parent_module, inspect.ismodule))
+
+        # Single level, e.g. fns.mass_action(x, k1)
+        if isinstance(module_name := attr.value, ast.Name):
+            return _handle_call(
+                ast.Call(func=ast.Name(attr.attr), args=node.args),
+                ctx=ctx.updated(parent_module=imports[module_name.id]),
+            )
+
+        # Multiple levels, e.g. modelbase2.fns.mass_action(x, k1)
+        if isinstance(inner_attr := attr.value, ast.Attribute):
+            if not isinstance(module_name := inner_attr.value, ast.Name):
+                msg = f"Unknown target kind {module_name}"
+                raise NotImplementedError(msg)
+            return _handle_call(
+                ast.Call(
+                    func=ast.Attribute(
+                        value=ast.Name(inner_attr.attr),
+                        attr=attr.attr,
+                    ),
+                    args=node.args,
+                ),
+                ctx=ctx.updated(parent_module=imports[module_name.id]),
+            )
+
+    msg = f"Onsupported function type {node.func}"
+    raise NotImplementedError(msg)
 
 
 def _handle_name(node: ast.Name, ctx: Context) -> sympy.Symbol | sympy.Expr:
@@ -281,3 +285,43 @@ def _handle_expr(node: ast.expr, ctx: Context) -> sympy.Expr:
 
     msg = f"Expression type {type(node).__name__} not implemented"
     raise NotImplementedError(msg)
+
+
+def to_symbolic_model(model: Model) -> SymbolicModel:
+    cache = model._create_cache()  # noqa: SLF001
+
+    variables = dict(
+        zip(model.variables, sympy.symbols(list(model.variables)), strict=True)
+    )
+    parameters = dict(
+        zip(model.parameters, sympy.symbols(list(model.parameters)), strict=True)
+    )
+    symbols = variables | parameters
+
+    for k, v in model.derived.items():
+        symbols[k] = model_fn_to_sympy(v.fn, [symbols[i] for i in v.args])
+
+    rxns = {
+        k: model_fn_to_sympy(v.fn, [symbols[i] for i in v.args])
+        for k, v in model.reactions.items()
+    }
+
+    eqs: dict[str, sympy.Expr] = {}
+    for cpd, stoich in cache.stoich_by_cpds.items():
+        for rxn, stoich_value in stoich.items():
+            eqs[cpd] = (
+                eqs.get(cpd, sympy.Float(0.0)) + sympy.Float(stoich_value) * rxns[rxn]  # type: ignore
+            )
+
+    for cpd, dstoich in cache.dyn_stoich_by_cpds.items():
+        for rxn, der in dstoich.items():
+            eqs[cpd] = eqs.get(cpd, sympy.Float(0.0)) + model_fn_to_sympy(
+                der.fn,
+                [symbols[i] for i in der.args] * rxns[rxn],  # type: ignore
+            )  # type: ignore
+
+    return SymbolicModel(
+        variables=variables,
+        parameters=parameters,
+        eqs=[eqs[i] for i in cache.var_names],
+    )

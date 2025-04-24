@@ -7,7 +7,10 @@ from collections.abc import Callable
 
 import dill
 
-__all__ = ["get_fn_ast", "get_fn_source"]
+__all__ = [
+    "get_fn_ast",
+    "get_fn_source",
+]
 
 
 def get_fn_source(fn: Callable) -> str:
