@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from modelbase2.experimental.codegen import (
-    generate_modelbase_code,
-)
+from modelbase2.experimental.codegen import generate_modelbase_code
 from tests import models
 
 
@@ -93,7 +91,7 @@ def test_generate_modelbase_code_m_1v_1p_1d_1r() -> None:
         '                "r1",',
         "                fn=mass_action_1s,",
         "                args=['v1', 'p1'],",
-        "                stoichiometry={'v1': -1.0},",
+        '                stoichiometry={"v1": -1.0},',
         "            )",
         "    )",
     ]
@@ -138,7 +136,7 @@ def test_generate_modelbase_code_m_2v_1p_1d_1r() -> None:
         '                "r1",',
         "                fn=mass_action_1s,",
         "                args=['v1', 'p1'],",
-        "                stoichiometry={'v1': -1.0, 'v2': 1.0},",
+        '                stoichiometry={"v1": -1.0,"v2": 1.0},',
         "            )",
         "    )",
     ]
@@ -170,7 +168,7 @@ def test_generate_modelbase_code_m_2v_2p_1d_1r() -> None:
         '                "r1",',
         "                fn=mass_action_1s,",
         "                args=['v1', 'p1'],",
-        "                stoichiometry={'v1': -1.0, 'v2': 1.0},",
+        '                stoichiometry={"v1": -1.0,"v2": 1.0},',
         "            )",
         "    )",
     ]
@@ -211,7 +209,7 @@ def test_generate_modelbase_code_m_2v_2p_2d_1r() -> None:
         '                "r1",',
         "                fn=mass_action_1s,",
         "                args=['v1', 'p1'],",
-        "                stoichiometry={'v1': -1.0, 'v2': 1.0},",
+        '                stoichiometry={"v1": -1.0,"v2": 1.0},',
         "            )",
         "    )",
     ]
@@ -252,13 +250,13 @@ def test_generate_modelbase_code_m_2v_2p_2d_2r() -> None:
         '                "r1",',
         "                fn=mass_action_1s,",
         "                args=['v1', 'p1'],",
-        "                stoichiometry={'v1': -1.0, 'v2': 1.0},",
+        '                stoichiometry={"v1": -1.0,"v2": 1.0},',
         "            )",
         "        .add_reaction(",
         '                "r2",',
         "                fn=mass_action_1s,",
         "                args=['v2', 'p2'],",
-        "                stoichiometry={'v1': 1.0, 'v2': -1.0},",
+        '                stoichiometry={"v1": 1.0,"v2": -1.0},',
         "            )",
         "    )",
     ]
@@ -306,7 +304,7 @@ def test_generate_modelbase_code_m_derived_stoichiometry() -> None:
         '                "r1",',
         "                fn=constant,",
         "                args=['v1'],",
-        "                stoichiometry={'v1': Derived(name='v1', fn=<function one_div at 0x7fbc1076c4a0>, args=['v1'])},",
+        '                stoichiometry={"v1": Derived(name="v1", fn=constant, args=["v1"])},',
         "            )",
         "    )",
     ]

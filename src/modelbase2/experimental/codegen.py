@@ -118,8 +118,8 @@ def generate_modelbase_code(model: Model) -> str:
 
     # Derived
     derived_source = []
-    for k, v in model.derived.items():
-        fn = v.fn
+    for k, rxn in model.derived.items():
+        fn = rxn.fn
         fn_name = fn.__name__
         functions[fn_name] = inspect.getsource(fn)
 
@@ -127,22 +127,32 @@ def generate_modelbase_code(model: Model) -> str:
             f"""        .add_derived(
                 "{k}",
                 fn={fn_name},
-                args={v.args},
+                args={rxn.args},
             )"""
         )
 
     # Reactions
     reactions_source = []
-    for k, v in model.reactions.items():
-        fn = v.fn
+    for k, rxn in model.reactions.items():
+        fn = rxn.fn
         fn_name = fn.__name__
         functions[fn_name] = inspect.getsource(fn)
+        stoichiometry: list[str] = []
+        for var, stoich in rxn.stoichiometry.items():
+            if isinstance(stoich, Derived):
+                functions[fn_name] = inspect.getsource(fn)
+                args = ", ".join(f'"{k}"' for k in stoich.args)
+                stoich = (  # noqa: PLW2901
+                    f"""Derived(name="{var}", fn={fn.__name__}, args=[{args}])"""
+                )
+            stoichiometry.append(f""""{var}": {stoich}""")
+
         reactions_source.append(
             f"""        .add_reaction(
                 "{k}",
                 fn={fn_name},
-                args={v.args},
-                stoichiometry={v.stoichiometry},
+                args={rxn.args},
+                stoichiometry={{{",".join(stoichiometry)}}},
             )"""
         )
 
