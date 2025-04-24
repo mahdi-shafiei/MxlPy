@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import numpy as np
 import pandas as pd
 import pytest
 
 from modelbase2 import Model, Simulator
-from modelbase2.fns import mass_action_1s, mass_action_1s_1p
+from modelbase2.fns import mass_action_1s
 
 
 @pytest.fixture
@@ -72,8 +71,8 @@ def test_simulator_simulate(simulator: Simulator) -> None:
     assert len(concs) == 11  # 10 steps + initial point
 
     # Verify that S decreases and P increases initially
-    assert concs.loc[0.0, "S"] > concs.loc[0.1, "S"]
-    assert concs.loc[0.0, "P"] < concs.loc[0.1, "P"]
+    assert concs.loc[0.0, "S"] > concs.loc[0.1, "S"]  # type: ignore
+    assert concs.loc[0.0, "P"] < concs.loc[0.1, "P"]  # type: ignore
 
 
 def test_simulator_simulate_time_course(simulator: Simulator) -> None:
@@ -204,7 +203,7 @@ def test_get_full_concs(simulator: Simulator) -> None:
     for idx in full_concs.index:
         assert (
             full_concs.loc[idx, "S_plus_P"]
-            == full_concs.loc[idx, "S"] + full_concs.loc[idx, "P"]
+            == full_concs.loc[idx, "S"] + full_concs.loc[idx, "P"]  # type: ignore
         )
 
 
@@ -231,11 +230,11 @@ def test_get_fluxes(simulator: Simulator) -> None:
     for idx in fluxes.index:
         assert (
             fluxes.loc[idx, "v1"]
-            == simulator.model.parameters["k1"] * concs.loc[idx, "S"]
+            == simulator.model.parameters["k1"] * concs.loc[idx, "S"]  # type: ignore  # type: ignore
         )
         assert (
             fluxes.loc[idx, "v2"]
-            == simulator.model.parameters["k2"] * concs.loc[idx, "P"]
+            == simulator.model.parameters["k2"] * concs.loc[idx, "P"]  # type: ignore  # type: ignore
         )
 
 
@@ -289,10 +288,10 @@ def test_get_results(simulator: Simulator) -> None:
     concs = simulator.get_concs()
     fluxes = simulator.get_fluxes()
 
-    assert all(results["S"] == concs["S"])
-    assert all(results["P"] == concs["P"])
-    assert all(results["v1"] == fluxes["v1"])
-    assert all(results["v2"] == fluxes["v2"])
+    assert all(results["S"] == concs["S"])  # type: ignore
+    assert all(results["P"] == concs["P"])  # type: ignore
+    assert all(results["v1"] == fluxes["v1"])  # type: ignore
+    assert all(results["v2"] == fluxes["v2"])  # type: ignore
 
 
 def test_get_full_results(simulator: Simulator) -> None:
@@ -319,8 +318,8 @@ def test_get_new_y0(simulator: Simulator) -> None:
 
     # Values should match the last row of the concentration results
     concs = simulator.get_concs()
-    assert new_y0["S"] == concs.iloc[-1]["S"]
-    assert new_y0["P"] == concs.iloc[-1]["P"]
+    assert new_y0["S"] == concs.iloc[-1]["S"]  # type: ignore
+    assert new_y0["P"] == concs.iloc[-1]["P"]  # type: ignore
 
 
 def test_update_parameter(simulator: Simulator) -> None:
@@ -335,7 +334,7 @@ def test_update_parameter(simulator: Simulator) -> None:
     concs = simulator.get_concs()
 
     # With lower k1, S should decrease more slowly
-    assert fluxes.iloc[0]["v1"] == 0.5 * concs.iloc[0]["S"]
+    assert fluxes.iloc[0]["v1"] == 0.5 * concs.iloc[0]["S"]  # type: ignore
 
 
 def test_update_parameters(simulator: Simulator) -> None:

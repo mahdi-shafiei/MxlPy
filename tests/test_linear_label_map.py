@@ -35,8 +35,7 @@ def test_unpack_stoichiometries() -> None:
     assert prods == {"B": 1, "C": 3}
 
     with pytest.raises(NotImplementedError):
-        derived = Derived(name="test", fn=lambda x: x, args=["A"])
-        _unpack_stoichiometries({"A": derived})
+        _unpack_stoichiometries({"A": Derived(name="test", fn=lambda x: x, args=["A"])})
 
 
 def test_stoichiometry_to_duplicate_list() -> None:
@@ -182,9 +181,8 @@ def test_linear_label_mapper_build_model_with_initial_labels() -> None:
     fluxes = pd.Series({"v1": 0.1})
 
     # Build the label model with initial labels
-    initial_labels = {"A": 0}  # Label position 0 for A
     label_model = mapper.build_model(
-        concs, fluxes, external_label=1.0, initial_labels=initial_labels
+        concs, fluxes, external_label=1.0, initial_labels={"A": 0}
     )
 
     # Check that the initial label is set
@@ -192,9 +190,8 @@ def test_linear_label_mapper_build_model_with_initial_labels() -> None:
     assert label_model.variables["A__1"] == 0.0
 
     # Test with multiple initial labels
-    initial_labels = {"A": [0, 1]}  # Both positions for A
     label_model = mapper.build_model(
-        concs, fluxes, external_label=1.0, initial_labels=initial_labels
+        concs, fluxes, external_label=1.0, initial_labels={"A": [0, 1]}
     )
 
     # Check that the initial labels are set (should be 0.5 for each label)
