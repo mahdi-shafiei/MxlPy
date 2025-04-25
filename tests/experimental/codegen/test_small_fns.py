@@ -6,7 +6,7 @@ from modelbase2.meta.codegen_py import (
     DocstringRemover,
     IdentifierReplacer,
     ReturnRemover,
-    conditional_join,
+    _conditional_join,
     handle_fn,
 )
 from modelbase2.meta.source_tools import get_fn_ast
@@ -94,7 +94,7 @@ def test_conditional_join() -> None:
     items = [1, -2, 3, -4]
 
     # Join with a conditional
-    result = conditional_join(items, lambda x: x < 0, " - ", " + ")
+    result = _conditional_join(items, lambda x: x < 0, " - ", " + ")
 
     # Fix expected output to match actual implementation
     assert result == "1 - -2 + 3 - -4"

@@ -1,15 +1,15 @@
 import sympy
 
-from modelbase2.experimental.strikepy import Model, strike_goldd
+from modelbase2.experimental.strikepy import StrikepyModel, strike_goldd
 
 
-def sir() -> Model:
+def sir() -> StrikepyModel:
     # variables
     s, i, r = sympy.symbols("s i r")
     # parameters
     beta, gamma, n = sympy.symbols("beta gamma n")
 
-    return Model(
+    return StrikepyModel(
         states=[s, i, r],
         pars=[beta, gamma, n],
         outputs=[i, r],
@@ -23,7 +23,7 @@ def sir() -> Model:
     )
 
 
-def karin_2016_1a() -> Model:
+def karin_2016_1a() -> StrikepyModel:
     """Hormonal circuit model with integral feedback.
 
     Originally published in: Karin et al, Mol Syst Biol 2016
@@ -43,7 +43,7 @@ def karin_2016_1a() -> Model:
     p1 = sympy.Symbol("p1")
     p2 = sympy.Symbol("p2")
 
-    return Model(
+    return StrikepyModel(
         states=[x1, x2],
         outputs=[x1],
         known_inputs=[uu],
@@ -55,7 +55,7 @@ def karin_2016_1a() -> Model:
     )
 
 
-def bolie_1961() -> Model:
+def bolie_1961() -> StrikepyModel:
     """
 
     Model from J.W. Bolie. "Coefficients of normal blood glucose regulation".
@@ -77,7 +77,7 @@ def bolie_1961() -> Model:
     p3 = sympy.Symbol("p3")
     p4 = sympy.Symbol("p4")
 
-    return Model(
+    return StrikepyModel(
         states=[q1, q2],
         outputs=[
             [q1 / Vp],  # type: ignore

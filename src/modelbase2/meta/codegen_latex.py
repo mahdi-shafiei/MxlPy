@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
-import latexify
+import sympy
 
-from modelbase2.meta.source_tools import get_fn_ast
+from modelbase2.meta.source_tools import fn_to_sympy
 from modelbase2.types import Derived, RateFn
 
 __all__ = [
     "TexExport",
     "TexReaction",
     "default_init",
+    "generate_latex_code",
     "get_model_tex_diff",
-    "to_tex",
 ]
 
 if TYPE_CHECKING:
@@ -30,6 +30,10 @@ left_right_arrows = r"\xleftrightharpoons{}"
 right_arrow = r"\xrightarrow{}"
 newline = r"\\" + "\n"
 floatbarrier = r"\FloatBarrier"
+
+
+def _list_of_symbols(args: list[str]) -> list[sympy.Symbol | sympy.Expr]:
+    return [sympy.Symbol(arg) for arg in args]
 
 
 def default_init[T1, T2](d: dict[T1, T2] | None) -> dict[T1, T2]:
@@ -72,17 +76,7 @@ def _escape_non_math(s: str) -> str:
 
 
 def _fn_to_latex(fn: Callable, arg_names: list[str]) -> str:
-    fn_def = get_fn_ast(fn)
-    args: list[str] = [i.arg for i in fn_def.args.args]
-    arg_mapping: dict[str, str] = dict(zip(args, arg_names, strict=True))
-    return cast(
-        str,
-        latexify.expression(  # noqa: SLF001
-            fn,
-            identifiers=arg_mapping,
-            reduce_assignments=True,
-        )._latex,
-    )
+    return sympy.latex(fn_to_sympy(fn, _list_of_symbols(arg_names)))
 
 
 def _table(
@@ -495,7 +489,7 @@ def _to_tex_export(self: Model) -> TexExport:
     )
 
 
-def to_tex(
+def generate_latex_code(
     model: Model,
     gls: dict[str, str] | None = None,
 ) -> str:

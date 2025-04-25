@@ -5,13 +5,19 @@ from __future__ import annotations
 import warnings
 from typing import TYPE_CHECKING
 
-from modelbase2.meta.source_tools import get_fn_source
+import sympy
+
+from modelbase2.meta.source_tools import fn_to_sympy, sympy_to_fn
 from modelbase2.types import Derived
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
 
 __all__ = ["generate_modelbase_code"]
+
+
+def _list_of_symbols(args: list[str]) -> list[sympy.Symbol | sympy.Expr]:
+    return [sympy.Symbol(arg) for arg in args]
 
 
 def generate_modelbase_code(model: Model) -> str:
@@ -24,16 +30,19 @@ def generate_modelbase_code(model: Model) -> str:
 
     # Derived
     derived_source = []
-    for k, rxn in model.derived.items():
-        fn = rxn.fn
+    for k, der in model.derived.items():
+        fn = der.fn
         fn_name = fn.__name__
-        functions[fn_name] = get_fn_source(fn)
+        functions[fn_name] = (
+            fn_to_sympy(fn, model_args=_list_of_symbols(der.args)),
+            der.args,
+        )
 
         derived_source.append(
             f"""        .add_derived(
                 "{k}",
                 fn={fn_name},
-                args={rxn.args},
+                args={der.args},
             )"""
         )
 
@@ -42,11 +51,17 @@ def generate_modelbase_code(model: Model) -> str:
     for k, rxn in model.reactions.items():
         fn = rxn.fn
         fn_name = fn.__name__
-        functions[fn_name] = get_fn_source(fn)
+        functions[fn_name] = (
+            fn_to_sympy(fn, model_args=_list_of_symbols(rxn.args)),
+            rxn.args,
+        )
         stoichiometry: list[str] = []
         for var, stoich in rxn.stoichiometry.items():
             if isinstance(stoich, Derived):
-                functions[fn_name] = get_fn_source(fn)
+                functions[fn_name] = (
+                    fn_to_sympy(fn, model_args=_list_of_symbols(stoich.args)),
+                    rxn.args,
+                )
                 args = ", ".join(f'"{k}"' for k in stoich.args)
                 stoich = (  # noqa: PLW2901
                     f"""Derived(name="{var}", fn={fn.__name__}, args=[{args}])"""
@@ -70,7 +85,10 @@ def generate_modelbase_code(model: Model) -> str:
         )
 
     # Combine all the sources
-    functions_source = "\n".join(functions.values())
+    functions_source = "\n\n".join(
+        sympy_to_fn(fn_name=name, args=args, expr=expr)
+        for name, (expr, args) in functions.items()
+    )
     source = [
         "from modelbase2 import Model\n",
         functions_source,

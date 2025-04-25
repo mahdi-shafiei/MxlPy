@@ -5,8 +5,8 @@ from modelbase2.meta.codegen_latex import (
     TexExport,
     TexReaction,
     default_init,
+    generate_latex_code,
     get_model_tex_diff,
-    to_tex,
 )
 from modelbase2.types import Derived
 

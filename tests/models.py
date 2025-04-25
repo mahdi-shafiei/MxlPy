@@ -43,7 +43,7 @@ def m_1v_1p_1d_1r() -> Model:
         .add_reaction(
             "r1",
             fn=fns.mass_action_1s,
-            args=["v1", "p1"],
+            args=["v1", "d1"],
             stoichiometry={"v1": -1.0},
         )
     )
@@ -119,23 +119,23 @@ def m_2v_2p_2d_2r() -> Model:
         .add_derived(
             "d1",
             fn=fns.add,
-            args=["v1", "v2"],
+            args=["v1", "p1"],
         )
         .add_derived(
             "d2",
             fn=fns.mul,
-            args=["v1", "v2"],
+            args=["v2", "p2"],
         )
         .add_reaction(
             "r1",
             fn=fns.mass_action_1s,
-            args=["v1", "p1"],
+            args=["v1", "d1"],
             stoichiometry={"v1": -1.0, "v2": 1.0},
         )
         .add_reaction(
             "r2",
             fn=fns.mass_action_1s,
-            args=["v2", "p2"],
+            args=["v2", "d2"],
             stoichiometry={"v1": 1.0, "v2": -1.0},
         )
     )

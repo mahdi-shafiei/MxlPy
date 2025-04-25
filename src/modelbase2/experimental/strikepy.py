@@ -27,7 +27,16 @@ import tqdm
 from sympy import Matrix
 from sympy.matrices import zeros
 
-__all__ = ["Model", "Options", "Result", "strike_goldd"]
+from modelbase2.model import Model
+from modelbase2.symbolic import to_symbolic_model
+
+__all__ = [
+    "Options",
+    "Result",
+    "StrikepyModel",
+    "check_identifiability",
+    "strike_goldd",
+]
 
 
 @dataclass
@@ -40,7 +49,7 @@ class Options:
 
 
 @dataclass
-class Model:
+class StrikepyModel:
     states: list[sym.Symbol]
     pars: list[sym.Symbol]
     eqs: list[sym.Expr]
@@ -52,7 +61,7 @@ class Model:
 @dataclass
 class Result:
     rank: int
-    model: Model
+    model: StrikepyModel
     is_fispo: bool
     par_ident: list
     par_unident: list
@@ -95,7 +104,7 @@ def _calculate_num_rank(inp: tuple[int, list[int]], onx: Matrix) -> tuple[int, i
 
 def _elim_and_recalc(
     *,
-    model: Model,
+    model: StrikepyModel,
     res: Result,
     options: Options,
     unmeas_xred_indices: list[int],
@@ -175,12 +184,12 @@ def _elim_and_recalc(
     res.input_unobs = new_unobs_in
 
 
-def _remove_identified_parameters(model: Model, options: Options) -> None:
+def _remove_identified_parameters(model: StrikepyModel, options: Options) -> None:
     if len(options.prev_ident_pars) != 0:
         model.pars = [i for i in model.pars if i not in options.prev_ident_pars]
 
 
-def _get_measured_states(model: Model) -> tuple[list[sym.Symbol], list[int]]:
+def _get_measured_states(model: StrikepyModel) -> tuple[list[sym.Symbol], list[int]]:
     # Check which states are directly measured, if any.
     # Basically it is checked if any state is directly on the output,
     # then that state is directly measurable.
@@ -212,7 +221,7 @@ def _create_derivatives(
 
 
 def _create_w1_vector(
-    model: Model, w_der: list[list[sym.Symbol]]
+    model: StrikepyModel, w_der: list[list[sym.Symbol]]
 ) -> tuple[list[sym.Symbol], list[sym.Symbol]]:
     w1vector = []
     w1vector_dot = []
@@ -239,7 +248,7 @@ def _create_w1_vector(
 
 
 def _create_xaug_faug(
-    model: Model,
+    model: StrikepyModel,
     w1vector: list[sym.Symbol],
     w1vector_dot: list[sym.Symbol],
 ) -> tuple[npt.NDArray, npt.NDArray]:
@@ -276,7 +285,7 @@ def _compute_extra_term(
     return extra_term
 
 
-def _compute_n_min_lie_derivatives(model: Model) -> int:
+def _compute_n_min_lie_derivatives(model: StrikepyModel) -> int:
     n_outputs = len(model.outputs)
     n_states = len(model.states)
     n_unknown_pars = len(model.pars)
@@ -286,7 +295,7 @@ def _compute_n_min_lie_derivatives(model: Model) -> int:
 
 
 def _test_fispo(
-    model: Model,
+    model: StrikepyModel,
     res: Result,
     measured_state_names: list[sym.Symbol],
 ) -> bool:
@@ -302,7 +311,7 @@ def _test_fispo(
 
 
 def _create_onx(
-    model: Model,
+    model: StrikepyModel,
     n_min_lie_derivatives: int,
     options: Options,
     w1vector: list[sym.Symbol],
@@ -355,7 +364,7 @@ def _create_onx(
     return onx, cast(sym.Matrix, past_Lie)
 
 
-def strike_goldd(model: Model, options: Options | None = None) -> Result:
+def strike_goldd(model: StrikepyModel, options: Options | None = None) -> Result:
     options = Options() if options is None else options
 
     # Check if the size of nnzDerU and nnzDerW are appropriate
@@ -560,3 +569,14 @@ def strike_goldd(model: Model, options: Options | None = None) -> Result:
                 break
     pbar.close()
     return res
+
+
+def check_identifiability(model: Model, outputs: list[sympy.Symbol]) -> Result:
+    sym_model = to_symbolic_model(model)
+    strike_model = StrikepyModel(
+        states=list(sym_model.variables.values()),
+        pars=list(sym_model.parameters.values()),
+        eqs=sym_model.eqs,
+        outputs=outputs,
+    )
+    return strike_goldd(strike_model)
