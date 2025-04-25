@@ -83,6 +83,7 @@ from . import (
     plot,
     sbml,
     surrogates,
+    symbolic,
 )
 from .integrators import DefaultIntegrator, Scipy
 from .label_map import LabelMapper
@@ -95,6 +96,7 @@ from .scan import (
     time_course_over_protocol,
 )
 from .simulator import Simulator
+from .symbolic import to_symbolic_model
 from .types import Derived, IntegratorProtocol
 
 with contextlib.suppress(ImportError):
