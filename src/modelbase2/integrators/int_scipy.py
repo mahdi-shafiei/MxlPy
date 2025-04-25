@@ -97,7 +97,6 @@ class Scipy:
             tuple[ArrayLike, ArrayLike]: Tuple containing the time points and the integrated values.
 
         """
-
         y = spi.odeint(
             func=self.rhs,
             y0=self.y0,

@@ -160,7 +160,7 @@ def train_torch_surrogate(
     if approximator is None:
         approximator = MLP(
             n_inputs=len(features.columns),
-            layers=[50, 50, len(targets.columns)],
+            neurons_per_layer=[50, 50, len(targets.columns)],
         ).to(device)
 
     optimizer = optimimzer_cls(approximator.parameters())

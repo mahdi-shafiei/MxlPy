@@ -1291,6 +1291,13 @@ class Model:
         self._surrogates.pop(name)
         return self
 
+    def get_surrogate_reaction_names(self) -> list[str]:
+        """Return reaction names by surrogates."""
+        names = []
+        for i in self._surrogates.values():
+            names.extend(i.stoichiometries)
+        return names
+
     ##########################################################################
     # Get dependent values. This includes
     # - derived parameters

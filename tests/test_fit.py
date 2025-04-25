@@ -170,8 +170,8 @@ if __name__ == "__main__":
         Simulator(model_fn())
         .update_parameters(p_true)
         .simulate_time_course(np.linspace(0, 1, 11))
-        .get_results()
-    )
+        .get_result()
+    ).get_combined()
 
     p_fit = fit.steady_state(
         model_fn(),

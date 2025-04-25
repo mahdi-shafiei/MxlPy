@@ -35,7 +35,7 @@ import pandas as pd
 
 from modelbase2.parallel import Cache, parallelise
 from modelbase2.simulator import Simulator
-from modelbase2.types import ProtocolByPars, SteadyStates, TimeCourseByPars
+from modelbase2.types import ProtocolByPars, SteadyStates, TimeCourseByPars, unwrap
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -325,10 +325,10 @@ def _steady_state_worker(
 
     """
     try:
-        c, v = (
+        c, v = unwrap(
             Simulator(model, y0=y0)
             .simulate_to_steady_state(rel_norm=rel_norm)
-            .get_full_concs_and_fluxes()
+            .get_result()
         )
     except ZeroDivisionError:
         c = None
@@ -353,10 +353,10 @@ def _time_course_worker(
 
     """
     try:
-        c, v = (
+        c, v = unwrap(
             Simulator(model, y0=y0)
             .simulate_time_course(time_points=time_points)
-            .get_full_concs_and_fluxes()
+            .get_result()
         )
     except ZeroDivisionError:
         c = None
@@ -382,13 +382,13 @@ def _protocol_worker(
         TimeCourse: Object containing protocol series concentrations and fluxes.
 
     """
-    c, v = (
+    c, v = unwrap(
         Simulator(model, y0=y0)
         .simulate_over_protocol(
             protocol=protocol,
             time_points_per_step=time_points_per_step,
         )
-        .get_full_concs_and_fluxes()
+        .get_result()
     )
     time_points = np.linspace(
         0,

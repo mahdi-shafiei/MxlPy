@@ -174,7 +174,8 @@ def train_torch_ss_estimator(
         n_hidden = max(2 * len(features.columns) * len(targets.columns), 10)
         n_outputs = len(targets.columns)
         approximator = MLP(
-            n_inputs=len(features.columns), layers=[n_hidden, n_hidden, n_outputs]
+            n_inputs=len(features.columns),
+            neurons_per_layer=[n_hidden, n_hidden, n_outputs],
         ).to(device)
 
     features_ = torch.Tensor(features.to_numpy(), device=device)

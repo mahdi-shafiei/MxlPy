@@ -12,6 +12,7 @@ from modelbase2 import Simulator
 from modelbase2.integrators.int_scipy import Scipy
 from modelbase2.model import MissingDependenciesError
 from modelbase2.sbml import read
+from modelbase2.types import unwrap
 
 if TYPE_CHECKING:
     from modelbase2.model import Model
@@ -84,7 +85,7 @@ def routine(test: int) -> bool:
     m, sim_settings, expected = get_files(test=test)
 
     # Make them a bit harder, such that we guarantee we are getting the required ones
-    result = (
+    result = unwrap(
         Simulator(
             m,
             integrator=partial(
@@ -94,8 +95,8 @@ def routine(test: int) -> bool:
             ),  # type: ignore
         )
         .simulate_time_course(expected.index)  # type: ignore
-        .get_full_concs()
-    )
+        .get_result()
+    ).variables
 
     if result is None:
         pytest.fail("Simulation failed")

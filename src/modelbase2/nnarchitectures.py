@@ -33,17 +33,18 @@ class MLP(nn.Module):
     def __init__(
         self,
         n_inputs: int,
-        layers: list[int],
-        activation: Callable | None = nn.ReLU(),
+        neurons_per_layer: list[int],
+        activation: Callable | None = None,
         output_activation: Callable | None = None,
     ) -> None:
         """Initializes the MLP with the given number of inputs and list of (hidden) layers.
 
         Args:
-            n_inputs (int): The number of input features.
-            n_outputs list(int): A list containing the number of neurons in hidden and output layer.
-            activation Callable | None (default nn.ReLU()): The activation function to be applied after each hidden layer
-            activation Callable | None (default None): The activation function to be applied after the final (output) layer
+            n_inputs: The number of input features.
+            neurons_per_layer: Number of neurons per layer
+            n_outputs: A list containing the number of neurons in hidden and output layer.
+            activation: The activation function to be applied after each hidden layer (default nn.ReLU)
+            output_activation: The activation function to be applied after the final (output) layer
 
         For instance, MLP(10, layers = [50, 50, 10]) initializes a neural network with the following architecture:
         - Linear layer with `n_inputs` inputs and 50 outputs
@@ -57,8 +58,8 @@ class MLP(nn.Module):
 
         """
         super().__init__()
-        self.layers = layers
-        self.activation = activation
+        self.layers = neurons_per_layer
+        self.activation = nn.ReLU() if activation is None else activation
         self.output_activation = output_activation
 
         levels = []

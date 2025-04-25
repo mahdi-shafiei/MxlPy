@@ -19,7 +19,14 @@ from scipy.optimize import minimize
 
 from modelbase2.integrators import DefaultIntegrator
 from modelbase2.simulator import Simulator
-from modelbase2.types import Array, ArrayLike, Callable, IntegratorProtocol, cast
+from modelbase2.types import (
+    Array,
+    ArrayLike,
+    Callable,
+    IntegratorProtocol,
+    cast,
+    unwrap,
+)
 
 __all__ = [
     "InitialGuess",
@@ -117,7 +124,7 @@ def _steady_state_residual(
         float: Root mean square error between model and data
 
     """
-    c_ss, v_ss = (
+    c_ss, v_ss = unwrap(
         Simulator(
             model.update_parameters(
                 dict(
@@ -132,7 +139,7 @@ def _steady_state_residual(
             integrator=integrator,
         )
         .simulate_to_steady_state()
-        .get_full_concs_and_fluxes()
+        .get_result()
     )
     if c_ss is None or v_ss is None:
         return cast(float, np.inf)
@@ -171,7 +178,7 @@ def _time_course_residual(
             integrator=integrator,
         )
         .simulate_time_course(data.index)  # type: ignore
-        .get_full_concs_and_fluxes()
+        .get_result()
     )
     if c_ss is None or v_ss is None:
         return cast(float, np.inf)

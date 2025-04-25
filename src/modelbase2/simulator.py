@@ -10,7 +10,7 @@ Classes:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Self, cast, overload
 
 import numpy as np
@@ -18,10 +18,10 @@ import pandas as pd
 
 from modelbase2.integrators import DefaultIntegrator
 
-__all__ = ["Simulator"]
+__all__ = ["Result", "Simulator"]
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from modelbase2.model import Model
     from modelbase2.types import ArrayLike, IntegratorProtocol
@@ -56,6 +56,236 @@ def _normalise_split_results(
     return results
 
 
+@dataclass(slots=True)
+class Result:
+    model: Model
+    _raw_variables: list[pd.DataFrame]
+    _parameters: list[dict[str, float]]
+    _dependent: list[pd.DataFrame] = field(default_factory=list)
+
+    @property
+    def variables(self) -> pd.DataFrame:
+        return self.get_variables(
+            include_derived=True,
+            include_readouts=True,
+            concatenated=True,
+            normalise=None,
+        )
+
+    @property
+    def fluxes(self) -> pd.DataFrame:
+        return self.get_fluxes()
+
+    def __iter__(self) -> Iterator[pd.DataFrame]:
+        """Iterate over the concentration and flux response coefficients."""
+        return iter((self.variables, self.fluxes))
+
+    def _get_dependent(
+        self,
+        *,
+        include_readouts: bool = True,
+    ) -> list[pd.DataFrame]:
+        # Already computed
+        if len(self._dependent) > 0:
+            return self._dependent
+
+        # Compute new otherwise
+        for res, p in zip(self._raw_variables, self._parameters, strict=True):
+            self.model.update_parameters(p)
+            self._dependent.append(
+                self.model.get_dependent_time_course(
+                    concs=res,
+                    include_readouts=include_readouts,
+                )
+            )
+        return self._dependent
+
+    def _select_variables(
+        self,
+        dependent: list[pd.DataFrame],
+        *,
+        include_derived: bool,
+        include_readouts: bool,
+    ) -> list[pd.DataFrame]:
+        names = self.model.get_variable_names()
+        if include_derived:
+            names.extend(self.model.get_derived_variable_names())
+        if include_readouts:
+            names.extend(self.model.get_readout_names())
+        return [i.loc[:, names] for i in dependent]
+
+    def _select_fluxes(
+        self,
+        dependent: list[pd.DataFrame],
+        *,
+        include_surrogates: bool,
+    ) -> list[pd.DataFrame]:
+        names = self.model.get_reaction_names()
+        if include_surrogates:
+            names.extend(self.model.get_surrogate_reaction_names())
+        return [i.loc[:, names] for i in dependent]
+
+    def _adjust_data(
+        self,
+        data: list[pd.DataFrame],
+        normalise: float | ArrayLike | None = None,
+        *,
+        concatenated: bool = True,
+    ) -> pd.DataFrame | list[pd.DataFrame]:
+        if normalise is not None:
+            data = _normalise_split_results(data, normalise=normalise)
+        if concatenated:
+            return pd.concat(data, axis=0)
+        return data
+
+    @overload
+    def get_variables(  # type: ignore
+        self,
+        *,
+        include_derived: bool = True,
+        include_readouts: bool = True,
+        concatenated: Literal[False],
+        normalise: float | ArrayLike | None = None,
+    ) -> list[pd.DataFrame]: ...
+
+    @overload
+    def get_variables(
+        self,
+        *,
+        include_derived: bool = True,
+        include_readouts: bool = True,
+        concatenated: Literal[True],
+        normalise: float | ArrayLike | None = None,
+    ) -> pd.DataFrame: ...
+
+    @overload
+    def get_variables(
+        self,
+        *,
+        include_derived: bool = True,
+        include_readouts: bool = True,
+        concatenated: bool = True,
+        normalise: float | ArrayLike | None = None,
+    ) -> pd.DataFrame: ...
+
+    def get_variables(
+        self,
+        *,
+        include_derived: bool = True,
+        include_readouts: bool = True,
+        concatenated: bool = True,
+        normalise: float | ArrayLike | None = None,
+    ) -> pd.DataFrame | list[pd.DataFrame]:
+        """Get the variables over time.
+
+        Examples:
+            >>> Result().get_variables()
+            Time            ATP      NADPH
+            0.000000   1.000000   1.000000
+            0.000100   0.999900   0.999900
+            0.000200   0.999800   0.999800
+
+        """
+        if not include_derived and not include_readouts:
+            return self._adjust_data(
+                self._raw_variables,
+                normalise=normalise,
+                concatenated=concatenated,
+            )
+
+        variables = self._select_variables(
+            self._get_dependent(),
+            include_derived=include_derived,
+            include_readouts=include_readouts,
+        )
+        return self._adjust_data(
+            variables, normalise=normalise, concatenated=concatenated
+        )
+
+    @overload
+    def get_fluxes(  # type: ignore
+        self,
+        *,
+        include_surrogates: bool = True,
+        normalise: float | ArrayLike | None = None,
+        concatenated: Literal[False],
+    ) -> list[pd.DataFrame]: ...
+
+    @overload
+    def get_fluxes(
+        self,
+        *,
+        include_surrogates: bool = True,
+        normalise: float | ArrayLike | None = None,
+        concatenated: Literal[True],
+    ) -> pd.DataFrame: ...
+
+    @overload
+    def get_fluxes(
+        self,
+        *,
+        include_surrogates: bool = True,
+        normalise: float | ArrayLike | None = None,
+        concatenated: bool = True,
+    ) -> pd.DataFrame: ...
+
+    def get_fluxes(
+        self,
+        *,
+        include_surrogates: bool = True,
+        normalise: float | ArrayLike | None = None,
+        concatenated: bool = True,
+    ) -> pd.DataFrame | list[pd.DataFrame]:
+        """Get the flux results.
+
+        Examples:
+            >>> Result.get_fluxes()
+            Time             v1         v2
+            0.000000   1.000000   10.00000
+            0.000100   0.999900   9.999000
+            0.000200   0.999800   9.998000
+
+        Returns:
+            pd.DataFrame: DataFrame of fluxes.
+
+        """
+        fluxes = self._select_fluxes(
+            self._get_dependent(),
+            include_surrogates=include_surrogates,
+        )
+        return self._adjust_data(
+            fluxes,
+            normalise=normalise,
+            concatenated=concatenated,
+        )
+
+    def get_combined(self) -> pd.DataFrame:
+        """Get the variables and fluxes as a single pandas.DataFrame.
+
+        Examples:
+            >>> Result.get_combined()
+            Time            ATP      NADPH         v1         v2
+            0.000000   1.000000   1.000000   1.000000   10.00000
+            0.000100   0.999900   0.999900   0.999900   9.999000
+            0.000200   0.999800   0.999800   0.999800   9.998000
+
+        Returns:
+            pd.DataFrame: DataFrame of fluxes.
+
+        """
+        return pd.concat((self.variables, self.fluxes), axis=1)
+
+    def get_new_y0(self) -> dict[str, float]:
+        """Get the new initial conditions after the simulation.
+
+        Examples:
+            >>> Simulator(model).simulate_to_steady_state().get_new_y0()
+            {"ATP": 1.0, "NADPH": 1.0}
+
+        """
+        return dict(self.variables.iloc[-1])
+
+
 @dataclass(
     init=False,
     slots=True,
@@ -77,7 +307,7 @@ class Simulator:
     model: Model
     y0: ArrayLike
     integrator: IntegratorProtocol
-    concs: list[pd.DataFrame] | None
+    variables: list[pd.DataFrame] | None
     dependent: list[pd.DataFrame] | None
     simulation_parameters: list[dict[str, float]] | None
 
@@ -109,7 +339,7 @@ class Simulator:
         self.y0 = [y0[k] for k in model.get_variable_names()]
 
         self.integrator = integrator(self.model, self.y0)
-        self.concs = None
+        self.variables = None
         self.simulation_parameters = None
 
         if test_run:
@@ -129,12 +359,12 @@ class Simulator:
             skipfirst: Whether to skip the first row of results.
 
         """
-        if self.concs is None:
-            self.concs = [results]
+        if self.variables is None:
+            self.variables = [results]
         elif skipfirst:
-            self.concs.append(results.iloc[1:, :])
+            self.variables.append(results.iloc[1:, :])
         else:
-            self.concs.append(results)
+            self.variables.append(results)
 
         if self.simulation_parameters is None:
             self.simulation_parameters = []
@@ -142,7 +372,7 @@ class Simulator:
 
     def clear_results(self) -> None:
         """Clear simulation results."""
-        self.concs = None
+        self.variables = None
         self.dependent = None
         self.simulation_parameters = None
         if self.integrator is not None:
@@ -287,328 +517,36 @@ class Simulator:
             t_end = cast(pd.Timedelta, t_end)
             self.model.update_parameters(pars.to_dict())
             self.simulate(t_end.total_seconds(), steps=time_points_per_step)
-            if self.concs is None:
+            if self.variables is None:
                 break
         return self
 
-    def _get_dependent_vectorised(
-        self,
-        concs: list[pd.DataFrame],
-        params: list[dict[str, float]],
-        *,
-        include_readouts: bool = True,
-    ) -> list[pd.DataFrame]:
-        dependent: list[pd.DataFrame] = []
-
-        for res, p in zip(concs, params, strict=True):
-            self.model.update_parameters(p)
-            dependent.append(
-                self.model.get_dependent_time_course(
-                    concs=res,
-                    include_readouts=include_readouts,
-                )
-            )
-        return dependent
-
-    @overload
-    def get_concs(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-    ) -> None | list[pd.DataFrame]: ...
-
-    @overload
-    def get_concs(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-    ) -> None | pd.DataFrame: ...
-
-    @overload
-    def get_concs(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True] = True,
-    ) -> None | pd.DataFrame: ...
-
-    def get_concs(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-    ) -> None | pd.DataFrame | list[pd.DataFrame]:
-        """Get the concentration results.
+    def get_result(self) -> Result | None:
+        """Get result of the simulation.
 
         Examples:
-            >>> Simulator(model).get_concs()
+            >>> variables, fluxes = Simulator(model).simulate().get_result()
+            >>> variables
             Time            ATP      NADPH
             0.000000   1.000000   1.000000
             0.000100   0.999900   0.999900
             0.000200   0.999800   0.999800
-
-        Returns:
-            pd.DataFrame: DataFrame of concentrations.
-
-        """
-        if self.concs is None:
-            return None
-
-        results = self.concs.copy()
-        if normalise is not None:
-            results = _normalise_split_results(results=results, normalise=normalise)
-        if concatenated:
-            return pd.concat(results, axis=0)
-
-        return results
-
-    # Get results depending on the raw results
-
-    def _get_dependent(self) -> list[pd.DataFrame] | None:
-        if (concs := self.concs) is None:
-            return None
-        if (params := self.simulation_parameters) is None:
-            return None
-
-        return self._get_dependent_vectorised(concs, params)
-
-    @overload
-    def get_full_concs(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-        include_readouts: bool = True,
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> list[pd.DataFrame] | None: ...
-
-    @overload
-    def get_full_concs(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-        include_readouts: bool = True,
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> pd.DataFrame | None: ...
-
-    @overload
-    def get_full_concs(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        include_readouts: bool = True,
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> pd.DataFrame | None: ...
-
-    def get_full_concs(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        include_readouts: bool = True,
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> pd.DataFrame | list[pd.DataFrame] | None:
-        """Get the full concentration results, including derived quantities.
-
-        Examples:
-            >>> Simulator(model).get_full_concs()
-            Time            ATP      NADPH
-            0.000000   1.000000   1.000000
-            0.000100   0.999900   0.999900
-            0.000200   0.999800   0.999800
-
-        Returns: DataFrame of full concentrations.
-
-        """
-        if (concs := self.concs) is None:
-            return None
-        if (params := self.simulation_parameters) is None:
-            return None
-        if dependent is None:
-            dependent = self._get_dependent_vectorised(concs, params)
-
-        # Filter to full concs
-        names = (
-            self.model.get_variable_names() + self.model.get_derived_variable_names()
-        )
-        if include_readouts:
-            names.extend(self.model.get_readout_names())
-        dependent = [i.loc[:, names] for i in dependent]
-
-        if normalise is not None:
-            dependent = _normalise_split_results(
-                results=dependent,
-                normalise=normalise,
-            )
-        if concatenated:
-            return pd.concat(dependent, axis=0)
-        return dependent
-
-    @overload
-    def get_fluxes(  # type: ignore
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[False],
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> list[pd.DataFrame] | None: ...
-
-    @overload
-    def get_fluxes(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: Literal[True],
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> pd.DataFrame | None: ...
-
-    @overload
-    def get_fluxes(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> pd.DataFrame | None: ...
-
-    def get_fluxes(
-        self,
-        *,
-        normalise: float | ArrayLike | None = None,
-        concatenated: bool = True,
-        dependent: list[pd.DataFrame] | None = None,
-    ) -> pd.DataFrame | list[pd.DataFrame] | None:
-        """Get the flux results.
-
-        Examples:
-            >>> Simulator(model).get_fluxes()
+            >>> fluxes
             Time             v1         v2
             0.000000   1.000000   10.00000
             0.000100   0.999900   9.999000
             0.000200   0.999800   9.998000
 
-        Returns:
-            pd.DataFrame: DataFrame of fluxes.
-
         """
-        if (concs := self.concs) is None:
+        if (variables := self.variables) is None:
             return None
-        if (params := self.simulation_parameters) is None:
+        if (parameters := self.simulation_parameters) is None:
             return None
-        if dependent is None:
-            dependent = self._get_dependent_vectorised(concs, params)
-
-        # Filter to fluxes
-        names = self.model.get_reaction_names()
-        dependent = [i.loc[:, names] for i in dependent]
-        if normalise is not None:
-            dependent = _normalise_split_results(
-                results=dependent,
-                normalise=normalise,
-            )
-        if concatenated:
-            return pd.concat(dependent, axis=0)
-        return dependent
-
-    def get_concs_and_fluxes(self) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
-        """Get the concentrations and fluxes.
-
-        Examples:
-            >>> Simulator(model).get_concs_and_fluxes()
-            (concs, fluxes)
-
-
-        Returns:
-            tuple[pd.DataFrame, pd.DataFrame]: Tuple of concentrations and fluxes.
-
-        """
-        if (concs := self.concs) is None:
-            return None, None
-        if (params := self.simulation_parameters) is None:
-            return None, None
-
-        dependent = self._get_dependent_vectorised(concs, params)
-
-        return self.get_concs(), self.get_fluxes(dependent=dependent)
-
-    def get_full_concs_and_fluxes(
-        self,
-        *,
-        include_readouts: bool = True,
-    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
-        """Get the full concentrations and fluxes.
-
-        >>> Simulator(model).get_full_concs_and_fluxes()
-        (full_concs, full_fluxes)
-
-        Args:
-            include_readouts: Whether to include readouts in the results.
-
-        Returns:
-            Full concentrations and fluxes
-
-        """
-        if (concs := self.concs) is None:
-            return None, None
-        if (params := self.simulation_parameters) is None:
-            return None, None
-        dependent = self._get_dependent_vectorised(concs, params)
-
-        return (
-            self.get_full_concs(include_readouts=include_readouts, dependent=dependent),
-            self.get_fluxes(dependent=dependent),
+        return Result(
+            model=self.model,
+            _raw_variables=variables,
+            _parameters=parameters,
         )
-
-    def get_results(self) -> pd.DataFrame | None:
-        """Get the combined results of concentrations and fluxes.
-
-        Examples:
-            >>> Simulator(model).get_results()
-            Time            ATP      NADPH         v1         v2
-            0.000000   1.000000   1.000000   1.000000   1.000000
-            0.000100   0.999900   0.999900   0.999900   0.999900
-            0.000200   0.999800   0.999800   0.999800   0.999800
-
-        Returns:
-            pd.DataFrame: Combined DataFrame of concentrations and fluxes.
-
-        """
-        c, v = self.get_concs_and_fluxes()
-        if c is None or v is None:
-            return None
-        return pd.concat((c, v), axis=1)
-
-    def get_full_results(self, *, include_readouts: bool) -> pd.DataFrame | None:
-        """Get the combined full results of concentrations and fluxes.
-
-        Examples:
-            >>> Simulator(model).get_full_results()
-            Time            ATP      NADPH         v1         v2
-            0.000000   1.000000   1.000000   1.000000   1.000000
-            0.000100   0.999900   0.999900   0.999900   0.999900
-            0.000200   0.999800   0.999800   0.999800   0.999800
-
-        """
-        c, v = self.get_full_concs_and_fluxes(include_readouts=include_readouts)
-        if c is None or v is None:
-            return None
-        return pd.concat((c, v), axis=1)
-
-    def get_new_y0(self) -> dict[str, float] | None:
-        """Get the new initial conditions after the simulation.
-
-        Examples:
-            >>> Simulator(model).get_new_y0()
-            {"ATP": 1.0, "NADPH": 1.0}
-
-        """
-        if (res := self.get_concs()) is None:
-            return None
-        return dict(res.iloc[-1])
 
     def update_parameter(self, parameter: str, value: float) -> Self:
         """Updates the value of a specified parameter in the model.
