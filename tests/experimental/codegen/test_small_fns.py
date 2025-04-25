@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ast
 
-from modelbase2.experimental.codegen import (
+from modelbase2.meta.codegen import (
     DocstringRemover,
     IdentifierReplacer,
     ReturnRemover,
