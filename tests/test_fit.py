@@ -62,7 +62,7 @@ class MockIntegrator:
         *,
         t_end: float,  # noqa: ARG002
         steps: int | None = None,  # noqa: ARG002
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         t = np.array([0.0])
         y = np.ones((1, len(self.y0)))
         return t, y
@@ -71,7 +71,7 @@ class MockIntegrator:
         self,
         *,
         time_points: ArrayLike | None = None,  # noqa: ARG002
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         t = np.array([0.0])
         y = np.ones((1, len(self.y0)))
         return t, y
