@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from modelbase2.meta.codegen import generate_modelbase_code
+from modelbase2.meta.codegen_modebase import generate_modelbase_code
 from tests import models
 
 
