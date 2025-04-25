@@ -984,7 +984,7 @@ class Model:
         return copy.deepcopy(self._reactions)
 
     def get_stoichiometries(
-        self, concs: dict[str, float] | None = None, time: float = 0.0
+        self, variables: dict[str, float] | None = None, time: float = 0.0
     ) -> pd.DataFrame:
         """Retrieve the stoichiometries of the model.
 
@@ -1000,7 +1000,7 @@ class Model:
         """
         if (cache := self._cache) is None:
             cache = self._create_cache()
-        args = self.get_dependent(concs=concs, time=time)
+        args = self.get_dependent(variables=variables, time=time)
 
         stoich_by_cpds = copy.deepcopy(cache.stoich_by_cpds)
         for cpd, stoich in cache.dyn_stoich_by_cpds.items():
@@ -1308,7 +1308,7 @@ class Model:
 
     def _get_dependent(
         self,
-        concs: dict[str, float],
+        variables: dict[str, float],
         time: float = 0.0,
         *,
         cache: ModelCache,
@@ -1320,7 +1320,7 @@ class Model:
                 {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 0.0}
 
         Args:
-            concs: A dictionary of concentrations with keys as the names of the substances
+            variables: A dictionary of concentrations with keys as the names of the substances
                    and values as their respective concentrations.
             time: The time point for the calculation
             cache: A ModelCache object containing precomputed values and dependencies.
@@ -1332,7 +1332,7 @@ class Model:
                 with their respective names as keys and their calculated values as values.
 
         """
-        args: dict[str, float] = cache.all_parameter_values | concs
+        args: dict[str, float] = cache.all_parameter_values | variables
         args["time"] = time
 
         containers = self._derived | self._reactions | self._surrogates
@@ -1343,7 +1343,7 @@ class Model:
 
     def get_dependent(
         self,
-        concs: dict[str, float] | None = None,
+        variables: dict[str, float] | None = None,
         time: float = 0.0,
         *,
         include_readouts: bool = False,
@@ -1364,7 +1364,7 @@ class Model:
                 {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 1.0}
 
         Args:
-            concs: A dictionary where keys are the names of the concentrations and values are their respective float values.
+            variables: A dictionary where keys are the names of the concentrations and values are their respective float values.
             time: The time point at which the arguments are generated (default is 0.0).
             include_readouts: Whether to include readouts in the arguments (default is False).
 
@@ -1376,7 +1376,7 @@ class Model:
             cache = self._create_cache()
 
         args = self._get_dependent(
-            concs=self.get_initial_conditions() if concs is None else concs,
+            variables=self.get_initial_conditions() if variables is None else variables,
             time=time,
             cache=cache,
         )
@@ -1389,7 +1389,7 @@ class Model:
 
     def get_dependent_time_course(
         self,
-        concs: pd.DataFrame,
+        variables: pd.DataFrame,
         *,
         include_readouts: bool = False,
     ) -> pd.DataFrame:
@@ -1407,7 +1407,7 @@ class Model:
                 )
 
         Args:
-            concs: A DataFrame containing concentration data with time as the index.
+            variables: A DataFrame containing concentration data with time as the index.
             include_readouts: If True, include readout variables in the resulting DataFrame.
 
         Returns:
@@ -1420,14 +1420,14 @@ class Model:
 
         pars_df = pd.DataFrame(
             np.full(
-                (len(concs), len(cache.all_parameter_values)),
+                (len(variables), len(cache.all_parameter_values)),
                 np.fromiter(cache.all_parameter_values.values(), dtype=float),
             ),
-            index=concs.index,
+            index=variables.index,
             columns=list(cache.all_parameter_values),
         )
 
-        args = pd.concat((concs, pars_df), axis=1)
+        args = pd.concat((variables, pars_df), axis=1)
         args["time"] = args.index
 
         containers = self._derived | self._reactions | self._surrogates
@@ -1445,7 +1445,7 @@ class Model:
 
     def get_args(
         self,
-        concs: dict[str, float] | None = None,
+        variables: dict[str, float] | None = None,
         time: float = 0.0,
         *,
         include_derived: bool = True,
@@ -1467,7 +1467,7 @@ class Model:
                 {"x1": 1.0, "x2": 2.0, "k1": 0.1, "time": 1.0}
 
         Args:
-            concs: A dictionary where keys are the names of the concentrations and values are their respective float values.
+            variables: A dictionary where keys are the names of the concentrations and values are their respective float values.
             time: The time point at which the arguments are generated.
             include_derived: Whether to include derived variables in the arguments.
             include_readouts: Whether to include readouts in the arguments.
@@ -1483,13 +1483,13 @@ class Model:
             names.extend(self._readouts)
 
         args = self.get_dependent(
-            concs=concs, time=time, include_readouts=include_readouts
+            variables=variables, time=time, include_readouts=include_readouts
         )
         return args.loc[names]
 
     def get_args_time_course(
         self,
-        concs: pd.DataFrame,
+        variables: pd.DataFrame,
         *,
         include_derived: bool = True,
         include_readouts: bool = False,
@@ -1508,7 +1508,7 @@ class Model:
                 )
 
         Args:
-            concs: A DataFrame containing concentration data with time as the index.
+            variables: A DataFrame containing concentration data with time as the index.
             include_derived: Whether to include derived variables in the arguments.
             include_readouts: If True, include readout variables in the resulting DataFrame.
 
@@ -1522,7 +1522,7 @@ class Model:
             names.extend(self.get_derived_variable_names())
 
         args = self.get_dependent_time_course(
-            concs=concs, include_readouts=include_readouts
+            variables=variables, include_readouts=include_readouts
         )
         return args.loc[:, names]
 
@@ -1554,7 +1554,7 @@ class Model:
 
     def get_fluxes(
         self,
-        concs: dict[str, float] | None = None,
+        variables: dict[str, float] | None = None,
         time: float = 0.0,
     ) -> pd.Series:
         """Calculate the fluxes for the given concentrations and time.
@@ -1573,7 +1573,7 @@ class Model:
                 pd.Series({"r1": 0.1, "r2": 0.2})
 
         Args:
-            concs: A dictionary where keys are species names and values are their concentrations.
+            variables: A dictionary where keys are species names and values are their concentrations.
             time: The time at which to calculate the fluxes. Defaults to 0.0.
 
         Returns:
@@ -1585,13 +1585,13 @@ class Model:
             names.extend(surrogate.stoichiometries)
 
         args = self.get_dependent(
-            concs=concs,
+            variables=variables,
             time=time,
             include_readouts=False,
         )
         return args.loc[names]
 
-    def get_fluxes_time_course(self, args: pd.DataFrame) -> pd.DataFrame:
+    def get_fluxes_time_course(self, variables: pd.DataFrame) -> pd.DataFrame:
         """Generate a time course of fluxes for the given reactions and surrogates.
 
         Examples:
@@ -1603,9 +1603,9 @@ class Model:
         time course of fluxes.
 
         Args:
-            args (pd.DataFrame): A DataFrame containing the input arguments for the reactions
-                                 and surrogates. Each column corresponds to a specific input
-                                 variable, and each row represents a different time point.
+            variables: A DataFrame containing the input arguments for the reactions
+                       and surrogates. Each column corresponds to a specific input
+                       variable, and each row represents a different time point.
 
         Returns:
             pd.DataFrame: A DataFrame containing the calculated fluxes for each reaction and
@@ -1617,17 +1617,17 @@ class Model:
         for surrogate in self._surrogates.values():
             names.extend(surrogate.stoichiometries)
 
-        args = self.get_dependent_time_course(
-            concs=args,
+        variables = self.get_dependent_time_course(
+            variables=variables,
             include_readouts=False,
         )
-        return args.loc[:, names]
+        return variables.loc[:, names]
 
     ##########################################################################
     # Get rhs
     ##########################################################################
 
-    def __call__(self, /, time: float, concs: Array) -> Array:
+    def __call__(self, /, time: float, variables: Array) -> Array:
         """Simulation version of get_right_hand_side.
 
         Examples:
@@ -1639,7 +1639,7 @@ class Model:
 
         Args:
             time: The current time point.
-            concs: Array of concentrations
+            variables: Array of concentrations
 
 
         Returns:
@@ -1648,15 +1648,15 @@ class Model:
         """
         if (cache := self._cache) is None:
             cache = self._create_cache()
-        concsd: dict[str, float] = dict(
+        vars_d: dict[str, float] = dict(
             zip(
                 cache.var_names,
-                concs,
+                variables,
                 strict=True,
             )
         )
         dependent: dict[str, float] = self._get_dependent(
-            concs=concsd,
+            variables=vars_d,
             time=time,
             cache=cache,
         )
@@ -1674,7 +1674,7 @@ class Model:
 
     def get_right_hand_side(
         self,
-        concs: dict[str, float] | None = None,
+        variables: dict[str, float] | None = None,
         time: float = 0.0,
     ) -> pd.Series:
         """Calculate the right-hand side of the differential equations for the model.
@@ -1693,7 +1693,7 @@ class Model:
                 pd.Series({"x1": 0.1, "x2": 0.2})
 
         Args:
-            concs: A dictionary mapping compound names to their concentrations.
+            variables: A dictionary mapping compound names to their concentrations.
             time: The current time point. Defaults to 0.0.
 
         Returns:
@@ -1704,7 +1704,7 @@ class Model:
             cache = self._create_cache()
         var_names = self.get_variable_names()
         dependent = self._get_dependent(
-            concs=self.get_initial_conditions() if concs is None else concs,
+            variables=self.get_initial_conditions() if variables is None else variables,
             time=time,
             cache=cache,
         )

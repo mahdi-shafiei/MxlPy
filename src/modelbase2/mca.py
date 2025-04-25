@@ -83,15 +83,15 @@ def variable_elasticities(
         old = concs[var]
 
         upper = model.get_fluxes(
-            concs=concs | {var: old * (1 + displacement)}, time=time
+            variables=concs | {var: old * (1 + displacement)}, time=time
         )
         lower = model.get_fluxes(
-            concs=concs | {var: old * (1 - displacement)}, time=time
+            variables=concs | {var: old * (1 - displacement)}, time=time
         )
 
         elasticity_coef = (upper - lower) / (2 * displacement * old)
         if normalized:
-            elasticity_coef *= old / model.get_fluxes(concs=concs, time=time)
+            elasticity_coef *= old / model.get_fluxes(variables=concs, time=time)
         elasticities[var] = elasticity_coef
 
     return pd.DataFrame(data=elasticities)
@@ -137,16 +137,16 @@ def parameter_elasticities(
         old = model.parameters[par]
 
         model.update_parameters({par: old * (1 + displacement)})
-        upper = model.get_fluxes(concs=concs, time=time)
+        upper = model.get_fluxes(variables=concs, time=time)
 
         model.update_parameters({par: old * (1 - displacement)})
-        lower = model.get_fluxes(concs=concs, time=time)
+        lower = model.get_fluxes(variables=concs, time=time)
 
         # Reset
         model.update_parameters({par: old})
         elasticity_coef = (upper - lower) / (2 * displacement * old)
         if normalized:
-            elasticity_coef *= old / model.get_fluxes(concs=concs, time=time)
+            elasticity_coef *= old / model.get_fluxes(variables=concs, time=time)
         elasticities[par] = elasticity_coef
 
     return pd.DataFrame(data=elasticities)

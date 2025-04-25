@@ -127,13 +127,13 @@ class IntegratorProtocol(Protocol):
         *,
         t_end: float,
         steps: int | None = None,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         """Integrate the system."""
         ...
 
     def integrate_time_course(
         self, *, time_points: ArrayLike
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         """Integrate the system over a time course."""
         ...
 
