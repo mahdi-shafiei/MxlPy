@@ -59,8 +59,10 @@ __all__ = [
     "sbml",
     "steady_state",
     "surrogates",
+    "symbolic",
     "time_course",
     "time_course_over_protocol",
+    "to_symbolic_model",
 ]
 
 import contextlib
