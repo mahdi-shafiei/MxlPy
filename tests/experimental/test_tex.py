@@ -1,7 +1,7 @@
 """Tests for the tex export module."""
 
 from modelbase2 import Model
-from modelbase2.experimental.tex import (
+from modelbase2.meta.codegen_latex import (
     TexExport,
     TexReaction,
     default_init,

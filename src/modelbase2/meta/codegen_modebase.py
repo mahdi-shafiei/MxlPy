@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 from modelbase2.meta.source_tools import get_fn_source
 from modelbase2.types import Derived
 
-__all__ = ["generate_modelbase_code"]
-
 if TYPE_CHECKING:
     from modelbase2.model import Model
+
+__all__ = ["generate_modelbase_code"]
 
 
 def generate_modelbase_code(model: Model) -> str:
