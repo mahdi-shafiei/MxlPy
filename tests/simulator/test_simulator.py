@@ -44,14 +44,14 @@ def test_simulator_init(simple_model: Model) -> None:
     """Test simulator initialization."""
     simulator = Simulator(simple_model)
     assert simulator.model == simple_model
-    assert list(simulator.y0) == [10.0, 0.0]
+    assert simulator.y0 == {"S": 10.0, "P": 0.0}
     assert simulator.variables is None
     assert simulator.simulation_parameters is None
 
     # Test with custom initial conditions
     y0 = {"S": 5.0, "P": 2.0}
     simulator = Simulator(simple_model, y0=y0)
-    assert list(simulator.y0) == [5.0, 2.0]
+    assert simulator.y0 == {"S": 5.0, "P": 2.0}
 
 
 def test_simulator_simulate(simulator: Simulator) -> None:
