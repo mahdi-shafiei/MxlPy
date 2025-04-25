@@ -4,8 +4,8 @@ import sympy
 
 import modelbase2
 from modelbase2 import fns
-from modelbase2.experimental.symbolic import model_fn_to_sympy
 from modelbase2.fns import mass_action_1s
+from modelbase2.symbolic import model_fn_to_sympy
 from modelbase2.types import Float
 
 
