@@ -4,7 +4,7 @@ import ast
 import warnings
 from collections.abc import Callable, Generator, Iterable, Iterator
 
-from modelbase2.experimental.source_tools import get_fn_ast, get_fn_source
+from modelbase2.meta.source_tools import get_fn_ast, get_fn_source
 from modelbase2.model import Model
 from modelbase2.types import Derived
 

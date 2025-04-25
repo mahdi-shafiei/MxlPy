@@ -9,7 +9,7 @@ from modelbase2.experimental.codegen import (
     conditional_join,
     handle_fn,
 )
-from modelbase2.experimental.source_tools import get_fn_ast
+from modelbase2.meta.source_tools import get_fn_ast
 
 
 def sample_function(x: float, y: float) -> float:

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 import libsbml
 import numpy as np
 
-from modelbase2.experimental.source_tools import get_fn_ast
+from modelbase2.meta.source_tools import get_fn_ast
 from modelbase2.sbml._data import AtomicUnit, Compartment
 from modelbase2.types import Derived
 

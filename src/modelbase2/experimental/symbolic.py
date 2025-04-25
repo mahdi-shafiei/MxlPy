@@ -9,7 +9,7 @@ from typing import Any, cast
 
 import sympy
 
-from modelbase2.experimental.source_tools import get_fn_ast
+from modelbase2.meta.source_tools import get_fn_ast
 from modelbase2.model import Model
 
 __all__ = [

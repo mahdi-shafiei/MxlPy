@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, cast
 
 import latexify
 
-from modelbase2.experimental.source_tools import get_fn_ast
+from modelbase2.meta.source_tools import get_fn_ast
 from modelbase2.types import Derived, RateFn
 
 __all__ = [
