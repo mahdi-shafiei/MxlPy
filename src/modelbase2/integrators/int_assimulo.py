@@ -22,7 +22,7 @@ with contextlib.redirect_stderr(open(os.devnull, "w")):  # noqa: PTH123
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from modelbase2.types import ArrayLike
+    from modelbase2.types import Array, ArrayLike
 
 
 @dataclass
@@ -77,7 +77,7 @@ class Assimulo:
         *,
         t_end: float,
         steps: int | None = None,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         """Integrate the ODE system.
 
         Args:
@@ -100,7 +100,7 @@ class Assimulo:
         self,
         *,
         time_points: ArrayLike,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         """Integrate the ODE system over a time course.
 
         Args:

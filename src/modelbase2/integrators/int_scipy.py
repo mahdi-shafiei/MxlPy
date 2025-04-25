@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 import scipy.integrate as spi
 
-from modelbase2.types import ArrayLike, Float
+from modelbase2.types import Array, ArrayLike
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -66,7 +66,7 @@ class Scipy:
         *,
         t_end: float,
         steps: int | None = None,
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         """Integrate the ODE system.
 
         Args:
@@ -87,7 +87,7 @@ class Scipy:
 
     def integrate_time_course(
         self, *, time_points: ArrayLike
-    ) -> tuple[ArrayLike | None, ArrayLike | None]:
+    ) -> tuple[Array | None, ArrayLike | None]:
         """Integrate the ODE system over a time course.
 
         Args:
@@ -107,7 +107,7 @@ class Scipy:
         )
         self.t0 = time_points[-1]
         self.y0 = y[-1, :]
-        return time_points, y
+        return np.array(time_points, dtype=float), y
 
     def integrate_to_steady_state(
         self,

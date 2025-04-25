@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterator
 
     from modelbase2.model import Model
-    from modelbase2.types import ArrayLike, IntegratorProtocol
+    from modelbase2.types import Array, ArrayLike, IntegratorProtocol
 
 
 def _normalise_split_results(
@@ -58,6 +58,8 @@ def _normalise_split_results(
 
 @dataclass(slots=True)
 class Result:
+    """Simulation results."""
+
     model: Model
     _raw_variables: list[pd.DataFrame]
     _parameters: list[dict[str, float]]
@@ -65,6 +67,7 @@ class Result:
 
     @property
     def variables(self) -> pd.DataFrame:
+        """Simulation variables."""
         return self.get_variables(
             include_derived=True,
             include_readouts=True,
@@ -74,6 +77,7 @@ class Result:
 
     @property
     def fluxes(self) -> pd.DataFrame:
+        """Simulation fluxes."""
         return self.get_fluxes()
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
@@ -94,7 +98,7 @@ class Result:
             self.model.update_parameters(p)
             self._dependent.append(
                 self.model.get_dependent_time_course(
-                    concs=res,
+                    variables=res,
                     include_readouts=include_readouts,
                 )
             )
@@ -298,18 +302,22 @@ class Simulator:
         model: Model instance to simulate.
         y0: Initial conditions for the simulation.
         integrator: Integrator protocol to use for the simulation.
-        concs: List of DataFrames containing concentration results.
+        variables: List of DataFrames containing concentration results.
         dependent: List of DataFrames containing argument values.
         simulation_parameters: List of dictionaries containing simulation parameters.
 
     """
 
     model: Model
-    y0: ArrayLike
+    y0: dict[str, float]
     integrator: IntegratorProtocol
     variables: list[pd.DataFrame] | None
     dependent: list[pd.DataFrame] | None
     simulation_parameters: list[dict[str, float]] | None
+
+    # For resets (e.g. update variable)
+    _integrator_type: Callable[[Callable, ArrayLike], IntegratorProtocol]
+    _time_shift: float | None
 
     def __init__(
         self,
@@ -324,63 +332,44 @@ class Simulator:
         """Initialize the Simulator.
 
         Args:
-            model (Model): The model to be simulated.
-            y0 (dict[str, float] | None, optional): Initial conditions for the model variables.
-                If None, the initial conditions are obtained from the model. Defaults to None.
-            integrator (Callable[[Callable, ArrayLike], IntegratorProtocol], optional): The integrator to use for the simulation.
-                Defaults to DefaultIntegrator.
-            test_run (bool, optional): If True, performs a test run to ensure the model's methods
-                (get_full_concs, get_fluxes, get_right_hand_side) work correctly with the initial conditions.
-                Defaults to True.
+            model: The model to be simulated.
+            y0: Initial conditions for the model variables.
+                If None, the initial conditions are obtained from the model.
+            integrator: The integrator to use for the simulation.
+            test_run (bool, optional): If True, performs a test run for better error messages
 
         """
         self.model = model
-        y0 = model.get_initial_conditions() if y0 is None else y0
-        self.y0 = [y0[k] for k in model.get_variable_names()]
+        self.y0 = model.get_initial_conditions() if y0 is None else y0
 
-        self.integrator = integrator(self.model, self.y0)
+        self._integrator_type = integrator
+        self._time_shift = None
         self.variables = None
         self.simulation_parameters = None
 
         if test_run:
-            y0 = dict(zip(model.get_variable_names(), self.y0, strict=True))
-            self.model.get_right_hand_side(y0, 0)
+            self.model.get_right_hand_side(self.y0, time=0)
 
-    def _save_simulation_results(
-        self,
-        *,
-        results: pd.DataFrame,
-        skipfirst: bool,
-    ) -> None:
-        """Save simulation results.
+        self._initialise_integrator()
 
-        Args:
-            results: DataFrame containing the simulation results.
-            skipfirst: Whether to skip the first row of results.
-
-        """
-        if self.variables is None:
-            self.variables = [results]
-        elif skipfirst:
-            self.variables.append(results.iloc[1:, :])
-        else:
-            self.variables.append(results)
-
-        if self.simulation_parameters is None:
-            self.simulation_parameters = []
-        self.simulation_parameters.append(self.model.parameters)
+    def _initialise_integrator(self) -> None:
+        y0 = self.y0
+        self.integrator = self._integrator_type(
+            self.model,
+            [y0[k] for k in self.model.get_variable_names()],
+        )
 
     def clear_results(self) -> None:
         """Clear simulation results."""
         self.variables = None
         self.dependent = None
         self.simulation_parameters = None
-        if self.integrator is not None:
-            self.integrator.reset()
+        self._time_shift = None
+        self._initialise_integrator()
 
     def _handle_simulation_results(
         self,
-        time: ArrayLike | None,
+        time: Array | None,
         results: ArrayLike | None,
         *,
         skipfirst: bool,
@@ -399,6 +388,9 @@ class Simulator:
             self.clear_results()
             return
 
+        if self._time_shift is not None:
+            time += self._time_shift
+
         # NOTE: IMPORTANT!
         # model._get_rhs sorts the return array by model.get_variable_names()
         # Do NOT change this ordering
@@ -407,7 +399,17 @@ class Simulator:
             index=time,
             columns=self.model.get_variable_names(),
         )
-        self._save_simulation_results(results=results_df, skipfirst=skipfirst)
+
+        if self.variables is None:
+            self.variables = [results_df]
+        elif skipfirst:
+            self.variables.append(results_df.iloc[1:, :])
+        else:
+            self.variables.append(results_df)
+
+        if self.simulation_parameters is None:
+            self.simulation_parameters = []
+        self.simulation_parameters.append(self.model.parameters)
 
     def simulate(
         self,
@@ -431,7 +433,11 @@ class Simulator:
             Self: The Simulator instance with updated results.
 
         """
+        if self._time_shift is not None:
+            t_end -= self._time_shift
+
         time, results = self.integrator.integrate(t_end=t_end, steps=steps)
+
         self._handle_simulation_results(time, results, skipfirst=True)
         return self
 
@@ -453,6 +459,10 @@ class Simulator:
             Self: The Simulator instance with updated results.
 
         """
+        if self._time_shift is not None:
+            time_points = np.array(time_points, dtype=float)
+            time_points -= self._time_shift
+
         time, results = self.integrator.integrate_time_course(time_points=time_points)
         self._handle_simulation_results(time, results, skipfirst=True)
         return self
@@ -486,7 +496,7 @@ class Simulator:
             rel_norm=rel_norm,
         )
         self._handle_simulation_results(
-            [time] if time is not None else None,
+            np.array([time], dtype=float) if time is not None else None,
             [results] if results is not None else None,  # type: ignore
             skipfirst=False,
         )
@@ -602,4 +612,39 @@ class Simulator:
 
         """
         self.model.scale_parameters(parameters)
+        return self
+
+    def update_variable(self, variable: str, value: float) -> Self:
+        """Updates the value of a specified value in the simulation.
+
+        Examples:
+            >>> Simulator(model).update_variable("k1", 0.1)
+
+        Args:
+            variable: name of the model variable
+            value: new value
+
+        """
+        return self.update_variables({variable: value})
+
+    def update_variables(self, variables: dict[str, float]) -> Self:
+        """Updates the value of a specified value in the simulation.
+
+        Examples:
+            >>> Simulator(model).update_variables({"k1": 0.1})
+
+        Args:
+            variables: {variable: value} pairs
+
+        """
+        sim_variables = self.variables
+
+        # In case someone calls this before the first simulation
+        if sim_variables is None:
+            self.y0 = self.y0 | variables
+            return self
+
+        self.y0 = sim_variables[-1].iloc[-1, :].to_dict() | variables
+        self._time_shift = float(sim_variables[-1].index[-1])
+        self._initialise_integrator()
         return self
