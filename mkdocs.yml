@@ -17,6 +17,7 @@ nav:
   - Experimental: experimental.ipynb
   - Tips: tips.ipynb
   - Symbolic: symbolic.ipynb
+  - Examples: examples.ipynb
 
 theme:
   name: material
