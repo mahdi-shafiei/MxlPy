@@ -1,5 +1,5 @@
 site_name: modelbase docs
-site_url: https://computational-biology-aachen.github.io/modelbase2
+site_url: https://computational-biology-aachen.github.io/modelbase2/
 site_dir: dist
 use_directory_urls: false
 
@@ -38,6 +38,11 @@ theme:
         name: Switch to light mode
       primary: teal
 
+extra:
+  version:
+    provider: mike
+    default: stable
+
 markdown_extensions:
   - admonition
   - attr_list
@@ -57,5 +62,6 @@ plugins:
       ignore: ["assets/*.ipynb"]
       include_requirejs: true
       custom_mathjax_url: "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML-full,Safe"
+
 extra_css:
   - stylesheets/extra.css
