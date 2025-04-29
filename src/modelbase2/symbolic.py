@@ -26,6 +26,12 @@ class SymbolicModel:
     initial_conditions: dict[str, float]
     parameter_values: dict[str, float]
 
+    def jacobian(self) -> sympy.Matrix:
+        # FIXME: don't rely on ordering of variables
+        return sympy.Matrix(self.eqs).jacobian(
+            sympy.Matrix(list(self.variables.values()))
+        )
+
 
 def to_symbolic_model(model: Model) -> SymbolicModel:
     cache = model._create_cache()  # noqa: SLF001
