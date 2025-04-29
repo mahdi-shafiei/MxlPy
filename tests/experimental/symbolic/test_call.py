@@ -1,4 +1,4 @@
-"""Test call function of model_fn_to_sympy."""
+"""Test call function of fn_to_sympy."""
 
 import sympy
 
