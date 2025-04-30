@@ -1,4 +1,4 @@
-"""Generate modelbase code from a model."""
+"""Generate mxlpy code from a model."""
 
 from __future__ import annotations
 
@@ -13,15 +13,15 @@ from mxlpy.types import Derived
 if TYPE_CHECKING:
     from mxlpy.model import Model
 
-__all__ = ["generate_modelbase_code"]
+__all__ = ["generate_mxlpy_code"]
 
 
 def _list_of_symbols(args: list[str]) -> list[sympy.Symbol | sympy.Expr]:
     return [sympy.Symbol(arg) for arg in args]
 
 
-def generate_modelbase_code(model: Model) -> str:
-    """Generate a modelbase model from a model."""
+def generate_mxlpy_code(model: Model) -> str:
+    """Generate a mxlpy model from a model."""
     functions = {}
 
     # Variables and parameters

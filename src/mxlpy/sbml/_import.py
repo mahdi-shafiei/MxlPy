@@ -108,13 +108,13 @@ class Parser:
 
     def parse_constraints(self, sbml_model: libsbml.Model) -> None:
         if len(sbml_model.getListOfConstraints()) > 0:
-            msg = "modelbase does not support model constraints. "
+            msg = "mxlpy does not support model constraints. "
             raise NotImplementedError(msg)
 
     def parse_events(self, sbml_model: libsbml.Model) -> None:
         if len(sbml_model.getListOfEvents()) > 0:
             msg = (
-                "modelbase does not current support events. "
+                "mxlpy does not current support events. "
                 "Check the file for how to integrate properly."
             )
             raise NotImplementedError(msg)

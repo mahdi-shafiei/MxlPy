@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from mxlpy.meta import generate_modelbase_code
+from mxlpy.meta import generate_mxlpy_code
 from tests import models
 
 
-def test_generate_modelbase_code_m_0v_1p_0d_0r() -> None:
-    assert generate_modelbase_code(models.m_0v_1p_0d_0r()).split("\n") == [
+def test_generate_mxlpy_code_m_0v_1p_0d_0r() -> None:
+    assert generate_mxlpy_code(models.m_0v_1p_0d_0r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "",
@@ -17,8 +17,8 @@ def test_generate_modelbase_code_m_0v_1p_0d_0r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_0v_2p_0d_0r() -> None:
-    assert generate_modelbase_code(models.m_0v_2p_0d_0r()).split("\n") == [
+def test_generate_mxlpy_code_m_0v_2p_0d_0r() -> None:
+    assert generate_mxlpy_code(models.m_0v_2p_0d_0r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "",
@@ -30,8 +30,8 @@ def test_generate_modelbase_code_m_0v_2p_0d_0r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_1v_0p_0d_0r() -> None:
-    assert generate_modelbase_code(models.m_1v_0p_0d_0r()).split("\n") == [
+def test_generate_mxlpy_code_m_1v_0p_0d_0r() -> None:
+    assert generate_mxlpy_code(models.m_1v_0p_0d_0r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "",
@@ -43,8 +43,8 @@ def test_generate_modelbase_code_m_1v_0p_0d_0r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_1v_1p_1d_0r() -> None:
-    assert generate_modelbase_code(models.m_1v_1p_1d_0r()).split("\n") == [
+def test_generate_mxlpy_code_m_1v_1p_1d_0r() -> None:
+    assert generate_mxlpy_code(models.m_1v_1p_1d_0r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def add(v1: float, p1: float) -> float:",
@@ -64,8 +64,8 @@ def test_generate_modelbase_code_m_1v_1p_1d_0r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_1v_1p_1d_1r() -> None:
-    assert generate_modelbase_code(models.m_1v_1p_1d_1r()).split("\n") == [
+def test_generate_mxlpy_code_m_1v_1p_1d_1r() -> None:
+    assert generate_mxlpy_code(models.m_1v_1p_1d_1r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def add(v1: float, p1: float) -> float:",
@@ -95,8 +95,8 @@ def test_generate_modelbase_code_m_1v_1p_1d_1r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_2v_0p_0d_0r() -> None:
-    assert generate_modelbase_code(models.m_2v_0p_0d_0r()).split("\n") == [
+def test_generate_mxlpy_code_m_2v_0p_0d_0r() -> None:
+    assert generate_mxlpy_code(models.m_2v_0p_0d_0r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "",
@@ -108,8 +108,8 @@ def test_generate_modelbase_code_m_2v_0p_0d_0r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_2v_1p_1d_1r() -> None:
-    assert generate_modelbase_code(models.m_2v_1p_1d_1r()).split("\n") == [
+def test_generate_mxlpy_code_m_2v_1p_1d_1r() -> None:
+    assert generate_mxlpy_code(models.m_2v_1p_1d_1r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def add(v1: float, v2: float) -> float:",
@@ -139,8 +139,8 @@ def test_generate_modelbase_code_m_2v_1p_1d_1r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_2v_2p_1d_1r() -> None:
-    assert generate_modelbase_code(models.m_2v_2p_1d_1r()).split("\n") == [
+def test_generate_mxlpy_code_m_2v_2p_1d_1r() -> None:
+    assert generate_mxlpy_code(models.m_2v_2p_1d_1r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def add(v1: float, v2: float) -> float:",
@@ -170,8 +170,8 @@ def test_generate_modelbase_code_m_2v_2p_1d_1r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_2v_2p_2d_1r() -> None:
-    assert generate_modelbase_code(models.m_2v_2p_2d_1r()).split("\n") == [
+def test_generate_mxlpy_code_m_2v_2p_2d_1r() -> None:
+    assert generate_mxlpy_code(models.m_2v_2p_2d_1r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def add(v1: float, v2: float) -> float:",
@@ -210,8 +210,8 @@ def test_generate_modelbase_code_m_2v_2p_2d_1r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_2v_2p_2d_2r() -> None:
-    assert generate_modelbase_code(models.m_2v_2p_2d_2r()).split("\n") == [
+def test_generate_mxlpy_code_m_2v_2p_2d_2r() -> None:
+    assert generate_mxlpy_code(models.m_2v_2p_2d_2r()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def add(v1: float, p1: float) -> float:",
@@ -256,8 +256,8 @@ def test_generate_modelbase_code_m_2v_2p_2d_2r() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_dependent_derived() -> None:
-    assert generate_modelbase_code(models.m_dependent_derived()).split("\n") == [
+def test_generate_mxlpy_code_m_dependent_derived() -> None:
+    assert generate_mxlpy_code(models.m_dependent_derived()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def constant(d1: float) -> float:",
@@ -281,8 +281,8 @@ def test_generate_modelbase_code_m_dependent_derived() -> None:
     ]
 
 
-def test_generate_modelbase_code_m_derived_stoichiometry() -> None:
-    assert generate_modelbase_code(models.m_derived_stoichiometry()).split("\n") == [
+def test_generate_mxlpy_code_m_derived_stoichiometry() -> None:
+    assert generate_mxlpy_code(models.m_derived_stoichiometry()).split("\n") == [
         "from mxlpy import Model",
         "",
         "def constant(v1: float) -> float:",

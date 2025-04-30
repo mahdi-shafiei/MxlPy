@@ -455,7 +455,7 @@ class TexExport:
 
     def export_document(
         self,
-        author: str = "modelbase",
+        author: str = "mxlpy",
         title: str = "Model construction",
     ) -> str:
         """Export latex document."""

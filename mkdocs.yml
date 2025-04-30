@@ -1,4 +1,4 @@
-site_name: modelbase docs
+site_name: mxlpy docs
 site_url: https://computational-biology-aachen.github.io/mxlpy/
 site_dir: dist
 use_directory_urls: false
