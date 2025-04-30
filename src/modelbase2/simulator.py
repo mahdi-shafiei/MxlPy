@@ -287,7 +287,12 @@ class Result:
             {"ATP": 1.0, "NADPH": 1.0}
 
         """
-        return dict(self.variables.iloc[-1])
+        return dict(
+            self.get_variables(
+                include_derived=False,
+                include_readouts=False,
+            ).iloc[-1]
+        )
 
 
 @dataclass(
