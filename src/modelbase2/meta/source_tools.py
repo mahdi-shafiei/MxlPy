@@ -295,7 +295,7 @@ def _handle_call(node: ast.Call, ctx: Context) -> sympy.Expr:
         # Single level, e.g. fns.mass_action(x, k1)
         if isinstance(module_name := attr.value, ast.Name):
             return _handle_call(
-                ast.Call(func=ast.Name(attr.attr), args=node.args),
+                ast.Call(func=ast.Name(attr.attr), args=node.args, keywords=[]),
                 ctx=ctx.updated(parent_module=imports[module_name.id]),
             )
 
@@ -311,6 +311,7 @@ def _handle_call(node: ast.Call, ctx: Context) -> sympy.Expr:
                         attr=attr.attr,
                     ),
                     args=node.args,
+                    keywords=[],
                 ),
                 ctx=ctx.updated(parent_module=imports[module_name.id]),
             )

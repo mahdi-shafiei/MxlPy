@@ -74,7 +74,7 @@ def test_fluxes() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.fluxes,
-        pd.DataFrame({"r1": {0: 1.0, 1: 2.0, 2: 3.0}}),
+        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
     )
 
 
@@ -82,11 +82,11 @@ def test_get_fluxes() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.get_fluxes(include_surrogates=True),
-        pd.DataFrame({"r1": {0: 1.0, 1: 2.0, 2: 3.0}}),
+        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
     )
     pd.testing.assert_frame_equal(
         res.get_fluxes(include_surrogates=False),
-        pd.DataFrame({"r1": {0: 1.0, 1: 2.0, 2: 3.0}}),
+        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
     )
 
 
@@ -94,7 +94,7 @@ def test_get_fluxes_not_concatenated() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.get_fluxes(concatenated=False)[0],
-        pd.DataFrame({"r1": {0: 1.0, 1: 2.0, 2: 3.0}}),
+        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
     )
 
 
@@ -106,7 +106,7 @@ def test_get_combined() -> None:
             {
                 "v1": {0: 1, 1: 2, 2: 3},
                 "d1": {0: 2.0, 1: 3.0, 2: 4.0},
-                "r1": {0: 1.0, 1: 2.0, 2: 3.0},
+                "r1": {0: 2.0, 1: 6.0, 2: 12.0},
             }
         ),
     )
