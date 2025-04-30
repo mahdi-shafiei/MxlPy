@@ -21,6 +21,7 @@ from __future__ import annotations
 __all__ = [
     "FigAx",
     "FigAxs",
+    "Linestyle",
     "add_grid",
     "bars",
     "grid_layout",
@@ -32,9 +33,12 @@ __all__ = [
     "lines",
     "lines_grouped",
     "lines_mean_std_from_2d_idx",
+    "one_axes",
     "relative_label_distribution",
+    "reset_prop_cycle",
     "rotate_xlabels",
     "shade_protocol",
+    "show",
     "trajectories_2d",
     "two_axes",
     "violins",
@@ -71,6 +75,12 @@ if TYPE_CHECKING:
 type FigAx = tuple[Figure, Axes]
 type FigAxs = tuple[Figure, list[Axes]]
 
+type Linestyle = Literal[
+    "solid",
+    "dotted",
+    "dashed",
+    "dashdot",
+]
 
 ##########################################################################
 # Helpers
@@ -248,6 +258,17 @@ def rotate_xlabels(
     return ax
 
 
+def show(fig: Figure | None = None) -> None:
+    if fig is None:
+        plt.show()
+    else:
+        fig.show()
+
+
+def reset_prop_cycle(ax: Axes) -> None:
+    ax.set_prop_cycle(plt.rcParams["axes.prop_cycle"])
+
+
 ##########################################################################
 # General plot layout
 ##########################################################################
@@ -325,6 +346,19 @@ def _default_fig_axs(
     return fig, axs
 
 
+def one_axes(
+    *,
+    figsize: tuple[float, float] | None = None,
+    grid: bool = False,
+) -> FigAx:
+    """Create a figure with two axes."""
+    return _default_fig_ax(
+        ax=None,
+        grid=grid,
+        figsize=figsize,
+    )
+
+
 def two_axes(
     *,
     figsize: tuple[float, float] | None = None,
@@ -394,15 +428,24 @@ def lines(
     *,
     ax: Axes | None = None,
     grid: bool = True,
+    alpha: float = 1.0,
+    legend: bool = True,
 ) -> FigAx:
     """Plot multiple lines on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
-    ax.plot(x.index, x)
+    ax.plot(
+        x.index,
+        x,
+        # linestyle=linestyle,
+        # linewidth=linewidth,
+        alpha=alpha,
+    )
     _default_labels(ax, xlabel=x.index.name, ylabel=None)
-    if isinstance(x, pd.Series):
-        ax.legend([str(x.name)])
-    else:
-        ax.legend(x.columns)
+    if legend:
+        if isinstance(x, pd.Series):
+            ax.legend([str(x.name)])
+        else:
+            ax.legend(x.columns)
     return fig, ax
 
 
