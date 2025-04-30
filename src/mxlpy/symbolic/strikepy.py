@@ -29,7 +29,7 @@ from sympy.matrices import zeros
 
 from mxlpy.model import Model
 
-from .symbolic_model import to_symbolic_model
+from .symbolic_model import SymbolicModel, to_symbolic_model
 
 __all__ = [
     "Options",
@@ -572,12 +572,11 @@ def strike_goldd(model: StrikepyModel, options: Options | None = None) -> Result
     return res
 
 
-def check_identifiability(model: Model, outputs: list[sympy.Symbol]) -> Result:
-    sym_model = to_symbolic_model(model)
+def check_identifiability(model: SymbolicModel, outputs: list[sympy.Symbol]) -> Result:
     strike_model = StrikepyModel(
-        states=list(sym_model.variables.values()),
-        pars=list(sym_model.parameters.values()),
-        eqs=sym_model.eqs,
+        states=list(model.variables.values()),
+        pars=list(model.parameters.values()),
+        eqs=model.eqs,
         outputs=outputs,
     )
     return strike_goldd(strike_model)
