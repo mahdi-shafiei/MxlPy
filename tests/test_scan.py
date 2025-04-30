@@ -104,8 +104,8 @@ def test_timepoint_with_data(simple_model: Model) -> None:
     fluxes = pd.DataFrame({"v1": [0.1, 0.2], "v2": [0.3, 0.4]})
 
     time_point = TimePoint.from_result(simple_model, concs, fluxes, idx=1)
-    assert time_point.concs["S"] == 2.0
-    assert time_point.concs["P"] == 4.0
+    assert time_point.variables["S"] == 2.0
+    assert time_point.variables["P"] == 4.0
     assert time_point.fluxes["v1"] == 0.2
     assert time_point.fluxes["v2"] == 0.4
 
@@ -150,8 +150,8 @@ def test_timecourse_with_data(simple_model: Model) -> None:
     )
 
     time_course = TimeCourse.from_scan(simple_model, time_points, concs, fluxes)
-    assert time_course.concs.loc[1.0, "S"] == 3.0  # type: ignore
-    assert time_course.concs.loc[1.0, "P"] == 4.0  # type: ignore
+    assert time_course.variables.loc[1.0, "S"] == 3.0  # type: ignore
+    assert time_course.variables.loc[1.0, "P"] == 4.0  # type: ignore
     assert time_course.fluxes.loc[1.0, "v1"] == 0.3  # type: ignore
     assert time_course.fluxes.loc[1.0, "v2"] == 0.4  # type: ignore
 
@@ -203,10 +203,10 @@ def test_steady_state_scan(simple_model: Model) -> None:
 
     result = steady_state(simple_model, parameters, parallel=False)
 
-    assert result.concs.shape == (3, 2)
+    assert result.variables.shape == (3, 2)
     assert result.fluxes.shape == (3, 2)
     assert result.parameters.equals(parameters)
-    assert not np.isnan(result.concs.values).any()
+    assert not np.isnan(result.variables.values).any()
     assert not np.isnan(result.fluxes.values).any()
 
 
@@ -215,11 +215,11 @@ def test_steady_state_scan_with_multiindex(simple_model: Model) -> None:
 
     result = steady_state(simple_model, parameters, parallel=False)
 
-    assert result.concs.shape == (2, 2)
+    assert result.variables.shape == (2, 2)
     assert result.fluxes.shape == (2, 2)
-    assert isinstance(result.concs.index, pd.MultiIndex)
+    assert isinstance(result.variables.index, pd.MultiIndex)
     assert isinstance(result.fluxes.index, pd.MultiIndex)
-    assert not np.isnan(result.concs.values).any()
+    assert not np.isnan(result.variables.values).any()
     assert not np.isnan(result.fluxes.values).any()
 
 
@@ -229,11 +229,11 @@ def test_time_course_scan(simple_model: Model) -> None:
 
     result = time_course(simple_model, parameters, time_points, parallel=False)
 
-    assert result.concs.shape == (6, 2)  # 2 params x 3 time points x 2 variables
+    assert result.variables.shape == (6, 2)  # 2 params x 3 time points x 2 variables
     assert result.fluxes.shape == (6, 2)  # 2 params x 3 time points x 2 reactions
-    assert isinstance(result.concs.index, pd.MultiIndex)
+    assert isinstance(result.variables.index, pd.MultiIndex)
     assert isinstance(result.fluxes.index, pd.MultiIndex)
-    assert result.concs.index.names == ["n", "time"]
+    assert result.variables.index.names == ["n", "time"]
     assert result.fluxes.index.names == ["n", "time"]
-    assert not np.isnan(result.concs.values).any()
+    assert not np.isnan(result.variables.values).any()
     assert not np.isnan(result.fluxes.values).any()

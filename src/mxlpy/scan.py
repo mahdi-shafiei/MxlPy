@@ -429,7 +429,7 @@ def steady_state(
         >>> steady_state(
         >>>     model,
         >>>     parameters=pd.DataFrame({"k1": np.linspace(1, 2, 3)})
-        >>> ).concs
+        >>> ).variables
         idx      x      y
         1.0   0.50   1.00
         1.5   0.75   1.50
@@ -438,7 +438,7 @@ def steady_state(
         >>> steady_state(
         >>>     model,
         >>>     parameters=cartesian_product({"k1": [1, 2], "k2": [3, 4]})
-        >>> ).concs
+        >>> ).variables
 
         | idx    |    x |   y |
         | (1, 3) | 0.33 |   1 |
@@ -470,7 +470,7 @@ def steady_state(
     )
     concs.index = idx
     fluxes.index = idx
-    return SteadyStates(concs=concs, fluxes=fluxes, parameters=parameters)
+    return SteadyStates(variables=concs, fluxes=fluxes, parameters=parameters)
 
 
 def time_course(
@@ -490,7 +490,7 @@ def time_course(
         >>>     model,
         >>>     parameters=pd.DataFrame({"k1": [1, 1.5, 2]}),
         >>>     time_points=np.linspace(0, 1, 3)
-        >>> ).concs
+        >>> ).variables
 
         | (n, time) |        x |       y |
         |:----------|---------:|--------:|
@@ -508,7 +508,7 @@ def time_course(
         >>>     model,
         >>>     parameters=cartesian_product({"k1": [1, 2], "k2": [3, 4]}),
         >>>     time_points=[0.0, 0.5, 1.0],
-        >>> ).concs
+        >>> ).variables
 
         | (n, time) |        x |      y |
         |:----------|---------:|-------:|
@@ -550,7 +550,7 @@ def time_course(
     fluxes = cast(dict, {k: v.fluxes for k, v in res.items()})
     return TimeCourseByPars(
         parameters=parameters,
-        concs=pd.concat(concs, names=["n", "time"]),
+        variables=pd.concat(concs, names=["n", "time"]),
         fluxes=pd.concat(fluxes, names=["n", "time"]),
     )
 
@@ -614,6 +614,6 @@ def time_course_over_protocol(
     return ProtocolByPars(
         parameters=parameters,
         protocol=protocol,
-        concs=pd.concat(concs, names=["n", "time"]),
+        variables=pd.concat(concs, names=["n", "time"]),
         fluxes=pd.concat(fluxes, names=["n", "time"]),
     )

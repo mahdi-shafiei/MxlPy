@@ -166,7 +166,7 @@ def steady_state(
     concs = {k: v.variables for k, v in res.items()}
     fluxes = {k: v.fluxes for k, v in res.items()}
     return SteadyStates(
-        concs=pd.concat(concs, axis=1).T,
+        variables=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
         parameters=mc_parameters,
     )
@@ -218,7 +218,7 @@ def time_course(
     fluxes = {k: v.fluxes.T for k, v in res.items()}
     return TimeCourseByPars(
         parameters=mc_parameters,
-        concs=pd.concat(concs, axis=1).T,
+        variables=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
     )
 
@@ -271,7 +271,7 @@ def time_course_over_protocol(
     concs = {k: v.variables.T for k, v in res.items()}
     fluxes = {k: v.fluxes.T for k, v in res.items()}
     return ProtocolByPars(
-        concs=pd.concat(concs, axis=1).T,
+        variables=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
         parameters=mc_parameters,
         protocol=protocol,
@@ -296,7 +296,7 @@ def scan_steady_state(
         ...     model,
         ...     parameters=pd.DataFrame({"k1": np.linspace(0, 1, 3)}),
         ...     mc_parameters=mc_parameters,
-        ... ).concs
+        ... ).variables
                   x     y
           k1
         0 0.0 -0.00 -0.00
@@ -337,10 +337,10 @@ def scan_steady_state(
         cache=cache,
         max_workers=max_workers,
     )
-    concs = {k: v.concs.T for k, v in res.items()}
+    concs = {k: v.variables.T for k, v in res.items()}
     fluxes = {k: v.fluxes.T for k, v in res.items()}
     return McSteadyStates(
-        concs=pd.concat(concs, axis=1).T,
+        variables=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
         parameters=parameters,
         mc_parameters=mc_parameters,
@@ -495,7 +495,7 @@ def response_coefficients(
         ...     model,
         ...     parameters=["vmax1", "vmax2"],
         ...     mc_parameters=mc_parameters,
-        ... ).concs
+        ... ).variables
                     x1    x2
         0 vmax_1  0.01  0.01
           vmax_2  0.02  0.02
@@ -538,11 +538,11 @@ def response_coefficients(
         max_workers=max_workers,
     )
 
-    crcs = {k: v.concs for k, v in res.items()}
+    crcs = {k: v.variables for k, v in res.items()}
     frcs = {k: v.fluxes for k, v in res.items()}
 
     return ResponseCoefficientsByPars(
-        concs=cast(pd.DataFrame, pd.concat(crcs)),
+        variables=cast(pd.DataFrame, pd.concat(crcs)),
         fluxes=cast(pd.DataFrame, pd.concat(frcs)),
         parameters=mc_parameters,
     )

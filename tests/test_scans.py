@@ -59,7 +59,7 @@ def test_steady_state_1p() -> None:
         parallel=False,
     )
     pd.testing.assert_frame_equal(
-        result.concs,
+        result.variables,
         pd.DataFrame(
             {"x1": [1.0], "x2": [2.0]},
             index=pd.Index(parameters["param1"]),
@@ -83,7 +83,7 @@ def test_steady_state_2p() -> None:
         parallel=False,
     )
     pd.testing.assert_frame_equal(
-        result.concs,
+        result.variables,
         pd.DataFrame(
             {"x1": [1.0, 1.0], "x2": [2.0, 2.0]},
             index=pd.MultiIndex.from_frame(parameters),
@@ -111,7 +111,7 @@ def test_steady_state_2p() -> None:
 #         parallel=False,
 #     )
 #     pd.testing.assert_frame_equal(
-#         result.concs,
+#         result.variables,
 #         pd.DataFrame(
 #             {
 #                 "x1": {(0, 0.0): 1.0, (0, 1.0): 1.0},
@@ -143,7 +143,7 @@ def test_steady_state_2p() -> None:
 #         parallel=False,
 #     )
 #     pd.testing.assert_frame_equal(
-#         result.concs,
+#         result.variables,
 #         pd.DataFrame(
 #             {"x1": [1.0], "x2": [2.0]},
 #             index=pd.Index(parameters["param1"]),

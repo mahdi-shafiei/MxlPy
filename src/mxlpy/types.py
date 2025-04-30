@@ -286,90 +286,90 @@ class Reaction:
 class ResponseCoefficients:
     """Container for response coefficients."""
 
-    concs: pd.DataFrame
+    variables: pd.DataFrame
     fluxes: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
         """Iterate over the concentration and flux response coefficients."""
-        return iter((self.concs, self.fluxes))
+        return iter((self.variables, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
         """Return the response coefficients as a DataFrame."""
-        return pd.concat((self.concs, self.fluxes), axis=1)
+        return pd.concat((self.variables, self.fluxes), axis=1)
 
 
 @dataclass(kw_only=True, slots=True)
 class ResponseCoefficientsByPars:
     """Container for response coefficients by parameter."""
 
-    concs: pd.DataFrame
+    variables: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
         """Iterate over the concentration and flux response coefficients."""
-        return iter((self.concs, self.fluxes))
+        return iter((self.variables, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
         """Return the response coefficients as a DataFrame."""
-        return pd.concat((self.concs, self.fluxes), axis=1)
+        return pd.concat((self.variables, self.fluxes), axis=1)
 
 
 @dataclass(kw_only=True, slots=True)
 class SteadyStates:
     """Container for steady states."""
 
-    concs: pd.DataFrame
+    variables: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
         """Iterate over the concentration and flux steady states."""
-        return iter((self.concs, self.fluxes))
+        return iter((self.variables, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
         """Return the steady states as a DataFrame."""
-        return pd.concat((self.concs, self.fluxes), axis=1)
+        return pd.concat((self.variables, self.fluxes), axis=1)
 
 
 @dataclass(kw_only=True, slots=True)
 class McSteadyStates:
     """Container for Monte Carlo steady states."""
 
-    concs: pd.DataFrame
+    variables: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
     mc_parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
         """Iterate over the concentration and flux steady states."""
-        return iter((self.concs, self.fluxes))
+        return iter((self.variables, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
         """Return the steady states as a DataFrame."""
-        return pd.concat((self.concs, self.fluxes), axis=1)
+        return pd.concat((self.variables, self.fluxes), axis=1)
 
 
 @dataclass(kw_only=True, slots=True)
 class TimeCourseByPars:
     """Container for time courses by parameter."""
 
-    concs: pd.DataFrame
+    variables: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
         """Iterate over the concentration and flux time courses."""
-        return iter((self.concs, self.fluxes))
+        return iter((self.variables, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
         """Return the time courses as a DataFrame."""
-        return pd.concat((self.concs, self.fluxes), axis=1)
+        return pd.concat((self.variables, self.fluxes), axis=1)
 
     def get_by_name(self, name: str) -> pd.DataFrame:
         """Get time courses by name."""
@@ -390,19 +390,19 @@ class TimeCourseByPars:
 class ProtocolByPars:
     """Container for protocols by parameter."""
 
-    concs: pd.DataFrame
+    variables: pd.DataFrame
     fluxes: pd.DataFrame
     parameters: pd.DataFrame
     protocol: pd.DataFrame
 
     def __iter__(self) -> Iterator[pd.DataFrame]:
         """Iterate over the concentration and flux protocols."""
-        return iter((self.concs, self.fluxes))
+        return iter((self.variables, self.fluxes))
 
     @property
     def results(self) -> pd.DataFrame:
         """Return the protocols as a DataFrame."""
-        return pd.concat((self.concs, self.fluxes), axis=1)
+        return pd.concat((self.variables, self.fluxes), axis=1)
 
     def get_by_name(self, name: str) -> pd.DataFrame:
         """Get concentration or flux by name."""

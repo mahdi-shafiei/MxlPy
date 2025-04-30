@@ -235,7 +235,7 @@ def response_coefficients(
     """Calculate response coefficients.
 
     Examples:
-        >>> response_coefficients(model, parameters=["k1", "k2"]).concs
+        >>> response_coefficients(model, parameters=["k1", "k2"]).variables
         p    x1    x2
         k1  1.4  1.31
         k2 -1.0 -2.49
@@ -275,6 +275,6 @@ def response_coefficients(
         max_workers=max_workers,
     )
     return ResponseCoefficients(
-        concs=pd.DataFrame({k: v[0] for k, v in res.items()}),
+        variables=pd.DataFrame({k: v[0] for k, v in res.items()}),
         fluxes=pd.DataFrame({k: v[1] for k, v in res.items()}),
     )

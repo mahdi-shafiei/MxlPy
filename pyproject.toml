@@ -126,6 +126,7 @@ ignore = [
   "PD010",   # pivot table
   "PT011",   # pytest.raises is too broad
   "RUF022",  # unsorted all
+  "TC006",   # cast("type")
 ]
 
 [tool.ruff.lint.per-file-ignores]

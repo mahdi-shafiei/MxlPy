@@ -78,7 +78,7 @@ def test_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
         mock_results = {}
         for k in range(3):
             mock_ss = MagicMock()
-            mock_ss.concs = concs_results[k]
+            mock_ss.variables = concs_results[k]
             mock_ss.fluxes = fluxes_results[k]
             mock_results[k] = mock_ss
 
@@ -89,8 +89,8 @@ def test_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
 
         # Verify the results
         assert isinstance(result, SteadyStates)
-        assert sorted({idx[0] for idx in result.concs.index}) == [0, 1, 2]
-        assert {idx[1] for idx in result.concs.index} == {"S", "P"}
+        assert sorted({idx[0] for idx in result.variables.index}) == [0, 1, 2]
+        assert {idx[1] for idx in result.variables.index} == {"S", "P"}
         assert sorted({idx[0] for idx in result.fluxes.index}) == [0, 1, 2]
         assert {idx[1] for idx in result.fluxes.index} == {"v1", "v2"}
         assert result.parameters.equals(mc_parameters)
@@ -126,7 +126,7 @@ def test_time_course(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
         mock_results = {}
         for k in range(3):
             mock_tc = MagicMock()
-            mock_tc.concs = concs_results[k]
+            mock_tc.variables = concs_results[k]
             mock_tc.fluxes = fluxes_results[k]
             mock_results[k] = mock_tc
 
@@ -136,8 +136,8 @@ def test_time_course(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
         result = mc.time_course(simple_model, time_points, mc_parameters)
 
         # Verify the results
-        assert sorted({idx[0] for idx in result.concs.index}) == [0, 1, 2]
-        assert {idx[1] for idx in result.concs.index} == {"S", "P"}
+        assert sorted({idx[0] for idx in result.variables.index}) == [0, 1, 2]
+        assert {idx[1] for idx in result.variables.index} == {"S", "P"}
         assert sorted({idx[0] for idx in result.fluxes.index}) == [0, 1, 2]
         assert {idx[1] for idx in result.fluxes.index} == {"v1", "v2"}
         assert result.parameters.equals(mc_parameters)
@@ -175,7 +175,7 @@ def test_time_course_over_protocol(
         mock_results = {}
         for k in range(3):
             mock_tc = MagicMock()
-            mock_tc.concs = concs_results[k]
+            mock_tc.variables = concs_results[k]
             mock_tc.fluxes = fluxes_results[k]
             mock_results[k] = mock_tc
 
@@ -185,8 +185,8 @@ def test_time_course_over_protocol(
         result = mc.time_course_over_protocol(simple_model, protocol, mc_parameters)
 
         # Verify the results
-        assert sorted({idx[0] for idx in result.concs.index}) == [0, 1, 2]
-        assert {idx[1] for idx in result.concs.index} == {"S", "P"}
+        assert sorted({idx[0] for idx in result.variables.index}) == [0, 1, 2]
+        assert {idx[1] for idx in result.variables.index} == {"S", "P"}
         assert sorted({idx[0] for idx in result.fluxes.index}) == [0, 1, 2]
         assert {idx[1] for idx in result.fluxes.index} == {"v1", "v2"}
         assert result.parameters.equals(mc_parameters)
@@ -227,7 +227,7 @@ def test_scan_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> 
         mock_results = {}
         for k in range(3):
             mock_ss = MagicMock()
-            mock_ss.concs = concs_results[k]
+            mock_ss.variables = concs_results[k]
             mock_ss.fluxes = fluxes_results[k]
             mock_results[k] = mock_ss
 
@@ -239,7 +239,7 @@ def test_scan_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> 
         # Verify the results
         assert isinstance(result, McSteadyStates)
         assert (
-            result.concs.index.nlevels == 2
+            result.variables.index.nlevels == 2
         )  # MC parameter index and scan parameter index
         assert result.fluxes.index.nlevels == 2
         assert result.parameters.equals(scan_parameters)
@@ -321,7 +321,7 @@ def test_response_coefficients(
         mock_results = {}
         for k in range(3):
             mock_rc = MagicMock()
-            mock_rc.concs = concs_results[k]
+            mock_rc.variables = concs_results[k]
             mock_rc.fluxes = fluxes_results[k]
             mock_results[k] = mock_rc
 
@@ -332,8 +332,10 @@ def test_response_coefficients(
 
         # Verify the results
         assert isinstance(result, ResponseCoefficientsByPars)
-        assert result.concs.index.nlevels == 2  # MC parameter index and parameter index
-        assert list(result.concs.columns) == ["S", "P"]
+        assert (
+            result.variables.index.nlevels == 2
+        )  # MC parameter index and parameter index
+        assert list(result.variables.columns) == ["S", "P"]
         assert result.fluxes.index.nlevels == 2
         assert list(result.fluxes.columns) == ["v1", "v2"]
         assert result.parameters.equals(mc_parameters)

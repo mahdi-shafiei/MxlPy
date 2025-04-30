@@ -116,5 +116,5 @@ def test_get_new_y0() -> None:
     res = create_result()
     pd.testing.assert_series_equal(
         pd.Series(res.get_new_y0()),
-        pd.Series({"v1": 3.0, "d1": 4.0}),
+        pd.Series({"v1": 3.0}),
     )
