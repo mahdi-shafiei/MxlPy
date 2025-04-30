@@ -114,14 +114,16 @@ def test_timepoint_with_data(simple_model: Model) -> None:
             {"S": 2.0, "P": 4.0},
             index=["S", "P"],
             dtype=float,
+            name=1,
         ),
     )
     pd.testing.assert_series_equal(
         time_point.fluxes,
         pd.Series(
-            {"v1": 0.2, "v2": 0.4},
+            {"v1": 2.0, "v2": 8.0},
             index=["v1", "v2"],
             dtype=float,
+            name=1,
         ),
     )
 
@@ -139,8 +141,9 @@ def test_timepoint_results(simple_model: Model) -> None:
     pd.testing.assert_series_equal(
         results,
         pd.Series(
-            {"S": 1.0, "P": 3.0, "v1": 0.1, "v2": 0.3},
+            {"S": 1.0, "P": 3.0, "v1": 1.0, "v2": 6.0},
             dtype=float,
+            name=0,
         ),
     )
 
@@ -192,7 +195,7 @@ def test_timecourse_with_data(simple_model: Model) -> None:
     pd.testing.assert_frame_equal(
         time_course.fluxes,
         pd.DataFrame(
-            [[0.1, 0.2], [0.2, 0.4], [0.3, 0.6]],
+            [[1.0, 4.0], [3.0, 8.0], [5.0, 12.0]],
             index=time_points,
             columns=["v1", "v2"],
             dtype=float,
@@ -226,8 +229,8 @@ def test_timecourse_results(simple_model: Model) -> None:
             {
                 "S": [1.0, 3.0, 5.0],
                 "P": [2.0, 4.0, 6.0],
-                "v1": [0.1, 0.2, 0.3],
-                "v2": [0.2, 0.4, 0.6],
+                "v1": [1.0, 3.0, 5.0],
+                "v2": [4.0, 8.0, 12.0],
             },
             index=[0.0, 1.0, 2.0],
             dtype=float,
