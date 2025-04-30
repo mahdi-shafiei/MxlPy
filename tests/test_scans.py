@@ -4,15 +4,15 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from modelbase2.model import Model
-from modelbase2.scan import (
+from mxlpy.model import Model
+from mxlpy.scan import (
     TimeCourse,
     TimePoint,
     steady_state,
 )
 
 if TYPE_CHECKING:
-    from modelbase2.types import Array
+    from mxlpy.types import Array
 
 
 def mock_ss_worker(
@@ -22,7 +22,7 @@ def mock_ss_worker(
     rel_norm: bool,  # noqa: ARG001
 ) -> TimePoint:
     return TimePoint(
-        concs=pd.Series({"x1": 1.0, "x2": 2.0}),
+        variables=pd.Series({"x1": 1.0, "x2": 2.0}),
         fluxes=pd.Series({"v1": 0.1, "v2": 0.2}),
     )
 
@@ -33,7 +33,7 @@ def mock_tc_worker(
     time_points: Array,
 ) -> TimeCourse:
     return TimeCourse(
-        concs=pd.DataFrame({i: {"x1": 1.0, "x2": 2.0} for i in time_points}).T,
+        variables=pd.DataFrame({i: {"x1": 1.0, "x2": 2.0} for i in time_points}).T,
         fluxes=pd.DataFrame({i: {"v1": 0.1, "v2": 0.2} for i in time_points}).T,
     )
 
@@ -45,7 +45,7 @@ def mock_protocol_worker(
     time_points_per_step: int = 10,  # noqa: ARG001
 ) -> TimeCourse:
     return TimeCourse(
-        concs=pd.DataFrame({i: {"x1": 1.0, "x2": 2.0} for i in protocol}).T,
+        variables=pd.DataFrame({i: {"x1": 1.0, "x2": 2.0} for i in protocol}).T,
         fluxes=pd.DataFrame({i: {"v1": 0.1, "v2": 0.2} for i in protocol}).T,
     )
 

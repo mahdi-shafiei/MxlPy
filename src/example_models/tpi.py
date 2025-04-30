@@ -1,6 +1,6 @@
 """Example label models."""
 
-from modelbase2 import Model, fns
+from mxlpy import Model, fns
 
 __all__ = ["get_tpi_ald_model"]
 

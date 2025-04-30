@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from example_models.utils import filter_stoichiometry
-from modelbase2 import Model
-from modelbase2.fns import constant, michaelis_menten_2s
+from mxlpy import Model
+from mxlpy.fns import constant, michaelis_menten_2s
 
 __all__ = ["get_example1"]
 

@@ -6,7 +6,7 @@ import pytest
 import torch
 from torch import nn
 
-from modelbase2.surrogates._torch import (
+from mxlpy.surrogates._torch import (
     TorchSurrogate,
     _train_batched,
     _train_full,

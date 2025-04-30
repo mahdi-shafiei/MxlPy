@@ -1,4 +1,4 @@
-from modelbase2 import Derived, Model, fns
+from mxlpy import Derived, Model, fns
 
 
 def m_1v_0p_0d_0r() -> Model:

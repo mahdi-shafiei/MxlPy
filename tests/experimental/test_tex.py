@@ -1,14 +1,14 @@
 """Tests for the tex export module."""
 
-from modelbase2 import Model
-from modelbase2.meta.codegen_latex import (
+from mxlpy import Model
+from mxlpy.meta.codegen_latex import (
     TexExport,
     TexReaction,
     default_init,
     generate_latex_code,
     get_model_tex_diff,
 )
-from modelbase2.types import Derived
+from mxlpy.types import Derived
 
 
 def test_default_init() -> None:

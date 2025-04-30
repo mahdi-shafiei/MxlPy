@@ -1,7 +1,7 @@
 import pytest
 
-from modelbase2 import Model
-from modelbase2.model import CircularDependencyError, MissingDependenciesError
+from mxlpy import Model
+from mxlpy.model import CircularDependencyError, MissingDependenciesError
 
 
 def moiety_1(x1: float, tot: float) -> float:

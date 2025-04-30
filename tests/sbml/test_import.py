@@ -8,14 +8,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from modelbase2 import Simulator
-from modelbase2.integrators.int_scipy import Scipy
-from modelbase2.model import MissingDependenciesError
-from modelbase2.sbml import read
-from modelbase2.types import unwrap
+from mxlpy import Simulator
+from mxlpy.integrators.int_scipy import Scipy
+from mxlpy.model import MissingDependenciesError
+from mxlpy.sbml import read
+from mxlpy.types import unwrap
 
 if TYPE_CHECKING:
-    from modelbase2.model import Model
+    from mxlpy.model import Model
 
 try:
     import assimulo  # type: ignore  # noqa: F401

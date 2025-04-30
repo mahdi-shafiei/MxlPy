@@ -1,8 +1,8 @@
-from modelbase2 import Model, fns
-from modelbase2.experimental.diff import soft_eq
-from modelbase2.paths import default_tmp_dir
-from modelbase2.sbml import read, write
-from modelbase2.types import Derived
+from mxlpy import Model, fns
+from mxlpy.experimental.diff import soft_eq
+from mxlpy.paths import default_tmp_dir
+from mxlpy.sbml import read, write
+from mxlpy.types import Derived
 
 TMP_DIR = default_tmp_dir(None, remove_old_cache=False)
 

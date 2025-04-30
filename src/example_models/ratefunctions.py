@@ -56,7 +56,7 @@ from operator import mul
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from modelbase2.types import Float
+    from mxlpy.types import Float
 
 
 def constant(k: Float) -> Float:

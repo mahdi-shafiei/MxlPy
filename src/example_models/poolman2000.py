@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from modelbase2 import Model
-from modelbase2.fns import moiety_1s
+from mxlpy import Model
+from mxlpy.fns import moiety_1s
 
 __all__ = [
     "free_orthophosphate",

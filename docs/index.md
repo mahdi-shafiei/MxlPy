@@ -1,9 +1,9 @@
-# modelbase2
+# mxlpy
 
-*modelbase2* is a Python package designed to enable *mechanistic learning*, bridging the gap between *mechanistic modeling* and *machine learning*.
+*mxlpy* is a Python package designed to enable *mechanistic learning*, bridging the gap between *mechanistic modeling* and *machine learning*.
 The package enables you to integrate ordinary differential equation (ODE) models with data-driven techniques.
 This combination allows for more accurate and interpretable predictions in systems where both physical laws and data-driven insights are valuable.
-*modelbase2* thus facilitates the development of models that are not only data-efficient but also robust and capable of capturing complex system dynamics.
+*mxlpy* thus facilitates the development of models that are not only data-efficient but also robust and capable of capturing complex system dynamics.
 **Choose one of the notebooks below to start your journey!**
 
 ## Building and simulating models
@@ -25,7 +25,7 @@ This will allow you to create time courses and do steady-state analysis as shown
 ## Parameter scans
 
 Parameter scans allow you to systematically assess the behaviour of your model dependent on the value of one or more parameters.
-*modelbase2* has rountines to scan over, and easily visualise **time courses**, **protocol time courses**, and **steady states** for one or more parameters.
+*mxlpy* has rountines to scan over, and easily visualise **time courses**, **protocol time courses**, and **steady states** for one or more parameters.
 <div>
     <img src="assets/time-course-by-parameter.png"
          style="vertical-align:middle; max-height: 175px; " />
@@ -54,7 +54,7 @@ If you ever read about **rate-limiting steps**, then this is for you!
 ## Fitting
 
 Almost every model at some point needs to be fitted to experimental data to be **validated**.
-*modelbase2* offers highly customisable routines for fitting either **time series** or **steady-states**.
+*mxlpy* offers highly customisable routines for fitting either **time series** or **steady-states**.
 
 <img src="assets/fitting.png" style="max-height: 175px;" />
 
@@ -66,7 +66,7 @@ Almost every model at some point needs to be fitted to experimental data to be *
 Almost every parameter in biology is better described with a distribution than a single value.
 Monte-carlo methods allow you to capture the **range of possible behaviour** your model can exhibit.
 This is especially useful when you want to understand the **uncertainty** in your model's predictions.
-*modelbase2* offers these Monte Carlo methods for all *scans*  ...
+*mxlpy* offers these Monte Carlo methods for all *scans*  ...
 <div>
     <img src="assets/time-course.png"
          style='vertical-align:middle; max-height: 175px; max-width: 20%;'/>
@@ -103,7 +103,7 @@ Labelled models allow explicitly mapping the transitions between isotopomers var
 ## Mechanistic Learning
 
 Mechanistic learning is the intersection of mechanistic modelling and machine learning.
-*modelbase2* currently supports two such approaches: surrogates and neural posterior estimation.
+*mxlpy* currently supports two such approaches: surrogates and neural posterior estimation.
 **Surrogate models** replace whole parts of a mechanistic model (or even the entire model) with machine learning models.
 
 <img src="assets/surrogate.png" style="max-height: 300px;">

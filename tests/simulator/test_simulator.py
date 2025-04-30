@@ -1,13 +1,13 @@
-"""Tests for the modelbase2.simulator module."""
+"""Tests for the mxlpy.simulator module."""
 
 from __future__ import annotations
 
 import pandas as pd
 import pytest
 
-from modelbase2 import Model, Simulator
-from modelbase2.fns import mass_action_1s
-from modelbase2.types import unwrap
+from mxlpy import Model, Simulator
+from mxlpy.fns import mass_action_1s
+from mxlpy.types import unwrap
 
 
 @pytest.fixture

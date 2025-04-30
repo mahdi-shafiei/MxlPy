@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from modelbase2 import Model
-from modelbase2.fns import constant, mass_action_1s, mass_action_1s_1p, mass_action_2s
+from mxlpy import Model
+from mxlpy.fns import constant, mass_action_1s, mass_action_1s_1p, mass_action_2s
 
 __all__ = ["get_model"]
 

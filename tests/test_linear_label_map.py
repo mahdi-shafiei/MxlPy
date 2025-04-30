@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from modelbase2.linear_label_map import (
+from mxlpy.linear_label_map import (
     LinearLabelMapper,
     _add_label_influx_or_efflux,
     _generate_isotope_labels,
@@ -14,7 +14,7 @@ from modelbase2.linear_label_map import (
     _stoichiometry_to_duplicate_list,
     _unpack_stoichiometries,
 )
-from modelbase2.model import Derived, Model
+from mxlpy.model import Derived, Model
 
 
 def test_generate_isotope_labels() -> None:

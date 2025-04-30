@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from modelbase2.model import Model
-from modelbase2.types import MockSurrogate
+from mxlpy.model import Model
+from mxlpy.types import MockSurrogate
 
 
 def no_arguments() -> float:

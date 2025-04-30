@@ -1,4 +1,4 @@
-from modelbase2.distributions import (
+from mxlpy.distributions import (
     RNG,
     Beta,
     GaussianKde,

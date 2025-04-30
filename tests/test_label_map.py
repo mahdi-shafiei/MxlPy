@@ -5,9 +5,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from modelbase2 import Model
-from modelbase2.fns import mass_action_1s, mass_action_2s
-from modelbase2.label_map import (
+from mxlpy import Model
+from mxlpy.fns import mass_action_1s, mass_action_2s
+from mxlpy.label_map import (
     LabelMapper,
     _assign_compound_labels,
     _create_isotopomer_reactions,

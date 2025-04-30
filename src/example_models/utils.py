@@ -1,4 +1,4 @@
-from modelbase2 import Model
+from mxlpy import Model
 
 __all__ = ["filter_stoichiometry"]
 

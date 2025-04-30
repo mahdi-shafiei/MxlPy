@@ -1,6 +1,6 @@
 """Example models for phase plane analysis."""
 
-from modelbase2 import Model, fns
+from mxlpy import Model, fns
 
 __all__ = ["get_phase_plane", "v1"]
 

@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 
 from example_models import get_linear_chain_2v
-from modelbase2 import fit
-from modelbase2.fit import ResidualFn
-from modelbase2.fns import constant
-from modelbase2.model import Model
-from modelbase2.types import Array, ArrayLike, IntegratorProtocol, unwrap
+from mxlpy import fit
+from mxlpy.fit import ResidualFn
+from mxlpy.fns import constant
+from mxlpy.model import Model
+from mxlpy.types import Array, ArrayLike, IntegratorProtocol, unwrap
 
 
 def mock_minimize_fn(
@@ -161,7 +161,7 @@ def tets_fit_time_course() -> None:
 
 
 if __name__ == "__main__":
-    from modelbase2 import Simulator
+    from mxlpy import Simulator
 
     model_fn = get_linear_chain_2v
     p_true = {"k1": 1.0, "k2": 2.0, "k3": 1.0}

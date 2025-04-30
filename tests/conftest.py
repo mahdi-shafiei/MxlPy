@@ -1,6 +1,6 @@
 import pytest
 
-from modelbase2.types import MockSurrogate
+from mxlpy.types import MockSurrogate
 
 
 @pytest.fixture

@@ -1,11 +1,11 @@
-"""Tests for the modelbase2.fns module."""
+"""Tests for the mxlpy.fns module."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from modelbase2.fns import (
+from mxlpy.fns import (
     add,
     constant,
     diffusion_1s_1p,

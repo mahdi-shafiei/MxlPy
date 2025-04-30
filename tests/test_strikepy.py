@@ -1,6 +1,6 @@
 import sympy
 
-from modelbase2.experimental.strikepy import StrikepyModel, strike_goldd
+from mxlpy.symbolic.strikepy import StrikepyModel, strike_goldd
 
 
 def sir() -> StrikepyModel:

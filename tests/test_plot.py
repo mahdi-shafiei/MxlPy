@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from modelbase2.plot import (
+from mxlpy.plot import (
     add_grid,
     bars,
     grid_layout,

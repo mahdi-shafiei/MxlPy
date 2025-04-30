@@ -2,11 +2,11 @@
 
 import sympy
 
-import modelbase2
-from modelbase2 import fns
-from modelbase2.fns import mass_action_1s
-from modelbase2.meta.source_tools import fn_to_sympy
-from modelbase2.types import Float
+import mxlpy
+from mxlpy import fns
+from mxlpy.fns import mass_action_1s
+from mxlpy.meta.source_tools import fn_to_sympy
+from mxlpy.types import Float
 
 
 def using_inner_l1(x: Float, y: Float) -> Float:
@@ -18,7 +18,7 @@ def using_inner_l2(x: Float, y: Float) -> Float:
 
 
 def using_inner_l3(x: Float, y: Float) -> Float:
-    return modelbase2.fns.mass_action_1s(x, y) + y
+    return mxlpy.fns.mass_action_1s(x, y) + y
 
 
 def test_call_level1() -> None:

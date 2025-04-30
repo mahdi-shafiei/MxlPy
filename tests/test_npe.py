@@ -5,7 +5,7 @@ import pytest
 import torch
 from torch import nn
 
-from modelbase2.npe import (
+from mxlpy.npe import (
     TorchSSEstimator,
     TorchTimeCourseEstimator,
     _train_batched,

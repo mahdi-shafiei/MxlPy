@@ -6,13 +6,13 @@ from unittest.mock import MagicMock, patch
 import pandas as pd
 import pytest
 
-from modelbase2.parameterise import get_km_and_kcat_from_brenda
+from mxlpy.parameterise import get_km_and_kcat_from_brenda
 
 
 @pytest.fixture
 def mock_brenda() -> Generator[MagicMock, Any, None]:
     """Mock to avoid actual database access during testing."""
-    with patch("modelbase2.parameterise.Brenda") as mock_brenda_class:
+    with patch("mxlpy.parameterise.Brenda") as mock_brenda_class:
         mock_brenda_instance = MagicMock()
         mock_brenda_class.return_value = mock_brenda_instance
 

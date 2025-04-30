@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from modelbase2 import Model, fns
-from modelbase2.scan import (
+from mxlpy import Model, fns
+from mxlpy.scan import (
     TimeCourse,
     TimePoint,
     _empty_conc_df,
@@ -91,11 +91,11 @@ def test_update_parameters_and(simple_model: Model) -> None:
 
 
 def test_timepoint_from_scan(simple_model: Model) -> None:
-    time_point = TimePoint.from_scan(simple_model, None, None)
+    time_point = TimePoint.from_result(simple_model, None, None)
     assert isinstance(time_point, TimePoint)
-    assert isinstance(time_point.concs, pd.Series)
+    assert isinstance(time_point.variables, pd.Series)
     assert isinstance(time_point.fluxes, pd.Series)
-    assert time_point.concs.index.tolist() == ["S", "P"]
+    assert time_point.variables.index.tolist() == ["S", "P"]
     assert time_point.fluxes.index.tolist() == ["v1", "v2"]
 
 
@@ -103,7 +103,7 @@ def test_timepoint_with_data(simple_model: Model) -> None:
     concs = pd.DataFrame({"S": [1.0, 2.0], "P": [3.0, 4.0]})
     fluxes = pd.DataFrame({"v1": [0.1, 0.2], "v2": [0.3, 0.4]})
 
-    time_point = TimePoint.from_scan(simple_model, concs, fluxes, idx=1)
+    time_point = TimePoint.from_result(simple_model, concs, fluxes, idx=1)
     assert time_point.concs["S"] == 2.0
     assert time_point.concs["P"] == 4.0
     assert time_point.fluxes["v1"] == 0.2
@@ -114,7 +114,7 @@ def test_timepoint_results(simple_model: Model) -> None:
     concs = pd.DataFrame({"S": [1.0], "P": [3.0]})
     fluxes = pd.DataFrame({"v1": [0.1], "v2": [0.3]})
 
-    time_point = TimePoint.from_scan(simple_model, concs, fluxes, idx=0)
+    time_point = TimePoint.from_result(simple_model, concs, fluxes, idx=0)
     results = time_point.results
 
     assert isinstance(results, pd.Series)
@@ -130,13 +130,13 @@ def test_time_course_from_scan(simple_model: Model) -> None:
     time_course = TimeCourse.from_scan(simple_model, time_points, None, None)
 
     assert isinstance(time_course, TimeCourse)
-    assert isinstance(time_course.concs, pd.DataFrame)
+    assert isinstance(time_course.variables, pd.DataFrame)
     assert isinstance(time_course.fluxes, pd.DataFrame)
-    assert time_course.concs.shape == (3, 2)
+    assert time_course.variables.shape == (3, 2)
     assert time_course.fluxes.shape == (3, 2)
-    assert np.all(time_course.concs.index == time_points)
+    assert np.all(time_course.variables.index == time_points)
     assert np.all(time_course.fluxes.index == time_points)
-    assert np.all(time_course.concs.columns == ["S", "P"])
+    assert np.all(time_course.variables.columns == ["S", "P"])
     assert np.all(time_course.fluxes.columns == ["v1", "v2"])
 
 
@@ -181,8 +181,8 @@ def test_steady_state_worker(simple_model: Model) -> None:
     assert isinstance(result, TimePoint)
 
     # The model should reach steady state with S=0, P=0
-    assert not np.isnan(result.concs["S"])
-    assert not np.isnan(result.concs["P"])
+    assert not np.isnan(result.variables["S"])
+    assert not np.isnan(result.variables["P"])
     assert not np.isnan(result.fluxes["v1"])
     assert not np.isnan(result.fluxes["v2"])
 
@@ -192,9 +192,9 @@ def test_time_course_worker(simple_model: Model) -> None:
     result = _time_course_worker(simple_model, y0=None, time_points=time_points)
 
     assert isinstance(result, TimeCourse)
-    assert result.concs.shape == (3, 2)
+    assert result.variables.shape == (3, 2)
     assert result.fluxes.shape == (3, 2)
-    assert not np.isnan(result.concs.values).any()
+    assert not np.isnan(result.variables.values).any()
     assert not np.isnan(result.fluxes.values).any()
 
 

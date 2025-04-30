@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from modelbase2 import Model, fns, mc
-from modelbase2.types import (
+from mxlpy import Model, fns, mc
+from mxlpy.types import (
     McSteadyStates,
     ResponseCoefficientsByPars,
     SteadyStates,
@@ -60,7 +60,7 @@ def protocol() -> pd.DataFrame:
 
 
 def test_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock concentration and flux results
         concs_results = {
             0: pd.DataFrame({"S": [5.0], "P": [5.0]}),
@@ -99,7 +99,7 @@ def test_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
 def test_time_course(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
     time_points = np.linspace(0, 10, 5)
 
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock time course data
         concs_results = {}
         fluxes_results = {}
@@ -146,7 +146,7 @@ def test_time_course(simple_model: Model, mc_parameters: pd.DataFrame) -> None:
 def test_time_course_over_protocol(
     simple_model: Model, mc_parameters: pd.DataFrame, protocol: pd.DataFrame
 ) -> None:
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock time course data
         concs_results = {}
         fluxes_results = {}
@@ -200,7 +200,7 @@ def test_scan_steady_state(simple_model: Model, mc_parameters: pd.DataFrame) -> 
         }
     )
 
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock scan results
         concs_results = {}
         fluxes_results = {}
@@ -252,7 +252,7 @@ def test_variable_elasticities(
     variables = ["S", "P"]
     concs = {"S": 5.0, "P": 5.0}
 
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock elasticity results
         mock_results = {
             0: pd.DataFrame({"S": [1.0, 0.0], "P": [0.0, 1.0]}, index=["v1", "v2"]),
@@ -277,7 +277,7 @@ def test_parameter_elasticities(
     parameters = ["k1", "k2"]
     concs = {"S": 5.0, "P": 5.0}
 
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock elasticity results
         mock_results = {
             0: pd.DataFrame({"k1": [1.0, 0.0], "k2": [0.0, 1.0]}, index=["v1", "v2"]),
@@ -303,7 +303,7 @@ def test_response_coefficients(
 ) -> None:
     parameters = ["k1", "k2"]
 
-    with patch("modelbase2.mc.parallelise") as mock_parallelise:
+    with patch("mxlpy.mc.parallelise") as mock_parallelise:
         # Create mock response coefficient results
         concs_results = {
             0: pd.DataFrame({"S": [-1.0, 0.0], "P": [1.0, -1.0]}, index=parameters),

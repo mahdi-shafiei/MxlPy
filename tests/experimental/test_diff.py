@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from modelbase2 import Model, fns
-from modelbase2.experimental.diff import (
+from mxlpy import Model, fns
+from mxlpy.experimental.diff import (
     DerivedDiff,
     ModelDiff,
     ReactionDiff,
     model_diff,
     soft_eq,
 )
-from modelbase2.types import Derived
+from mxlpy.types import Derived
 
 
 @pytest.fixture

@@ -27,9 +27,9 @@ requires-python = ">=3.12"
 maintainers = [
   { name = "Marvin van Aalst", email = "marvin.vanaalst@gmail.com" },
 ]
-name = "modelbase2"
+name = "mxlpy"
 readme = "README.md"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
   "dill>=0.3.9",
   "latexify-py>=0.4.4",
@@ -76,7 +76,7 @@ skips = ["B101", "B301", "B403", "B404", "B603", "B607"]
 
 [tool.hatchling]
 from = "src"
-include = ["modelbase2", "example_models"]
+include = ["mxlpy", "example_models"]
 
 [tool.hatchling.extras]
 examples = ["example_models"]
@@ -151,4 +151,4 @@ trailing_comma_inline_array = true
 package = true
 
 [tool.uv.sources]
-modelbase2 = { workspace = true }
+mxlpy = { workspace = true }

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from numpy import polynomial
 
-from modelbase2.surrogates._poly import (
+from mxlpy.surrogates._poly import (
     PolySurrogate,
     train_polynomial_surrogate,
 )

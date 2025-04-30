@@ -1,6 +1,6 @@
-from modelbase2 import Model
-from modelbase2.fns import constant
-from modelbase2.types import Float
+from mxlpy import Model
+from mxlpy.fns import constant
+from mxlpy.types import Float
 
 __all__ = ["get_model", "wrapper"]
 

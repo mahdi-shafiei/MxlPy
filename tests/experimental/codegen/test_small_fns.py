@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import ast
 
-from modelbase2.meta.codegen_py import _conditional_join
-from modelbase2.meta.source_tools import get_fn_ast
+from mxlpy.meta.codegen_py import _conditional_join
+from mxlpy.meta.source_tools import get_fn_ast
 
 
 def sample_function(x: float, y: float) -> float:

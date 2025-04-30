@@ -3,9 +3,9 @@ import sympy
 ##############################
 # Utility functions
 ##############################
-from modelbase2.fns import mass_action_1s
-from modelbase2.meta.source_tools import fn_to_sympy
-from modelbase2.types import Float
+from mxlpy.fns import mass_action_1s
+from mxlpy.meta.source_tools import fn_to_sympy
+from mxlpy.types import Float
 
 
 def power(x: float) -> float:

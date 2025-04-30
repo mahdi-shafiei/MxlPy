@@ -4,12 +4,12 @@
 # import pandas as pd
 # import pytest
 
-# from modelbase2.mca import (
+# from mxlpy.mca import (
 #     parameter_elasticities,
 #     response_coefficients,
 #     variable_elasticities,
 # )
-# from modelbase2.model import Model, Reaction
+# from mxlpy.model import Model, Reaction
 
 
 # def create_test_model():
