@@ -165,6 +165,7 @@ class TimePoint:
     @classmethod
     def from_result(
         cls,
+        *,
         model: Model,
         result: Result | None,
         idx: int = -1,
@@ -222,6 +223,7 @@ class TimeCourse:
     @classmethod
     def from_scan(
         cls,
+        *,
         model: Model,
         time_points: Array,
         result: Result | None,
@@ -333,7 +335,7 @@ def _steady_state_worker(
         )
     except ZeroDivisionError:
         res = None
-    return TimePoint.from_result(model, res)
+    return TimePoint.from_result(model=model, result=res)
 
 
 def _time_course_worker(
@@ -360,7 +362,11 @@ def _time_course_worker(
         )
     except ZeroDivisionError:
         res = None
-    return TimeCourse.from_scan(model, time_points, res)
+    return TimeCourse.from_scan(
+        model=model,
+        time_points=time_points,
+        result=res,
+    )
 
 
 def _protocol_worker(
@@ -398,7 +404,11 @@ def _protocol_worker(
         protocol.index[-1].total_seconds(),
         len(protocol) * time_points_per_step,
     )
-    return TimeCourse.from_scan(model, time_points, res)
+    return TimeCourse.from_scan(
+        model=model,
+        time_points=time_points,
+        result=res,
+    )
 
 
 def steady_state(

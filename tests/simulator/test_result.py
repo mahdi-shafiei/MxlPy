@@ -11,6 +11,7 @@ def create_result() -> Result:
             pd.DataFrame(
                 {"v1": [1, 2, 3]},
                 index=[0, 1, 2],
+                dtype=float,
             ),
         ],
         _parameters=[
@@ -46,7 +47,9 @@ def test_variables() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.variables,
-        pd.DataFrame({"v1": {0: 1, 1: 2, 2: 3}, "d1": {0: 2.0, 1: 3.0, 2: 4.0}}),
+        pd.DataFrame(
+            {"v1": {0: 1, 1: 2, 2: 3}, "d1": {0: 2.0, 1: 3.0, 2: 4.0}}, dtype=float
+        ),
     )
 
 
@@ -54,11 +57,13 @@ def test_get_variables() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.get_variables(include_derived=True, include_readouts=True),
-        pd.DataFrame({"v1": {0: 1, 1: 2, 2: 3}, "d1": {0: 2.0, 1: 3.0, 2: 4.0}}),
+        pd.DataFrame(
+            {"v1": {0: 1, 1: 2, 2: 3}, "d1": {0: 2.0, 1: 3.0, 2: 4.0}}, dtype=float
+        ),
     )
     pd.testing.assert_frame_equal(
         res.get_variables(include_derived=False, include_readouts=False),
-        pd.DataFrame({"v1": {0: 1, 1: 2, 2: 3}}),
+        pd.DataFrame({"v1": {0: 1, 1: 2, 2: 3}}, dtype=float),
     )
 
 
@@ -66,7 +71,9 @@ def test_get_variables_not_concatenated() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.get_variables(concatenated=False)[0],
-        pd.DataFrame({"v1": {0: 1, 1: 2, 2: 3}, "d1": {0: 2.0, 1: 3.0, 2: 4.0}}),
+        pd.DataFrame(
+            {"v1": {0: 1, 1: 2, 2: 3}, "d1": {0: 2.0, 1: 3.0, 2: 4.0}}, dtype=float
+        ),
     )
 
 
@@ -74,7 +81,10 @@ def test_fluxes() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.fluxes,
-        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
+        pd.DataFrame(
+            {"r1": {0: 2.0, 1: 6.0, 2: 12.0}},
+            dtype=float,
+        ),
     )
 
 
@@ -82,11 +92,17 @@ def test_get_fluxes() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.get_fluxes(include_surrogates=True),
-        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
+        pd.DataFrame(
+            {"r1": {0: 2.0, 1: 6.0, 2: 12.0}},
+            dtype=float,
+        ),
     )
     pd.testing.assert_frame_equal(
         res.get_fluxes(include_surrogates=False),
-        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
+        pd.DataFrame(
+            {"r1": {0: 2.0, 1: 6.0, 2: 12.0}},
+            dtype=float,
+        ),
     )
 
 
@@ -94,7 +110,7 @@ def test_get_fluxes_not_concatenated() -> None:
     res = create_result()
     pd.testing.assert_frame_equal(
         res.get_fluxes(concatenated=False)[0],
-        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}),
+        pd.DataFrame({"r1": {0: 2.0, 1: 6.0, 2: 12.0}}, dtype=float),
     )
 
 
@@ -107,7 +123,8 @@ def test_get_combined() -> None:
                 "v1": {0: 1, 1: 2, 2: 3},
                 "d1": {0: 2.0, 1: 3.0, 2: 4.0},
                 "r1": {0: 2.0, 1: 6.0, 2: 12.0},
-            }
+            },
+            dtype=float,
         ),
     )
 
@@ -115,6 +132,6 @@ def test_get_combined() -> None:
 def test_get_new_y0() -> None:
     res = create_result()
     pd.testing.assert_series_equal(
-        pd.Series(res.get_new_y0()),
-        pd.Series({"v1": 3.0}),
+        pd.Series(res.get_new_y0(), dtype=float),
+        pd.Series({"v1": 3.0}, dtype=float),
     )

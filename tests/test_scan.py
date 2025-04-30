@@ -18,6 +18,7 @@ from mxlpy.scan import (
     steady_state,
     time_course,
 )
+from mxlpy.simulator import Result
 
 
 @pytest.fixture
@@ -91,7 +92,7 @@ def test_update_parameters_and(simple_model: Model) -> None:
 
 
 def test_timepoint_from_scan(simple_model: Model) -> None:
-    time_point = TimePoint.from_result(simple_model, None, None)
+    time_point = TimePoint.from_result(model=simple_model, result=None)
     assert isinstance(time_point, TimePoint)
     assert isinstance(time_point.variables, pd.Series)
     assert isinstance(time_point.fluxes, pd.Series)
@@ -100,34 +101,55 @@ def test_timepoint_from_scan(simple_model: Model) -> None:
 
 
 def test_timepoint_with_data(simple_model: Model) -> None:
-    concs = pd.DataFrame({"S": [1.0, 2.0], "P": [3.0, 4.0]})
-    fluxes = pd.DataFrame({"v1": [0.1, 0.2], "v2": [0.3, 0.4]})
+    result = Result(
+        model=simple_model,
+        _raw_variables=[pd.DataFrame({"S": [1.0, 2.0], "P": [3.0, 4.0]})],
+        _parameters=[simple_model.parameters],
+    )
 
-    time_point = TimePoint.from_result(simple_model, concs, fluxes, idx=1)
-    assert time_point.variables["S"] == 2.0
-    assert time_point.variables["P"] == 4.0
-    assert time_point.fluxes["v1"] == 0.2
-    assert time_point.fluxes["v2"] == 0.4
+    time_point = TimePoint.from_result(model=simple_model, result=result, idx=1)
+    pd.testing.assert_series_equal(
+        time_point.variables,
+        pd.Series(
+            {"S": 2.0, "P": 4.0},
+            index=["S", "P"],
+            dtype=float,
+        ),
+    )
+    pd.testing.assert_series_equal(
+        time_point.fluxes,
+        pd.Series(
+            {"v1": 0.2, "v2": 0.4},
+            index=["v1", "v2"],
+            dtype=float,
+        ),
+    )
 
 
 def test_timepoint_results(simple_model: Model) -> None:
-    concs = pd.DataFrame({"S": [1.0], "P": [3.0]})
-    fluxes = pd.DataFrame({"v1": [0.1], "v2": [0.3]})
+    result = Result(
+        model=simple_model,
+        _raw_variables=[pd.DataFrame({"S": [1.0], "P": [3.0]}, dtype=float)],
+        _parameters=[simple_model.parameters],
+    )
 
-    time_point = TimePoint.from_result(simple_model, concs, fluxes, idx=0)
+    time_point = TimePoint.from_result(model=simple_model, result=result, idx=0)
     results = time_point.results
 
-    assert isinstance(results, pd.Series)
-    assert len(results) == 4
-    assert results["S"] == 1.0
-    assert results["P"] == 3.0
-    assert results["v1"] == 0.1
-    assert results["v2"] == 0.3
+    pd.testing.assert_series_equal(
+        results,
+        pd.Series(
+            {"S": 1.0, "P": 3.0, "v1": 0.1, "v2": 0.3},
+            dtype=float,
+        ),
+    )
 
 
 def test_time_course_from_scan(simple_model: Model) -> None:
     time_points = np.array([0.0, 1.0, 2.0], dtype=float)
-    time_course = TimeCourse.from_scan(simple_model, time_points, None, None)
+    time_course = TimeCourse.from_scan(
+        model=simple_model, time_points=time_points, result=None
+    )
 
     assert isinstance(time_course, TimeCourse)
     assert isinstance(time_course.variables, pd.DataFrame)
@@ -142,38 +164,75 @@ def test_time_course_from_scan(simple_model: Model) -> None:
 
 def test_timecourse_with_data(simple_model: Model) -> None:
     time_points = np.array([0.0, 1.0, 2.0], dtype=float)
-    concs = pd.DataFrame(
-        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], index=time_points, columns=["S", "P"]
-    )
-    fluxes = pd.DataFrame(
-        [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], index=time_points, columns=["v1", "v2"]
+    result = Result(
+        model=simple_model,
+        _raw_variables=[
+            pd.DataFrame(
+                [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+                index=time_points,
+                columns=["S", "P"],
+            )
+        ],
+        _parameters=[simple_model.parameters],
     )
 
-    time_course = TimeCourse.from_scan(simple_model, time_points, concs, fluxes)
-    assert time_course.variables.loc[1.0, "S"] == 3.0  # type: ignore
-    assert time_course.variables.loc[1.0, "P"] == 4.0  # type: ignore
-    assert time_course.fluxes.loc[1.0, "v1"] == 0.3  # type: ignore
-    assert time_course.fluxes.loc[1.0, "v2"] == 0.4  # type: ignore
+    time_course = TimeCourse.from_scan(
+        model=simple_model, time_points=time_points, result=result
+    )
+
+    pd.testing.assert_frame_equal(
+        time_course.variables,
+        pd.DataFrame(
+            [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+            index=time_points,
+            columns=["S", "P"],
+            dtype=float,
+        ),
+    )
+    pd.testing.assert_frame_equal(
+        time_course.fluxes,
+        pd.DataFrame(
+            [[0.1, 0.2], [0.2, 0.4], [0.3, 0.6]],
+            index=time_points,
+            columns=["v1", "v2"],
+            dtype=float,
+        ),
+    )
 
 
 def test_timecourse_results(simple_model: Model) -> None:
     time_points = np.array([0.0, 1.0, 2.0], dtype=float)
-    concs = pd.DataFrame(
-        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], index=time_points, columns=["S", "P"]
-    )
-    fluxes = pd.DataFrame(
-        [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], index=time_points, columns=["v1", "v2"]
+
+    result = Result(
+        model=simple_model,
+        _raw_variables=[
+            pd.DataFrame(
+                [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+                index=time_points,
+                columns=["S", "P"],
+            )
+        ],
+        _parameters=[simple_model.parameters],
     )
 
-    time_course = TimeCourse.from_scan(simple_model, time_points, concs, fluxes)
+    time_course = TimeCourse.from_scan(
+        model=simple_model, time_points=time_points, result=result
+    )
     results = time_course.results
 
-    assert isinstance(results, pd.DataFrame)
-    assert results.shape == (3, 4)
-    assert results.loc[1.0, "S"] == 3.0  # type: ignore
-    assert results.loc[1.0, "P"] == 4.0  # type: ignore
-    assert results.loc[1.0, "v1"] == 0.3  # type: ignore
-    assert results.loc[1.0, "v2"] == 0.4  # type: ignore
+    pd.testing.assert_frame_equal(
+        results,
+        pd.DataFrame(
+            {
+                "S": [1.0, 3.0, 5.0],
+                "P": [2.0, 4.0, 6.0],
+                "v1": [0.1, 0.2, 0.3],
+                "v2": [0.2, 0.4, 0.6],
+            },
+            index=[0.0, 1.0, 2.0],
+            dtype=float,
+        ),
+    )
 
 
 def test_steady_state_worker(simple_model: Model) -> None:

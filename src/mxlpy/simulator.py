@@ -56,7 +56,7 @@ def _normalise_split_results(
     return results
 
 
-@dataclass(slots=True)
+@dataclass(kw_only=True, slots=True)
 class Result:
     """Simulation results."""
 
