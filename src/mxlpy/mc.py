@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Protocol, cast
 import pandas as pd
 
 from mxlpy import mca, scan
+from mxlpy.integrators import DefaultIntegrator
 from mxlpy.parallel import Cache, parallelise
 from mxlpy.scan import (
     ProtocolWorker,
@@ -33,6 +34,8 @@ from mxlpy.scan import (
     _update_parameters_and,
 )
 from mxlpy.types import (
+    ArrayLike,
+    IntegratorProtocol,
     McSteadyStates,
     ProtocolByPars,
     ResponseCoefficientsByPars,
@@ -52,6 +55,8 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from mxlpy.model import Model
     from mxlpy.types import Array
 
@@ -76,6 +81,7 @@ class ParameterScanWorker(Protocol):
         *,
         parameters: pd.DataFrame,
         rel_norm: bool,
+        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
     ) -> SteadyStates:
         """Call the worker function."""
         ...
@@ -87,6 +93,7 @@ def _parameter_scan_worker(
     *,
     parameters: pd.DataFrame,
     rel_norm: bool,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
 ) -> SteadyStates:
     """Worker function for parallel steady state scanning across parameter sets.
 
@@ -117,6 +124,7 @@ def _parameter_scan_worker(
         y0=y0,
         parallel=False,
         rel_norm=rel_norm,
+        integrator=integrator,
     )
 
 
@@ -129,6 +137,7 @@ def steady_state(
     cache: Cache | None = None,
     rel_norm: bool = False,
     worker: SteadyStateWorker = _steady_state_worker,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
 ) -> SteadyStates:
     """Monte-carlo scan of steady states.
 
@@ -156,6 +165,7 @@ def steady_state(
                 worker,
                 y0=y0,
                 rel_norm=rel_norm,
+                integrator=integrator,
             ),
             model=model,
         ),
@@ -163,11 +173,9 @@ def steady_state(
         max_workers=max_workers,
         cache=cache,
     )
-    concs = {k: v.variables for k, v in res.items()}
-    fluxes = {k: v.fluxes for k, v in res.items()}
     return SteadyStates(
-        variables=pd.concat(concs, axis=1).T,
-        fluxes=pd.concat(fluxes, axis=1).T,
+        variables=pd.concat({k: v.variables for k, v in res.items()}, axis=1).T,
+        fluxes=pd.concat({k: v.fluxes for k, v in res.items()}, axis=1).T,
         parameters=mc_parameters,
     )
 
@@ -180,6 +188,7 @@ def time_course(
     max_workers: int | None = None,
     cache: Cache | None = None,
     worker: TimeCourseWorker = _time_course_worker,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
 ) -> TimeCourseByPars:
     """MC time course.
 
@@ -207,6 +216,7 @@ def time_course(
                 worker,
                 time_points=time_points,
                 y0=y0,
+                integrator=integrator,
             ),
             model=model,
         ),
@@ -214,12 +224,11 @@ def time_course(
         max_workers=max_workers,
         cache=cache,
     )
-    concs = {k: v.variables.T for k, v in res.items()}
-    fluxes = {k: v.fluxes.T for k, v in res.items()}
+
     return TimeCourseByPars(
         parameters=mc_parameters,
-        variables=pd.concat(concs, axis=1).T,
-        fluxes=pd.concat(fluxes, axis=1).T,
+        variables=pd.concat({k: v.variables.T for k, v in res.items()}, axis=1).T,
+        fluxes=pd.concat({k: v.fluxes.T for k, v in res.items()}, axis=1).T,
     )
 
 
@@ -232,6 +241,7 @@ def time_course_over_protocol(
     max_workers: int | None = None,
     cache: Cache | None = None,
     worker: ProtocolWorker = _protocol_worker,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
 ) -> ProtocolByPars:
     """MC time course.
 
@@ -260,6 +270,7 @@ def time_course_over_protocol(
                 worker,
                 protocol=protocol,
                 y0=y0,
+                integrator=integrator,
                 time_points_per_step=time_points_per_step,
             ),
             model=model,
@@ -288,6 +299,7 @@ def scan_steady_state(
     cache: Cache | None = None,
     rel_norm: bool = False,
     worker: ParameterScanWorker = _parameter_scan_worker,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
 ) -> McSteadyStates:
     """Parameter scan of mc distributed steady states.
 
@@ -317,6 +329,7 @@ def scan_steady_state(
         cache: Cache object for storing results
         rel_norm: Whether to use relative normalization in the steady state calculations
         worker: Worker function for parallel steady state scanning across parameter sets
+        integrator: Function producing an integrator for the simulation.
 
     Returns:
         McSteadyStates: Object containing the steady state solutions for the given parameter
@@ -330,6 +343,7 @@ def scan_steady_state(
                 parameters=parameters,
                 y0=y0,
                 rel_norm=rel_norm,
+                integrator=integrator,
             ),
             model=model,
         ),
@@ -487,6 +501,7 @@ def response_coefficients(
     disable_tqdm: bool = False,
     max_workers: int | None = None,
     rel_norm: bool = False,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
 ) -> ResponseCoefficientsByPars:
     """Calculate response coefficients using Monte Carlo analysis.
 
@@ -513,6 +528,7 @@ def response_coefficients(
         disable_tqdm: Whether to disable the tqdm progress bar
         max_workers: Maximum number of workers for parallel processing
         rel_norm: Whether to use relative normalization in the steady state calculations
+        integrator: Function producing an integrator for the simulation.
 
     Returns:
         ResponseCoefficientsByPars: Object containing the response coefficients for the given parameters
@@ -530,6 +546,7 @@ def response_coefficients(
                 rel_norm=rel_norm,
                 disable_tqdm=disable_tqdm,
                 parallel=False,
+                integrator=integrator,
             ),
             model=model,
         ),
@@ -538,11 +555,10 @@ def response_coefficients(
         max_workers=max_workers,
     )
 
-    crcs = {k: v.variables for k, v in res.items()}
-    frcs = {k: v.fluxes for k, v in res.items()}
-
     return ResponseCoefficientsByPars(
-        variables=cast(pd.DataFrame, pd.concat(crcs)),
-        fluxes=cast(pd.DataFrame, pd.concat(frcs)),
+        variables=cast(
+            pd.DataFrame, pd.concat({k: v.variables for k, v in res.items()})
+        ),
+        fluxes=cast(pd.DataFrame, pd.concat({k: v.fluxes for k, v in res.items()})),
         parameters=mc_parameters,
     )

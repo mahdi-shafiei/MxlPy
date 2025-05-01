@@ -22,9 +22,10 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
+from mxlpy.integrators import DefaultIntegrator
 from mxlpy.parallel import parallelise
 from mxlpy.scan import _steady_state_worker
-from mxlpy.types import ResponseCoefficients
+from mxlpy.types import ArrayLike, ResponseCoefficients
 
 __all__ = [
     "parameter_elasticities",
@@ -33,6 +34,9 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from mxlpy import IntegratorProtocol
     from mxlpy.model import Model
 
 
@@ -165,6 +169,7 @@ def _response_coefficient_worker(
     normalized: bool,
     rel_norm: bool,
     displacement: float = 1e-4,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
 ) -> tuple[pd.Series, pd.Series]:
     """Calculate response coefficients for a single parameter.
 
@@ -182,6 +187,7 @@ def _response_coefficient_worker(
         normalized: Whether to normalize the coefficients
         rel_norm: Whether to use relative normalization
         displacement: Relative perturbation size (default: 1e-4)
+        integrator: Integrator function to use for steady state calculation
 
     Returns:
         tuple[pd.Series, pd.Series]: Tuple containing:
@@ -196,6 +202,7 @@ def _response_coefficient_worker(
         model,
         y0=y0,
         rel_norm=rel_norm,
+        integrator=integrator,
     )
 
     model.update_parameters({parameter: old * (1 - displacement)})
@@ -203,6 +210,7 @@ def _response_coefficient_worker(
         model,
         y0=y0,
         rel_norm=rel_norm,
+        integrator=integrator,
     )
 
     conc_resp = (upper.variables - lower.variables) / (2 * displacement * old)
@@ -214,6 +222,7 @@ def _response_coefficient_worker(
             model,
             y0=y0,
             rel_norm=rel_norm,
+            integrator=integrator,
         )
         conc_resp *= old / norm.variables
         flux_resp *= old / norm.fluxes
@@ -231,6 +240,7 @@ def response_coefficients(
     parallel: bool = True,
     max_workers: int | None = None,
     rel_norm: bool = False,
+    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
 ) -> ResponseCoefficients:
     """Calculate response coefficients.
 
@@ -250,6 +260,7 @@ def response_coefficients(
         parallel: Whether to parallelize the computation
         max_workers: Maximum number of workers
         rel_norm: Whether to use relative normalization
+        integrator: Integrator function to use for steady state calculation
 
     Returns:
         ResponseCoefficients object containing:
@@ -267,6 +278,7 @@ def response_coefficients(
             normalized=normalized,
             displacement=displacement,
             rel_norm=rel_norm,
+            integrator=integrator,
         ),
         inputs=list(zip(parameters, parameters, strict=True)),
         cache=None,
