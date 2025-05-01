@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from mxlpy import Model, fns
+from mxlpy.integrators import DefaultIntegrator
 from mxlpy.scan import (
     TimeCourse,
     TimePoint,
@@ -239,7 +240,12 @@ def test_timecourse_results(simple_model: Model) -> None:
 
 
 def test_steady_state_worker(simple_model: Model) -> None:
-    result = _steady_state_worker(simple_model, y0=None, rel_norm=False)
+    result = _steady_state_worker(
+        simple_model,
+        y0=None,
+        rel_norm=False,
+        integrator=DefaultIntegrator,
+    )
     assert isinstance(result, TimePoint)
 
     # The model should reach steady state with S=0, P=0
@@ -251,7 +257,12 @@ def test_steady_state_worker(simple_model: Model) -> None:
 
 def test_time_course_worker(simple_model: Model) -> None:
     time_points = np.linspace(0, 1, 3)
-    result = _time_course_worker(simple_model, y0=None, time_points=time_points)
+    result = _time_course_worker(
+        simple_model,
+        y0=None,
+        time_points=time_points,
+        integrator=DefaultIntegrator,
+    )
 
     assert isinstance(result, TimeCourse)
     assert result.variables.shape == (3, 2)
