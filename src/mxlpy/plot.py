@@ -18,12 +18,17 @@ Functions:
 
 from __future__ import annotations
 
+import contextlib
+
+from cycler import cycler
+
 __all__ = [
     "FigAx",
     "FigAxs",
     "Linestyle",
     "add_grid",
     "bars",
+    "context",
     "grid_layout",
     "heatmap",
     "heatmap_from_2d_idx",
@@ -66,6 +71,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from mxlpy.label_map import LabelMapper
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from matplotlib.collections import QuadMesh
 
     from mxlpy.linear_label_map import LinearLabelMapper
@@ -259,6 +266,12 @@ def rotate_xlabels(
 
 
 def show(fig: Figure | None = None) -> None:
+    """Show the given figure or the current figure.
+
+    Args:
+        fig: Figure to show.
+
+    """
     if fig is None:
         plt.show()
     else:
@@ -266,7 +279,37 @@ def show(fig: Figure | None = None) -> None:
 
 
 def reset_prop_cycle(ax: Axes) -> None:
+    """Reset the property cycle of the given axis.
+
+    Args:
+        ax: Axis to reset the property cycle of.
+
+    """
     ax.set_prop_cycle(plt.rcParams["axes.prop_cycle"])
+
+
+@contextlib.contextmanager
+def context(
+    colors: list[str] | None = None,
+    line_width: float | None = None,
+) -> Generator[None, None, None]:
+    """Context manager to set the defaults for plots.
+
+    Args:
+        colors: colors to use for the plot.
+        line_width: line width to use for the plot.
+
+    """
+    rc = {}
+
+    if colors is not None:
+        rc["axes.prop_cycle"] = cycler(color=colors)
+
+    if line_width is not None:
+        rc["lines.linewidth"] = line_width
+
+    with plt.rc_context(rc):
+        yield
 
 
 ##########################################################################
