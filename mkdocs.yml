@@ -4,22 +4,23 @@ site_dir: dist
 use_directory_urls: false
 
 nav:
-  - Overview: index.md
-  - Basics: basics.ipynb
-  - Scans: scans.ipynb
-  - MCA: mca.ipynb
-  - Fitting: fitting.ipynb
-  - Monte Carlo methods: monte-carlo.ipynb
+  - About: index.md
+  - ODE features:
+      - Basics: basics.ipynb
+      - Scans: scans.ipynb
+      - MCA: mca.ipynb
+      - Fitting: fitting.ipynb
+      - Monte Carlo methods: monte-carlo.ipynb
+      - Label models: label-models.ipynb
+      - Model parameterisation: parameterise.ipynb
+      - Stability analysis: stability.ipynb
+      - Experimental: experimental.ipynb
+      - Symbolic: symbolic.ipynb
   - Mechanistic learning: mxl.ipynb
-  - Label models: label-models.ipynb
-  - Model parameterisation: parameterise.ipynb
-  - Stability analysis: stability.ipynb
-  - Experimental: experimental.ipynb
-  - Symbolic: symbolic.ipynb
-  - Examples: examples.ipynb
   - Metaprogramming: metaprogramming.ipynb
+  - Examples: examples.ipynb
   - Tips: tips.ipynb
-  - Citing: citation.md
+  - How to cite: citing.md
 
 theme:
   name: material
