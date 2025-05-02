@@ -154,7 +154,7 @@ def _time_course_residual(
     par_names: list[str],
     data: pd.DataFrame,
     model: Model,
-    y0: dict[str, float],
+    y0: dict[str, float] | None,
     integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
 ) -> float:
     """Calculate residual error between model time course and experimental data.
