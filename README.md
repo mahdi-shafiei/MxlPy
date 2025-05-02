@@ -1,6 +1,6 @@
-# mxlpy
+<img src="docs/assets/logo-diagram.png" style="display: block; max-height: 30rem; margin: auto; padding: 0" alt='mxlpy-logo'>
 
-<img src="docs/assets/logo.png" style="display: block; max-height: 20rem; margin: auto; padding: 2rem 0">
+# mxlpy
 
 [![pypi](https://img.shields.io/pypi/v/mxlpy.svg)](https://pypi.python.org/pypi/mxlpy)
 [![docs][docs-badge]][docs]
