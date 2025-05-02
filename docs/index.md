@@ -1,5 +1,7 @@
 # mxlpy
 
+<img src="assets/logo.png" style="display: block; max-height: 20rem; margin: auto; padding: 2rem 0">
+
 *mxlpy* is a Python package designed to enable *mechanistic learning*, bridging the gap between *mechanistic modeling* and *machine learning*.
 The package enables you to integrate ordinary differential equation (ODE) models with data-driven techniques.
 This combination allows for more accurate and interpretable predictions in systems where both physical laws and data-driven insights are valuable.

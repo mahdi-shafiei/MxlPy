@@ -1,5 +1,7 @@
 # mxlpy
 
+<img src="docs/assets/logo.png" style="display: block; max-height: 20rem; margin: auto; padding: 2rem 0">
+
 [![pypi](https://img.shields.io/pypi/v/mxlpy.svg)](https://pypi.python.org/pypi/mxlpy)
 [![docs][docs-badge]][docs]
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)
