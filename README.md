@@ -25,6 +25,13 @@ pixi add python assimulo
 pixi add --pypi mxlpy[torch]
 ```
 
+## How to cite
+
+If you use this software in your scientific work, please cite [this article](...):
+
+- [doi](https://doi.org/...)
+- [bibtex file](...)
+
 
 ## Development setup
 

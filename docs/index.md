@@ -149,3 +149,11 @@ A collection of experimental features for you to explore.
 Warning: all APIs shown should be considered unstable and may change without notice.
 
 [Start learning](experimental.ipynb){ .md-button }
+
+
+## How to cite
+
+If you use this software in your scientific work, please cite [this article](...):
+
+- [doi](https://doi.org/...)
+- [bibtex file](...)

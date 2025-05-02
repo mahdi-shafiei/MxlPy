@@ -19,6 +19,7 @@ nav:
   - Examples: examples.ipynb
   - Metaprogramming: metaprogramming.ipynb
   - Tips: tips.ipynb
+  - Citing: citation.md
 
 theme:
   name: material
