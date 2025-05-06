@@ -348,6 +348,7 @@ class Simulator:
         self._integrator_type = integrator
         self._time_shift = None
         self.variables = None
+        self.dependent = None
         self.simulation_parameters = None
 
         if test_run:
