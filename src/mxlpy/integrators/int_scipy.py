@@ -42,6 +42,7 @@ class Scipy:
 
     rhs: Callable
     y0: ArrayLike
+    jacobian: Callable | None = None
     atol: float = 1e-8
     rtol: float = 1e-8
     t0: float = 0.0
@@ -82,7 +83,7 @@ class Scipy:
         steps = 100 if steps is None else steps + 1
 
         return self.integrate_time_course(
-            time_points=np.linspace(self.t0, t_end, steps)
+            time_points=np.linspace(self.t0, t_end, steps, dtype=float)
         )
 
     def integrate_time_course(
@@ -97,17 +98,21 @@ class Scipy:
             tuple[ArrayLike, ArrayLike]: Tuple containing the time points and the integrated values.
 
         """
-        y = spi.odeint(
-            func=self.rhs,
+        res = spi.solve_ivp(
+            fun=self.rhs,
             y0=self.y0,
-            t=time_points,
-            tfirst=True,
+            t_span=(time_points[0], time_points[-1]),
+            t_eval=time_points,
+            jac=self.jacobian,
             atol=self.atol,
             rtol=self.rtol,
+            method="LSODA",
         )
-        self.t0 = time_points[-1]
-        self.y0 = y[-1, :]
-        return np.array(time_points, dtype=float), y
+        if res.success:
+            self.t0 = time_points[-1]
+            self.y0 = res.y[:, -1]
+            return np.array(time_points, dtype=float), res.y.T
+        return None, None
 
     def integrate_to_steady_state(
         self,
@@ -131,7 +136,7 @@ class Scipy:
 
         """
         self.reset()
-        integ = spi.ode(self.rhs)
+        integ = spi.ode(self.rhs, jac=self.jacobian)
         integ.set_integrator(name="lsoda")
         integ.set_initial_value(self.y0)
         t = self.t0 + step_size

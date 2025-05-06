@@ -45,6 +45,7 @@ class Assimulo:
 
     rhs: Callable
     y0: ArrayLike
+    jacobian: Callable | None = None
     atol: float = 1e-8
     rtol: float = 1e-8
     maxnef: int = 4  # max error failures
@@ -61,7 +62,11 @@ class Assimulo:
         number of convergence failures (`self.maxncf`), and verbosity level (`self.verbosity`).
 
         """
-        self.integrator = CVode(Explicit_Problem(self.rhs, self.y0))
+        problem = Explicit_Problem(self.rhs, self.y0)
+        if self.jacobian is not None:
+            problem.jac = self.jacobian
+
+        self.integrator = CVode(problem)
         self.integrator.atol = self.atol
         self.integrator.rtol = self.rtol
         self.integrator.maxnef = self.maxnef

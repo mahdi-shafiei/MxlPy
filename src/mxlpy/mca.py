@@ -25,7 +25,7 @@ import pandas as pd
 from mxlpy.integrators import DefaultIntegrator
 from mxlpy.parallel import parallelise
 from mxlpy.scan import _steady_state_worker
-from mxlpy.types import ArrayLike, ResponseCoefficients
+from mxlpy.types import ResponseCoefficients
 
 __all__ = [
     "parameter_elasticities",
@@ -34,10 +34,8 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from mxlpy import IntegratorProtocol
     from mxlpy.model import Model
+    from mxlpy.types import IntegratorType
 
 
 ###############################################################################
@@ -169,7 +167,7 @@ def _response_coefficient_worker(
     normalized: bool,
     rel_norm: bool,
     displacement: float = 1e-4,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+    integrator: IntegratorType,
 ) -> tuple[pd.Series, pd.Series]:
     """Calculate response coefficients for a single parameter.
 
@@ -240,7 +238,7 @@ def response_coefficients(
     parallel: bool = True,
     max_workers: int | None = None,
     rel_norm: bool = False,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> ResponseCoefficients:
     """Calculate response coefficients.
 

@@ -12,9 +12,7 @@ from mxlpy.scan import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from mxlpy.types import Array, ArrayLike, IntegratorProtocol
+    from mxlpy.types import Array, IntegratorType
 
 
 def mock_ss_worker(
@@ -22,7 +20,7 @@ def mock_ss_worker(
     y0: dict[str, float] | None,  # noqa: ARG001
     *,
     rel_norm: bool,  # noqa: ARG001
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],  # noqa: ARG001
+    integrator: IntegratorType,  # noqa: ARG001
 ) -> TimePoint:
     return TimePoint(
         variables=pd.Series({"x1": 1.0, "x2": 2.0}),
@@ -34,7 +32,7 @@ def mock_tc_worker(
     model: Model,  # noqa: ARG001
     y0: dict[str, float] | None,  # noqa: ARG001
     time_points: Array,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],  # noqa: ARG001
+    integrator: IntegratorType,  # noqa: ARG001
 ) -> TimeCourse:
     return TimeCourse(
         variables=pd.DataFrame({i: {"x1": 1.0, "x2": 2.0} for i in time_points}).T,

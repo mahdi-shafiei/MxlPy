@@ -38,8 +38,7 @@ import pandas as pd
 from mxlpy.parallel import Cache, parallelise
 from mxlpy.simulator import Result, Simulator
 from mxlpy.types import (
-    ArrayLike,
-    IntegratorProtocol,
+    IntegratorType,
     ProtocolByPars,
     SteadyStates,
     TimeCourseByPars,
@@ -286,7 +285,7 @@ class SteadyStateWorker(Protocol):
         y0: dict[str, float] | None,
         *,
         rel_norm: bool,
-        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+        integrator: IntegratorType,
     ) -> TimePoint:
         """Call the worker function."""
         ...
@@ -301,7 +300,7 @@ class TimeCourseWorker(Protocol):
         y0: dict[str, float] | None,
         time_points: Array,
         *,
-        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+        integrator: IntegratorType,
     ) -> TimeCourse:
         """Call the worker function."""
         ...
@@ -316,7 +315,7 @@ class ProtocolWorker(Protocol):
         y0: dict[str, float] | None,
         protocol: pd.DataFrame,
         *,
-        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+        integrator: IntegratorType,
         time_points_per_step: int = 10,
     ) -> TimeCourse:
         """Call the worker function."""
@@ -328,7 +327,7 @@ def _steady_state_worker(
     y0: dict[str, float] | None,
     *,
     rel_norm: bool,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+    integrator: IntegratorType,
 ) -> TimePoint:
     """Simulate the model to steady state and return concentrations and fluxes.
 
@@ -357,7 +356,7 @@ def _time_course_worker(
     model: Model,
     y0: dict[str, float] | None,
     time_points: Array,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+    integrator: IntegratorType,
 ) -> TimeCourse:
     """Simulate the model to steady state and return concentrations and fluxes.
 
@@ -391,7 +390,7 @@ def _protocol_worker(
     y0: dict[str, float] | None,
     protocol: pd.DataFrame,
     *,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
     time_points_per_step: int = 10,
 ) -> TimeCourse:
     """Simulate the model over a protocol and return concentrations and fluxes.
@@ -440,7 +439,7 @@ def steady_state(
     rel_norm: bool = False,
     cache: Cache | None = None,
     worker: SteadyStateWorker = _steady_state_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> SteadyStates:
     """Get steady-state results over supplied parameters.
 
@@ -515,7 +514,7 @@ def time_course(
     parallel: bool = True,
     cache: Cache | None = None,
     worker: TimeCourseWorker = _time_course_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> TimeCourseByPars:
     """Get time course for each supplied parameter.
 
@@ -601,7 +600,7 @@ def time_course_over_protocol(
     parallel: bool = True,
     cache: Cache | None = None,
     worker: ProtocolWorker = _protocol_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> ProtocolByPars:
     """Get protocol series for each supplied parameter.
 

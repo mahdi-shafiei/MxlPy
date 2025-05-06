@@ -21,10 +21,10 @@ from mxlpy.integrators import DefaultIntegrator
 __all__ = ["Result", "Simulator"]
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator
+    from collections.abc import Iterator
 
     from mxlpy.model import Model
-    from mxlpy.types import Array, ArrayLike, IntegratorProtocol
+    from mxlpy.types import Array, ArrayLike, IntegratorProtocol, IntegratorType
 
 
 def _normalise_split_results(
@@ -321,16 +321,14 @@ class Simulator:
     simulation_parameters: list[dict[str, float]] | None
 
     # For resets (e.g. update variable)
-    _integrator_type: Callable[[Callable, ArrayLike], IntegratorProtocol]
+    _integrator_type: IntegratorType
     _time_shift: float | None
 
     def __init__(
         self,
         model: Model,
         y0: dict[str, float] | None = None,
-        integrator: Callable[
-            [Callable, ArrayLike], IntegratorProtocol
-        ] = DefaultIntegrator,
+        integrator: IntegratorType = DefaultIntegrator,
         *,
         test_run: bool = True,
     ) -> None:
@@ -358,10 +356,26 @@ class Simulator:
         self._initialise_integrator()
 
     def _initialise_integrator(self) -> None:
+        from sympy import lambdify
+
+        from mxlpy.symbolic import to_symbolic_model
+
+        try:
+            jac = to_symbolic_model(self.model).jacobian()
+
+            _jacobian = lambda t, y: lambdify(  # noqa: E731
+                ("time", self.model.get_variable_names()),
+                jac.subs(self.model._parameters),  # noqa: SLF001
+            )(t, y)
+
+        except:  # noqa: E722
+            _jacobian = None  # type: ignore
+
         y0 = self.y0
         self.integrator = self._integrator_type(
             self.model,
             [y0[k] for k in self.model.get_variable_names()],
+            _jacobian,
         )
 
     def clear_results(self) -> None:

@@ -22,7 +22,7 @@ from mxlpy.types import (
     Array,
     ArrayLike,
     Callable,
-    IntegratorProtocol,
+    IntegratorType,
     cast,
 )
 
@@ -57,7 +57,7 @@ class SteadyStateResidualFn(Protocol):
         data: pd.Series,
         model: Model,
         y0: dict[str, float],
-        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+        integrator: IntegratorType,
     ) -> float:
         """Calculate residual error between model steady state and experimental data."""
         ...
@@ -74,7 +74,7 @@ class TimeSeriesResidualFn(Protocol):
         data: pd.DataFrame,
         model: Model,
         y0: dict[str, float],
-        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+        integrator: IntegratorType,
     ) -> float:
         """Calculate residual error between model time course and experimental data."""
         ...
@@ -108,7 +108,7 @@ def _steady_state_residual(
     data: pd.Series,
     model: Model,
     y0: dict[str, float] | None,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+    integrator: IntegratorType,
 ) -> float:
     """Calculate residual error between model steady state and experimental data.
 
@@ -155,7 +155,7 @@ def _time_course_residual(
     data: pd.DataFrame,
     model: Model,
     y0: dict[str, float] | None,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+    integrator: IntegratorType,
 ) -> float:
     """Calculate residual error between model time course and experimental data.
 
@@ -194,7 +194,7 @@ def steady_state(
     y0: dict[str, float] | None = None,
     minimize_fn: MinimizeFn = _default_minimize_fn,
     residual_fn: SteadyStateResidualFn = _steady_state_residual,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> dict[str, float]:
     """Fit model parameters to steady-state experimental data.
 
@@ -248,7 +248,7 @@ def time_course(
     y0: dict[str, float] | None = None,
     minimize_fn: MinimizeFn = _default_minimize_fn,
     residual_fn: TimeSeriesResidualFn = _time_course_residual,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> dict[str, float]:
     """Fit model parameters to time course of experimental data.
 

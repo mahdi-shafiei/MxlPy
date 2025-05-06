@@ -34,8 +34,7 @@ from mxlpy.scan import (
     _update_parameters_and,
 )
 from mxlpy.types import (
-    ArrayLike,
-    IntegratorProtocol,
+    IntegratorType,
     McSteadyStates,
     ProtocolByPars,
     ResponseCoefficientsByPars,
@@ -55,8 +54,6 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from mxlpy.model import Model
     from mxlpy.types import Array
 
@@ -81,7 +78,7 @@ class ParameterScanWorker(Protocol):
         *,
         parameters: pd.DataFrame,
         rel_norm: bool,
-        integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+        integrator: IntegratorType,
     ) -> SteadyStates:
         """Call the worker function."""
         ...
@@ -93,7 +90,7 @@ def _parameter_scan_worker(
     *,
     parameters: pd.DataFrame,
     rel_norm: bool,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],
+    integrator: IntegratorType,
 ) -> SteadyStates:
     """Worker function for parallel steady state scanning across parameter sets.
 
@@ -137,7 +134,7 @@ def steady_state(
     cache: Cache | None = None,
     rel_norm: bool = False,
     worker: SteadyStateWorker = _steady_state_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> SteadyStates:
     """Monte-carlo scan of steady states.
 
@@ -188,7 +185,7 @@ def time_course(
     max_workers: int | None = None,
     cache: Cache | None = None,
     worker: TimeCourseWorker = _time_course_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> TimeCourseByPars:
     """MC time course.
 
@@ -241,7 +238,7 @@ def time_course_over_protocol(
     max_workers: int | None = None,
     cache: Cache | None = None,
     worker: ProtocolWorker = _protocol_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> ProtocolByPars:
     """MC time course.
 
@@ -299,7 +296,7 @@ def scan_steady_state(
     cache: Cache | None = None,
     rel_norm: bool = False,
     worker: ParameterScanWorker = _parameter_scan_worker,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> McSteadyStates:
     """Parameter scan of mc distributed steady states.
 
@@ -501,7 +498,7 @@ def response_coefficients(
     disable_tqdm: bool = False,
     max_workers: int | None = None,
     rel_norm: bool = False,
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol] = DefaultIntegrator,
+    integrator: IntegratorType = DefaultIntegrator,
 ) -> ResponseCoefficientsByPars:
     """Calculate response coefficients using Monte Carlo analysis.
 

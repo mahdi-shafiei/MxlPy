@@ -8,7 +8,7 @@ from mxlpy import fit
 from mxlpy.fit import ResidualFn
 from mxlpy.fns import constant
 from mxlpy.model import Model
-from mxlpy.types import Array, ArrayLike, IntegratorProtocol, unwrap
+from mxlpy.types import Array, ArrayLike, IntegratorType, unwrap
 
 
 def mock_minimize_fn(
@@ -30,7 +30,7 @@ def mock_ss_residual_fn(
     data: pd.Series,  # noqa: ARG001
     model: Model,  # noqa: ARG001
     y0: dict[str, float],  # noqa: ARG001
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],  # noqa: ARG001
+    integrator: IntegratorType,  # noqa: ARG001
 ) -> float:
     return 0.0
 
@@ -41,7 +41,7 @@ def mock_ts_residual_fn(
     data: pd.DataFrame,  # noqa: ARG001
     model: Model,  # noqa: ARG001
     y0: dict[str, float],  # noqa: ARG001
-    integrator: Callable[[Callable, ArrayLike], IntegratorProtocol],  # noqa: ARG001
+    integrator: IntegratorType,  # noqa: ARG001
 ) -> float:
     return 0.0
 
@@ -51,6 +51,7 @@ class MockIntegrator:
         self,
         rhs: Callable,  # noqa: ARG002
         y0: ArrayLike,
+        jacobian: Callable | None = None,  # noqa: ARG002
     ) -> None:
         self.y0 = y0
 

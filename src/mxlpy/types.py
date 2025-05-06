@@ -28,6 +28,7 @@ __all__ = [
     "Derived",
     "Float",
     "IntegratorProtocol",
+    "IntegratorType",
     "McSteadyStates",
     "MockSurrogate",
     "Param",
@@ -114,6 +115,7 @@ class IntegratorProtocol(Protocol):
         self,
         rhs: Callable,
         y0: ArrayLike,
+        jacobian: Callable | None = None,
     ) -> None:
         """Initialise the integrator."""
         ...
@@ -145,6 +147,11 @@ class IntegratorProtocol(Protocol):
     ) -> tuple[float | None, ArrayLike | None]:
         """Integrate the system to steady state."""
         ...
+
+
+type IntegratorType = Callable[
+    [Callable, ArrayLike, Callable | None], IntegratorProtocol
+]
 
 
 @dataclass(kw_only=True, slots=True)
