@@ -19,8 +19,8 @@ nav:
   - Mechanistic learning: mxl.ipynb
   - Metaprogramming: metaprogramming.ipynb
   - Examples: examples.ipynb
+  - Reporting: report.ipynb
   - Tips: tips.ipynb
-  - Experimental features: experimental.ipynb
   - How to cite: citing.md
 
 theme:

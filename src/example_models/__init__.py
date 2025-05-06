@@ -15,6 +15,7 @@ from .linear_chain import (
 )
 from .phase_plane import get_phase_plane
 from .poolman2000 import get_model as get_poolman2000
+from .sir import get_sir, get_sird
 from .tpi import get_tpi_ald_model
 from .upper_glycolysis import get_model as get_upper_glycolysis
 
@@ -25,6 +26,8 @@ __all__ = [
     "get_linear_chain_2v",
     "get_phase_plane",
     "get_poolman2000",
+    "get_sir",
+    "get_sird",
     "get_tpi_ald_model",
     "get_upper_glycolysis",
 ]

@@ -49,6 +49,7 @@ from . import (
     mc,
     mca,
     plot,
+    report,
     sbml,
     surrogates,
 )
@@ -95,6 +96,7 @@ __all__ = [
     "mc",
     "mca",
     "plot",
+    "report",
     "sbml",
     "steady_state",
     "surrogates",
