@@ -476,19 +476,17 @@ def lines(
 ) -> FigAx:
     """Plot multiple lines on the same axis."""
     fig, ax = _default_fig_ax(ax=ax, grid=grid)
-    ax.plot(
+    _lines = ax.plot(
         x.index,
         x,
-        # linestyle=linestyle,
-        # linewidth=linewidth,
         alpha=alpha,
     )
     _default_labels(ax, xlabel=x.index.name, ylabel=None)
     if legend:
-        if isinstance(x, pd.Series):
-            ax.legend([str(x.name)])
-        else:
-            ax.legend(x.columns)
+        names = x.columns if isinstance(x, pd.DataFrame) else [str(x.name)]
+        for line, name in zip(_lines, names, strict=True):
+            line.set_label(name)
+        ax.legend()
     return fig, ax
 
 
