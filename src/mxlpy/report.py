@@ -31,6 +31,14 @@ def _new_removed_changed[T](
     return new, removed, changed
 
 
+def _table_row(items: list[str]) -> str:
+    return f"| {' | '.join(items)} |"
+
+
+def _table_header(items: list[str]) -> str:
+    return f"{_table_row(items)}\n{_table_row(['---'] * len(items))}"
+
+
 def markdown(
     m1: Model,
     m2: Model,
@@ -167,7 +175,7 @@ def markdown(
     for k, v in rel_diff.loc[rel_diff.abs() >= rel_change].items():
         k = cast(str, k)
         dependent.append(
-            f"| <span style='color:orange'>{k}</span> | {d1[k]:.2f} | {d2[k]:.2f} |  {v:.1%} "
+            f"| <span style='color:orange'>{k}</span> | {d1[k]:.2f} | {d2[k]:.2f} |  {v:.1%} |"
         )
     if len(dependent) >= 1:
         content.extend(
@@ -186,7 +194,7 @@ def markdown(
     for k, v in rel_diff.loc[rel_diff.abs() >= rel_change].items():
         k = cast(str, k)
         rhs.append(
-            f"| <span style='color:orange'>{k}</span> | {r1[k]:.2f} | {r2[k]:.2f} |  {v:.1%} "
+            f"| <span style='color:orange'>{k}</span> | {r1[k]:.2f} | {r2[k]:.2f} |  {v:.1%} |"
         )
     if len(rhs) >= 1:
         content.extend(
