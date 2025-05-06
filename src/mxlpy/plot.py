@@ -52,7 +52,7 @@ __all__ = [
 
 import itertools as it
 import math
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -292,21 +292,28 @@ def reset_prop_cycle(ax: Axes) -> None:
 def context(
     colors: list[str] | None = None,
     line_width: float | None = None,
+    line_style: Linestyle | None = None,
+    rc: dict[str, Any] | None = None,
 ) -> Generator[None, None, None]:
     """Context manager to set the defaults for plots.
 
     Args:
         colors: colors to use for the plot.
         line_width: line width to use for the plot.
+        line_style: line style to use for the plot.
+        rc: additional keyword arguments to pass to the rc context.
 
     """
-    rc = {}
+    rc = {} if rc is None else rc
 
     if colors is not None:
         rc["axes.prop_cycle"] = cycler(color=colors)
 
     if line_width is not None:
         rc["lines.linewidth"] = line_width
+
+    if line_style is not None:
+        rc["lines.linestyle"] = line_style
 
     with plt.rc_context(rc):
         yield
