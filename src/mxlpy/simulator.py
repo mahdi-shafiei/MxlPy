@@ -10,6 +10,7 @@ Classes:
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Literal, Self, cast, overload
 
@@ -319,6 +320,7 @@ class Simulator:
     variables: list[pd.DataFrame] | None
     dependent: list[pd.DataFrame] | None
     simulation_parameters: list[dict[str, float]] | None
+    use_jacobian: bool
 
     # For resets (e.g. update variable)
     _integrator_type: IntegratorType
@@ -330,6 +332,7 @@ class Simulator:
         y0: dict[str, float] | None = None,
         integrator: IntegratorType = DefaultIntegrator,
         *,
+        use_jacobian: bool = False,
         test_run: bool = True,
     ) -> None:
         """Initialize the Simulator.
@@ -339,6 +342,7 @@ class Simulator:
             y0: Initial conditions for the model variables.
                 If None, the initial conditions are obtained from the model.
             integrator: The integrator to use for the simulation.
+            use_jacobian: Whether to use the Jacobian for the simulation.
             test_run (bool, optional): If True, performs a test run for better error messages
 
         """
@@ -350,6 +354,7 @@ class Simulator:
         self.variables = None
         self.dependent = None
         self.simulation_parameters = None
+        self.use_jacobian = use_jacobian
 
         if test_run:
             self.model.get_right_hand_side(self.y0, time=0)
@@ -361,16 +366,29 @@ class Simulator:
 
         from mxlpy.symbolic import to_symbolic_model
 
-        try:
-            jac = to_symbolic_model(self.model).jacobian()
+        _jacobian = None
+        if self.use_jacobian:
+            try:
+                # NOTE: this implementation is not correct in the sense
+                # that it does not take parameter updates into account
+                # jac = (
+                #     to_symbolic_model(self.model)
+                #     .jacobian()
+                #     .subs(self.model._parameters)
+                # )
+                # _jacobian = lambdify(
+                #     ("time", self.model.get_variable_names()),
+                #     jac,
+                # )
 
-            _jacobian = lambda t, y: lambdify(  # noqa: E731
-                ("time", self.model.get_variable_names()),
-                jac.subs(self.model._parameters),  # noqa: SLF001
-            )(t, y)
-
-        except:  # noqa: E722
-            _jacobian = None  # type: ignore
+                # NOTE: this implementation is correct, but slow as hell
+                jac = to_symbolic_model(self.model).jacobian()
+                _jacobian = lambda t, y: lambdify(  # noqa: E731
+                    ("time", self.model.get_variable_names()),
+                    jac.subs(self.model._parameters),  # noqa: SLF001
+                )(t, y)
+            except Exception as e:  # noqa: BLE001
+                warnings.warn(str(e), stacklevel=2)
 
         y0 = self.y0
         self.integrator = self._integrator_type(
