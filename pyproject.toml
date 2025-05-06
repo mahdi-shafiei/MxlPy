@@ -41,6 +41,7 @@ dependencies = [
   "parameteriser>=0.1.0",
   "pebble>=5.0.7",
   "python-libsbml>=5.20.4",
+  "salib>=1.5.1",
   "scipy>=1.14.1",
   "seaborn>=0.13.2",
   "symbtools>=0.4.0",
