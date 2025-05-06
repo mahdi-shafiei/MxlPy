@@ -192,7 +192,11 @@ class Derived:
             dependent: Dictionary of dependent variables.
 
         """
-        dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+        try:
+            dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+        except ValueError:  # e.g. numpy.where
+            sub = dependent.loc[:, self.args].to_numpy()
+            dependent[self.name] = [self.fn(*row) for row in sub]
 
 
 @dataclass(kw_only=True, slots=True)
@@ -233,7 +237,11 @@ class Readout:
             dependent: Dictionary of dependent variables.
 
         """
-        dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+        try:
+            dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+        except ValueError:  # e.g. numpy.where
+            sub = dependent.loc[:, self.args].to_numpy()
+            dependent[self.name] = [self.fn(*row) for row in sub]
 
 
 @dataclass(kw_only=True, slots=True)
