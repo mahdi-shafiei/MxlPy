@@ -16,8 +16,10 @@ from typing import TYPE_CHECKING, Literal, Self, cast, overload
 
 import numpy as np
 import pandas as pd
+from sympy import lambdify
 
 from mxlpy.integrators import DefaultIntegrator
+from mxlpy.symbolic import to_symbolic_model
 
 __all__ = ["Result", "Simulator"]
 
@@ -362,31 +364,24 @@ class Simulator:
         self._initialise_integrator()
 
     def _initialise_integrator(self) -> None:
-        from sympy import lambdify
-
-        from mxlpy.symbolic import to_symbolic_model
-
-        _jacobian = None
+        jac_fn = None
         if self.use_jacobian:
             try:
-                # NOTE: this implementation is not correct in the sense
-                # that it does not take parameter updates into account
-                # jac = (
-                #     to_symbolic_model(self.model)
-                #     .jacobian()
-                #     .subs(self.model._parameters)
-                # )
-                # _jacobian = lambdify(
-                #     ("time", self.model.get_variable_names()),
-                #     jac,
-                # )
+                _jac = to_symbolic_model(self.model).jacobian()
+                _jac_fn = lambdify(
+                    (
+                        "time",
+                        self.model.get_variable_names(),
+                        self.model.get_parameter_names(),
+                    ),
+                    _jac,
+                )
+                jac_fn = lambda t, x: _jac_fn(  # noqa: E731
+                    t,
+                    x,
+                    self.model._parameters.values(),  # noqa: SLF001
+                )
 
-                # NOTE: this implementation is correct, but slow as hell
-                jac = to_symbolic_model(self.model).jacobian()
-                _jacobian = lambda t, y: lambdify(  # noqa: E731
-                    ("time", self.model.get_variable_names()),
-                    jac.subs(self.model._parameters),  # noqa: SLF001
-                )(t, y)
             except Exception as e:  # noqa: BLE001
                 warnings.warn(str(e), stacklevel=2)
 
@@ -394,7 +389,7 @@ class Simulator:
         self.integrator = self._integrator_type(
             self.model,
             [y0[k] for k in self.model.get_variable_names()],
-            _jacobian,
+            jac_fn,
         )
 
     def clear_results(self) -> None:
