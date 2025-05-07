@@ -64,7 +64,7 @@ def generate_mxlpy_code(model: Model) -> str:
                 )
                 args = ", ".join(f'"{k}"' for k in stoich.args)
                 stoich = (  # noqa: PLW2901
-                    f"""Derived(name="{var}", fn={fn.__name__}, args=[{args}])"""
+                    f"""Derived(fn={fn.__name__}, args=[{args}])"""
                 )
             stoichiometry.append(f""""{var}": {stoich}""")
 

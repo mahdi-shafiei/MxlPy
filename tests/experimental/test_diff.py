@@ -81,7 +81,7 @@ def model_with_derived_stoichiometry() -> Model:
         "v1",
         fn=reaction1,
         args=["S", "k1"],
-        stoichiometry={"S": Derived(name="stoich", fn=stoich_fn, args=["S"]), "P": 1.0},
+        stoichiometry={"S": Derived(fn=stoich_fn, args=["S"]), "P": 1.0},
     )
 
     return model
@@ -246,7 +246,7 @@ def test_model_diff_derived_stoichiometry(model_with_derived_stoichiometry) -> N
         fn=reaction1,
         args=["S", "k1"],
         stoichiometry={
-            "S": Derived(name="stoich", fn=different_stoich_fn, args=["S"]),
+            "S": Derived(fn=different_stoich_fn, args=["S"]),
             "P": 1.0,
         },
     )

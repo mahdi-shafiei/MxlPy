@@ -35,7 +35,7 @@ def test_unpack_stoichiometries() -> None:
     assert prods == {"B": 1, "C": 3}
 
     with pytest.raises(NotImplementedError):
-        _unpack_stoichiometries({"A": Derived(name="test", fn=lambda x: x, args=["A"])})
+        _unpack_stoichiometries({"A": Derived(fn=lambda x: x, args=["A"])})
 
 
 def test_stoichiometry_to_duplicate_list() -> None:

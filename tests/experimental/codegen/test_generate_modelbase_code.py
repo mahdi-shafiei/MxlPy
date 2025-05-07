@@ -296,7 +296,7 @@ def test_generate_mxlpy_code_m_derived_stoichiometry() -> None:
         '                "r1",',
         "                fn=constant,",
         "                args=['v1'],",
-        '                stoichiometry={"v1": Derived(name="v1", fn=constant, args=["v1"])},',
+        '                stoichiometry={"v1": Derived(fn=constant, args=["v1"])},',
         "            )",
         "    )",
     ]

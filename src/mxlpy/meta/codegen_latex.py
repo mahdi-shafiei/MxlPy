@@ -326,9 +326,7 @@ class TexExport:
             parameters={gls.get(k, k): v for k, v in self.parameters.items()},
             variables={gls.get(k, k): v for k, v in self.variables.items()},
             derived={
-                gls.get(k, k): Derived(
-                    name=k, fn=v.fn, args=[gls.get(i, i) for i in v.args]
-                )
+                gls.get(k, k): Derived(fn=v.fn, args=[gls.get(i, i) for i in v.args])
                 for k, v in self.derived.items()
             },
             reactions={

@@ -287,11 +287,11 @@ class LinearLabelMapper:
                 stoichiometry = {}
                 if substrate != "EXT":
                     stoichiometry[substrate] = Derived(
-                        name=substrate, fn=_neg_one_div, args=[substrate.split("__")[0]]
+                        fn=_neg_one_div, args=[substrate.split("__")[0]]
                     )
                 if product != "EXT":
                     stoichiometry[product] = Derived(
-                        name=product, fn=_one_div, args=[product.split("__")[0]]
+                        fn=_one_div, args=[product.split("__")[0]]
                     )
 
                 m.add_reaction(

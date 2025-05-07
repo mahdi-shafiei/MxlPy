@@ -1,12 +1,10 @@
 """Tests for the tex export module."""
 
-from mxlpy import Model
+from mxlpy import fns
 from mxlpy.meta.codegen_latex import (
     TexExport,
     TexReaction,
     default_init,
-    generate_latex_code,
-    get_model_tex_diff,
 )
 from mxlpy.types import Derived
 
@@ -21,7 +19,7 @@ def test_default_init() -> None:
 def test_tex_reaction() -> None:
     """Test TexReaction dataclass."""
 
-    def example_fn(a, b):
+    def example_fn(a: float, b: float) -> float:
         return a + b
 
     tr = TexReaction(fn=example_fn, args=["x", "y"])
@@ -56,17 +54,13 @@ def test_tex_export_diff() -> None:
 def test_tex_export_rename_with_glossary() -> None:
     """Test renaming with glossary."""
 
-    def example_fn(a, b):
-        return a + b
-
-    derived_fn = lambda x: x * 2
-    derived_val = Derived(name="d1", fn=derived_fn, args=["A"])
+    derived_val = Derived(fn=fns.twice, args=["A"])
 
     export = TexExport(
         parameters={"k1": 1.0},
         variables={"A": 10.0},
         derived={"d1": derived_val},
-        reactions={"r1": TexReaction(fn=example_fn, args=["A", "k1"])},
+        reactions={"r1": TexReaction(fn=fns.add, args=["A", "k1"])},
         stoichiometries={"r1": {"A": 1.0}},
     )
 

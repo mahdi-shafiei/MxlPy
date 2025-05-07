@@ -167,7 +167,7 @@ def m_derived_stoichiometry() -> Model:
             fn=fns.constant,
             args=["v1"],
             stoichiometry={
-                "v1": Derived(name="v1", fn=fns.one_div, args=["v1"]),
+                "v1": Derived(fn=fns.one_div, args=["v1"]),
             },
         )
     )

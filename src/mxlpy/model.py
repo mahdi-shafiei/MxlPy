@@ -908,7 +908,7 @@ class Model:
 
         """
         self._insert_id(name=name, ctx="derived")
-        self._derived[name] = Derived(name=name, fn=fn, args=args)
+        self._derived[name] = Derived(fn=fn, args=args)
         return self
 
     def get_derived_parameter_names(self) -> list[str]:
@@ -1058,12 +1058,10 @@ class Model:
         self._insert_id(name=name, ctx="reaction")
 
         stoich: dict[str, Derived | float] = {
-            k: Derived(name=k, fn=fns.constant, args=[v]) if isinstance(v, str) else v
+            k: Derived(fn=fns.constant, args=[v]) if isinstance(v, str) else v
             for k, v in stoichiometry.items()
         }
-        self._reactions[name] = Reaction(
-            name=name, fn=fn, stoichiometry=stoich, args=args
-        )
+        self._reactions[name] = Reaction(fn=fn, stoichiometry=stoich, args=args)
         return self
 
     def get_reaction_names(self) -> list[str]:
@@ -1112,9 +1110,7 @@ class Model:
 
         if stoichiometry is not None:
             stoich = {
-                k: Derived(name=k, fn=fns.constant, args=[v])
-                if isinstance(v, str)
-                else v
+                k: Derived(fn=fns.constant, args=[v]) if isinstance(v, str) else v
                 for k, v in stoichiometry.items()
             }
             rxn.stoichiometry = stoich
@@ -1188,7 +1184,7 @@ class Model:
 
         """
         self._insert_id(name=name, ctx="readout")
-        self._readouts[name] = Readout(name=name, fn=fn, args=args)
+        self._readouts[name] = Readout(fn=fn, args=args)
         return self
 
     def get_readout_names(self) -> list[str]:
@@ -1354,7 +1350,7 @@ class Model:
 
         containers = self._derived | self._reactions | self._surrogates
         for name in cache.order:
-            containers[name].calculate_inpl(args)
+            containers[name].calculate_inpl(name, args)
 
         return args
 
@@ -1399,8 +1395,8 @@ class Model:
         )
 
         if include_readouts:
-            for ro in self._readouts.values():  # FIXME: order?
-                ro.calculate_inpl(args)
+            for name, ro in self._readouts.items():  # FIXME: order?
+                ro.calculate_inpl(name, args)
 
         return pd.Series(args, dtype=float)
 
@@ -1449,7 +1445,7 @@ class Model:
 
         containers = self._derived | self._reactions | self._surrogates
         for name in cache.order:
-            containers[name].calculate_inpl_time_course(args)
+            containers[name].calculate_inpl_time_course(name, args)
 
         if include_readouts:
             for name, ro in self._readouts.items():

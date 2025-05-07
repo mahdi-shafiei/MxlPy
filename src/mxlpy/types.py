@@ -158,7 +158,6 @@ type IntegratorType = Callable[
 class Derived:
     """Container for a derived value."""
 
-    name: str
     fn: RateFn
     args: list[str]
 
@@ -174,36 +173,35 @@ class Derived:
         """
         return cast(float, self.fn(*(dependent[arg] for arg in self.args)))
 
-    def calculate_inpl(self, dependent: dict[str, float]) -> None:
+    def calculate_inpl(self, name: str, dependent: dict[str, float]) -> None:
         """Calculate the derived value in place.
 
         Args:
+            name: Name of the derived variable.
             dependent: Dictionary of dependent variables.
 
         """
-        dependent[self.name] = cast(
-            float, self.fn(*(dependent[arg] for arg in self.args))
-        )
+        dependent[name] = cast(float, self.fn(*(dependent[arg] for arg in self.args)))
 
-    def calculate_inpl_time_course(self, dependent: pd.DataFrame) -> None:
+    def calculate_inpl_time_course(self, name: str, dependent: pd.DataFrame) -> None:
         """Calculate the derived value in place.
 
         Args:
+            name: Name of the derived variable.
             dependent: Dictionary of dependent variables.
 
         """
         try:
-            dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+            dependent[name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
         except ValueError:  # e.g. numpy.where
             sub = dependent.loc[:, self.args].to_numpy()
-            dependent[self.name] = [self.fn(*row) for row in sub]
+            dependent[name] = [self.fn(*row) for row in sub]
 
 
 @dataclass(kw_only=True, slots=True)
 class Readout:
     """Container for a readout."""
 
-    name: str
     fn: RateFn
     args: list[str]
 
@@ -219,36 +217,35 @@ class Readout:
         """
         return cast(float, self.fn(*(dependent[arg] for arg in self.args)))
 
-    def calculate_inpl(self, dependent: dict[str, float]) -> None:
+    def calculate_inpl(self, name: str, dependent: dict[str, float]) -> None:
         """Calculate the readout in place.
 
         Args:
+            name: Name of the derived variable.
             dependent: Dictionary of dependent variables.
 
         """
-        dependent[self.name] = cast(
-            float, self.fn(*(dependent[arg] for arg in self.args))
-        )
+        dependent[name] = cast(float, self.fn(*(dependent[arg] for arg in self.args)))
 
-    def calculate_inpl_time_course(self, dependent: pd.DataFrame) -> None:
+    def calculate_inpl_time_course(self, name: str, dependent: pd.DataFrame) -> None:
         """Calculate the derived value in place.
 
         Args:
+            name: Name of the derived variable.
             dependent: Dictionary of dependent variables.
 
         """
         try:
-            dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+            dependent[name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
         except ValueError:  # e.g. numpy.where
             sub = dependent.loc[:, self.args].to_numpy()
-            dependent[self.name] = [self.fn(*row) for row in sub]
+            dependent[name] = [self.fn(*row) for row in sub]
 
 
 @dataclass(kw_only=True, slots=True)
 class Reaction:
     """Container for a reaction."""
 
-    name: str
     fn: RateFn
     stoichiometry: Mapping[str, float | Derived]
     args: list[str]
@@ -272,29 +269,29 @@ class Reaction:
         """
         return cast(float, self.fn(*(dependent[arg] for arg in self.args)))
 
-    def calculate_inpl(self, dependent: dict[str, float]) -> None:
+    def calculate_inpl(self, name: str, dependent: dict[str, float]) -> None:
         """Calculate the reaction in place.
 
         Args:
+            name: Name of the derived variable.
             dependent: Dictionary of dependent variables.
 
         """
-        dependent[self.name] = cast(
-            float, self.fn(*(dependent[arg] for arg in self.args))
-        )
+        dependent[name] = cast(float, self.fn(*(dependent[arg] for arg in self.args)))
 
-    def calculate_inpl_time_course(self, dependent: pd.DataFrame) -> None:
+    def calculate_inpl_time_course(self, name: str, dependent: pd.DataFrame) -> None:
         """Calculate the derived value in place.
 
         Args:
+            name: Name of the derived variable.
             dependent: Dictionary of dependent variables.
 
         """
         try:
-            dependent[self.name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
+            dependent[name] = self.fn(*dependent.loc[:, self.args].to_numpy().T)
         except ValueError:  # e.g. numpy.where
             sub = dependent.loc[:, self.args].to_numpy()
-            dependent[self.name] = [self.fn(*row) for row in sub]
+            dependent[name] = [self.fn(*row) for row in sub]
 
 
 @dataclass(kw_only=True, slots=True)
@@ -464,11 +461,19 @@ class AbstractSurrogate:
             )
         )
 
-    def calculate_inpl(self, args: dict[str, float]) -> None:
+    def calculate_inpl(
+        self,
+        name: str,  # noqa: ARG002, for API compatibility
+        args: dict[str, float],
+    ) -> None:
         """Predict outputs based on input data."""
         args |= self.predict(np.array([args[arg] for arg in self.args]))
 
-    def calculate_inpl_time_course(self, args: pd.DataFrame) -> None:
+    def calculate_inpl_time_course(
+        self,
+        name: str,  # noqa: ARG002, for API compatibility
+        args: pd.DataFrame,
+    ) -> None:
         """Predict outputs based on input data."""
         args[list(self.stoichiometries)] = pd.DataFrame(
             [self.predict(y) for y in args.loc[:, self.args].to_numpy()],
