@@ -17,6 +17,8 @@
 [docs-badge]: https://img.shields.io/badge/docs-main-green.svg?style=flat-square
 [docs]: https://computational-biology-aachen.github.io/mxlpy/
 
+MxlPy (pronounced "em axe el pie") is a Python package for mechanistic learning (Mxl) - the combination of mechanistic modeling and machine learning to deliver explainable, data-informed solutions.
+
 ## Installation
 
 You can install mxlpy using pip: `pip install mxlpy`.
