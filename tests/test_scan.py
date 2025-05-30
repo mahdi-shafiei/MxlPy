@@ -244,6 +244,7 @@ def test_steady_state_worker(simple_model: Model) -> None:
         simple_model,
         rel_norm=False,
         integrator=DefaultIntegrator,
+        y0=None,
     )
     assert isinstance(result, TimePoint)
 
@@ -260,6 +261,7 @@ def test_time_course_worker(simple_model: Model) -> None:
         simple_model,
         time_points=time_points,
         integrator=DefaultIntegrator,
+        y0=None,
     )
 
     assert isinstance(result, TimeCourse)

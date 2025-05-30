@@ -19,7 +19,8 @@ def mock_ss_worker(
     model: Model,  # noqa: ARG001
     *,
     rel_norm: bool,  # noqa: ARG001
-    integrator: IntegratorType,  # noqa: ARG001
+    integrator: IntegratorType | None = None,  # noqa: ARG001
+    y0: dict[str, float] | None = None,  # noqa: ARG001
 ) -> TimePoint:
     return TimePoint(
         variables=pd.Series({"x1": 1.0, "x2": 2.0}),
@@ -30,7 +31,8 @@ def mock_ss_worker(
 def mock_tc_worker(
     model: Model,  # noqa: ARG001
     time_points: Array,
-    integrator: IntegratorType,  # noqa: ARG001
+    integrator: IntegratorType | None,  # noqa: ARG001
+    y0: dict[str, float] | None,  # noqa: ARG001
 ) -> TimeCourse:
     return TimeCourse(
         variables=pd.DataFrame({i: {"x1": 1.0, "x2": 2.0} for i in time_points}).T,

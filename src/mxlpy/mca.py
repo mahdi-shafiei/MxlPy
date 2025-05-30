@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from mxlpy.integrators import DefaultIntegrator
 from mxlpy.parallel import parallelise
 from mxlpy.scan import _steady_state_worker
 from mxlpy.types import ResponseCoefficients
@@ -46,7 +45,7 @@ def _response_coefficient_worker(
     normalized: bool,
     rel_norm: bool,
     displacement: float = 1e-4,
-    integrator: IntegratorType,
+    integrator: IntegratorType | None,
 ) -> tuple[pd.Series, pd.Series]:
     """Calculate response coefficients for a single parameter.
 
@@ -81,6 +80,7 @@ def _response_coefficient_worker(
         model,
         rel_norm=rel_norm,
         integrator=integrator,
+        y0=None,
     )
 
     model.update_parameters({parameter: old * (1 - displacement)})
@@ -88,6 +88,7 @@ def _response_coefficient_worker(
         model,
         rel_norm=rel_norm,
         integrator=integrator,
+        y0=None,
     )
 
     conc_resp = (upper.variables - lower.variables) / (2 * displacement * old)
@@ -99,6 +100,7 @@ def _response_coefficient_worker(
             model,
             rel_norm=rel_norm,
             integrator=integrator,
+            y0=None,
         )
         conc_resp *= old / norm.variables
         flux_resp *= old / norm.fluxes
@@ -237,7 +239,7 @@ def response_coefficients(
     parallel: bool = True,
     max_workers: int | None = None,
     rel_norm: bool = False,
-    integrator: IntegratorType = DefaultIntegrator,
+    integrator: IntegratorType | None = None,
 ) -> ResponseCoefficients:
     """Calculate response coefficients.
 
@@ -284,6 +286,6 @@ def response_coefficients(
         max_workers=max_workers,
     )
     return ResponseCoefficients(
-        variables=pd.DataFrame({k: v[0] for k, v in res.items()}),
-        fluxes=pd.DataFrame({k: v[1] for k, v in res.items()}),
+        variables=pd.DataFrame({k: v[0] for k, v in res}),
+        fluxes=pd.DataFrame({k: v[1] for k, v in res}),
     )

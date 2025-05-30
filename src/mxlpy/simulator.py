@@ -335,7 +335,7 @@ class Simulator:
         self,
         model: Model,
         y0: dict[str, float] | None = None,
-        integrator: IntegratorType = DefaultIntegrator,
+        integrator: IntegratorType | None = None,
         *,
         use_jacobian: bool = False,
         test_run: bool = True,
@@ -354,7 +354,7 @@ class Simulator:
         self.model = model
         self.y0 = model.get_initial_conditions() if y0 is None else y0
 
-        self._integrator_type = integrator
+        self._integrator_type = DefaultIntegrator if integrator is None else integrator
         self._time_shift = None
         self.variables = None
         self.dependent = None

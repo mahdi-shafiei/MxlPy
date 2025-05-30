@@ -5,7 +5,7 @@ import pandas as pd
 
 from example_models import get_linear_chain_2v
 from mxlpy import fit
-from mxlpy.fit import ResidualFn
+from mxlpy.fit import MinResult, ResidualFn
 from mxlpy.fns import constant
 from mxlpy.model import Model
 from mxlpy.types import Array, ArrayLike, IntegratorType, unwrap
@@ -14,8 +14,8 @@ from mxlpy.types import Array, ArrayLike, IntegratorType, unwrap
 def mock_minimize_fn(
     residual_fn: ResidualFn,  # noqa: ARG001
     p0: dict[str, float],
-) -> dict[str, float]:
-    return p0
+) -> MinResult | None:
+    return MinResult(parameters=p0, residual=0.0)
 
 
 def mock_residual_fn_filled_in(
@@ -29,7 +29,7 @@ def mock_ss_residual_fn(
     par_names: list[str],  # noqa: ARG001
     data: pd.Series,  # noqa: ARG001
     model: Model,  # noqa: ARG001
-    y0: dict[str, float],  # noqa: ARG001
+    y0: dict[str, float] | None,  # noqa: ARG001
     integrator: IntegratorType,  # noqa: ARG001
     loss_fn: fit.LossFn,  # noqa: ARG001
 ) -> float:
@@ -41,7 +41,7 @@ def mock_ts_residual_fn(
     par_names: list[str],  # noqa: ARG001
     data: pd.DataFrame,  # noqa: ARG001
     model: Model,  # noqa: ARG001
-    y0: dict[str, float],  # noqa: ARG001
+    y0: dict[str, float] | None,  # noqa: ARG001
     integrator: IntegratorType,  # noqa: ARG001
     loss_fn: fit.LossFn,  # noqa: ARG001
 ) -> float:
@@ -96,7 +96,8 @@ def test_default_minimize_fn() -> None:
         mock_residual_fn_filled_in,
         p_true,
     )
-    assert np.allclose(pd.Series(p_fit), pd.Series(p_true), rtol=0.1)
+    assert p_fit is not None
+    assert np.allclose(pd.Series(p_fit.parameters), pd.Series(p_true), rtol=0.1)
 
 
 def test_steady_state_residual() -> None:
@@ -143,13 +144,14 @@ def test_fit_steady_state() -> None:
     p_true = {"k1": 1.0, "k2": 2.0, "k3": 1.0}
     data = pd.Series()
     p_fit = fit.steady_state(
-        model=Model(),
+        model=Model().add_parameters(p_true),
         p0=p_true,
         data=data,
         minimize_fn=mock_minimize_fn,
         residual_fn=mock_ss_residual_fn,
     )
-    assert np.allclose(pd.Series(p_fit), pd.Series(p_true), rtol=0.1)
+    assert p_fit is not None
+    assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)
 
 
 def tets_fit_time_course() -> None:
@@ -162,7 +164,8 @@ def tets_fit_time_course() -> None:
         minimize_fn=mock_minimize_fn,
         residual_fn=mock_ts_residual_fn,
     )
-    assert np.allclose(pd.Series(p_fit), pd.Series(p_true), rtol=0.1)
+    assert p_fit is not None
+    assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)
 
 
 if __name__ == "__main__":
@@ -183,11 +186,13 @@ if __name__ == "__main__":
         p0=p_init,
         data=res.iloc[-1],
     )
-    assert np.allclose(pd.Series(p_fit), pd.Series(p_true), rtol=0.1)
+    assert p_fit is not None
+    assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)
 
     p_fit = fit.time_course(
         model_fn(),
         p0=p_init,
         data=res,
     )
-    assert np.allclose(pd.Series(p_fit), pd.Series(p_true), rtol=0.1)
+    assert p_fit is not None
+    assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)

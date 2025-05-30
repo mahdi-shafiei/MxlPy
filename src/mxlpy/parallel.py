@@ -103,7 +103,7 @@ def parallelise[K: Hashable, Tin, Tout](
     timeout: float | None = None,
     disable_tqdm: bool = False,
     tqdm_desc: str | None = None,
-) -> dict[Tin, Tout]:
+) -> list[tuple[K, Tout]]:
     """Execute a function in parallel over a collection of inputs.
 
     Examples:
@@ -136,9 +136,9 @@ def parallelise[K: Hashable, Tin, Tout](
         cache=cache,
     )  # type: ignore
 
-    results: dict[Tin, Tout]
+    results: list[tuple[K, Tout]]
     if parallel:
-        results = {}
+        results = []
         max_workers = (
             multiprocessing.cpu_count() if max_workers is None else max_workers
         )
@@ -157,18 +157,19 @@ def parallelise[K: Hashable, Tin, Tout](
                 try:
                     key, value = next(it)
                     pbar.update(1)
-                    results[key] = value
+                    results.append((key, value))
                 except StopIteration:
                     break
                 except TimeoutError:
                     pbar.update(1)
     else:
-        results = dict(
+        results = list(
             tqdm(
                 map(worker, inputs),  # type: ignore
                 total=len(inputs),
                 disable=disable_tqdm,
                 desc=tqdm_desc,
-            )  # type: ignore
+            )
         )  # type: ignore
+
     return results

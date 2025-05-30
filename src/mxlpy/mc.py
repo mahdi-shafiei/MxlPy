@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, Protocol, cast
 import pandas as pd
 
 from mxlpy import mca, scan
-from mxlpy.integrators import DefaultIntegrator
 from mxlpy.parallel import Cache, parallelise
 from mxlpy.scan import (
     ProtocolWorker,
@@ -122,7 +121,7 @@ def steady_state(
     cache: Cache | None = None,
     rel_norm: bool = False,
     worker: SteadyStateWorker = _steady_state_worker,
-    integrator: IntegratorType = DefaultIntegrator,
+    integrator: IntegratorType | None = None,
 ) -> SteadyStates:
     """Monte-carlo scan of steady states.
 
@@ -153,6 +152,7 @@ def steady_state(
                 worker,
                 rel_norm=rel_norm,
                 integrator=integrator,
+                y0=None,
             ),
             model=model,
         ),
@@ -161,8 +161,8 @@ def steady_state(
         cache=cache,
     )
     return SteadyStates(
-        variables=pd.concat({k: v.variables for k, v in res.items()}, axis=1).T,
-        fluxes=pd.concat({k: v.fluxes for k, v in res.items()}, axis=1).T,
+        variables=pd.concat({k: v.variables for k, v in res}, axis=1).T,
+        fluxes=pd.concat({k: v.fluxes for k, v in res}, axis=1).T,
         parameters=mc_to_scan,
     )
 
@@ -176,7 +176,7 @@ def time_course(
     max_workers: int | None = None,
     cache: Cache | None = None,
     worker: TimeCourseWorker = _time_course_worker,
-    integrator: IntegratorType = DefaultIntegrator,
+    integrator: IntegratorType | None = None,
 ) -> TimeCourseByPars:
     """MC time course.
 
@@ -207,6 +207,7 @@ def time_course(
                 worker,
                 time_points=time_points,
                 integrator=integrator,
+                y0=None,
             ),
             model=model,
         ),
@@ -217,8 +218,8 @@ def time_course(
 
     return TimeCourseByPars(
         parameters=mc_to_scan,
-        variables=pd.concat({k: v.variables.T for k, v in res.items()}, axis=1).T,
-        fluxes=pd.concat({k: v.fluxes.T for k, v in res.items()}, axis=1).T,
+        variables=pd.concat({k: v.variables.T for k, v in res}, axis=1).T,
+        fluxes=pd.concat({k: v.fluxes.T for k, v in res}, axis=1).T,
     )
 
 
@@ -232,7 +233,7 @@ def time_course_over_protocol(
     max_workers: int | None = None,
     cache: Cache | None = None,
     worker: ProtocolWorker = _protocol_worker,
-    integrator: IntegratorType = DefaultIntegrator,
+    integrator: IntegratorType | None = None,
 ) -> ProtocolByPars:
     """MC time course.
 
@@ -264,6 +265,7 @@ def time_course_over_protocol(
                 worker,
                 protocol=protocol,
                 integrator=integrator,
+                y0=None,
                 time_points_per_step=time_points_per_step,
             ),
             model=model,
@@ -272,8 +274,8 @@ def time_course_over_protocol(
         max_workers=max_workers,
         cache=cache,
     )
-    concs = {k: v.variables.T for k, v in res.items()}
-    fluxes = {k: v.fluxes.T for k, v in res.items()}
+    concs = {k: v.variables.T for k, v in res}
+    fluxes = {k: v.fluxes.T for k, v in res}
     return ProtocolByPars(
         variables=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
@@ -292,7 +294,7 @@ def scan_steady_state(
     cache: Cache | None = None,
     rel_norm: bool = False,
     worker: ParameterScanWorker = _parameter_scan_worker,
-    integrator: IntegratorType = DefaultIntegrator,
+    integrator: IntegratorType | None = None,
 ) -> McSteadyStates:
     """Parameter scan of mc distributed steady states.
 
@@ -339,6 +341,7 @@ def scan_steady_state(
                 parameters=to_scan,
                 rel_norm=rel_norm,
                 integrator=integrator,
+                y0=None,
             ),
             model=model,
         ),
@@ -346,8 +349,8 @@ def scan_steady_state(
         cache=cache,
         max_workers=max_workers,
     )
-    concs = {k: v.variables.T for k, v in res.items()}
-    fluxes = {k: v.fluxes.T for k, v in res.items()}
+    concs = {k: v.variables.T for k, v in res}
+    fluxes = {k: v.fluxes.T for k, v in res}
     return McSteadyStates(
         variables=pd.concat(concs, axis=1).T,
         fluxes=pd.concat(fluxes, axis=1).T,
@@ -422,7 +425,7 @@ def variable_elasticities(
         cache=cache,
         max_workers=max_workers,
     )
-    return cast(pd.DataFrame, pd.concat(res))
+    return cast(pd.DataFrame, pd.concat(dict(res)))
 
 
 def parameter_elasticities(
@@ -486,7 +489,7 @@ def parameter_elasticities(
         cache=cache,
         max_workers=max_workers,
     )
-    return cast(pd.DataFrame, pd.concat(res))
+    return cast(pd.DataFrame, pd.concat(dict(res)))
 
 
 def response_coefficients(
@@ -501,7 +504,7 @@ def response_coefficients(
     disable_tqdm: bool = False,
     max_workers: int | None = None,
     rel_norm: bool = False,
-    integrator: IntegratorType = DefaultIntegrator,
+    integrator: IntegratorType | None = None,
 ) -> ResponseCoefficientsByPars:
     """Calculate response coefficients using Monte Carlo analysis.
 
@@ -558,9 +561,7 @@ def response_coefficients(
     )
 
     return ResponseCoefficientsByPars(
-        variables=cast(
-            pd.DataFrame, pd.concat({k: v.variables for k, v in res.items()})
-        ),
-        fluxes=cast(pd.DataFrame, pd.concat({k: v.fluxes for k, v in res.items()})),
+        variables=cast(pd.DataFrame, pd.concat({k: v.variables for k, v in res})),
+        fluxes=cast(pd.DataFrame, pd.concat({k: v.fluxes for k, v in res})),
         parameters=mc_to_scan,
     )

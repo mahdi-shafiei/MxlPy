@@ -28,16 +28,15 @@ def _mc_fit_time_course_worker(
     data: pd.DataFrame,
     loss_fn: fit.LossFn,
 ) -> float:
-    p_fit = fit.time_course(model=model, p0=p0.to_dict(), data=data)
-    return fit._time_course_residual(  # noqa: SLF001
-        par_values=list(p_fit.values()),
-        par_names=list(p_fit.keys()),
-        data=data,
+    fit_result = fit.time_course(
         model=model,
-        y0=None,
-        integrator=fit.DefaultIntegrator,
+        p0=p0.to_dict(),
+        data=data,
         loss_fn=loss_fn,
     )
+    if fit_result is None:
+        return np.inf
+    return fit_result.loss
 
 
 def profile_likelihood(
