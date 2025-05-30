@@ -19,7 +19,9 @@ nav:
       - Identifiability: parameter_identifiability.ipynb
       - Symbolic: symbolic.ipynb
       - Integrator configuration: integrators.ipynb
-  - Mechanistic learning: mxl.ipynb
+  - Mechanistic learning:
+      - Introduction: mxl.ipynb
+      - Reaction carousel: carousel.ipynb
   - Metaprogramming: metaprogramming.ipynb
   - Examples: examples.ipynb
   - Reporting: report.ipynb
