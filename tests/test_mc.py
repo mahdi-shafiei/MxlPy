@@ -75,12 +75,12 @@ def test_steady_state(simple_model: Model, mc_to_scan: pd.DataFrame) -> None:
         }
 
         # Mock the return value of parallelise
-        mock_results = {}
+        mock_results = []
         for k in range(3):
             mock_ss = MagicMock()
             mock_ss.variables = concs_results[k]
             mock_ss.fluxes = fluxes_results[k]
-            mock_results[k] = mock_ss
+            mock_results.append((k, mock_ss))
 
         mock_parallelise.return_value = mock_results
 
@@ -126,12 +126,12 @@ def test_time_course(simple_model: Model, mc_to_scan: pd.DataFrame) -> None:
             ).T
 
         # Mock the return value of parallelise
-        mock_results = {}
+        mock_results = []
         for k in range(3):
             mock_tc = MagicMock()
             mock_tc.variables = concs_results[k]
             mock_tc.fluxes = fluxes_results[k]
-            mock_results[k] = mock_tc
+            mock_results.append((k, mock_tc))
 
         mock_parallelise.return_value = mock_results
 
@@ -179,12 +179,12 @@ def test_time_course_over_protocol(
             ).T
 
         # Mock the return value of parallelise
-        mock_results = {}
+        mock_results = []
         for k in range(3):
             mock_tc = MagicMock()
             mock_tc.variables = concs_results[k]
             mock_tc.fluxes = fluxes_results[k]
-            mock_results[k] = mock_tc
+            mock_results.append((k, mock_tc))
 
         mock_parallelise.return_value = mock_results
 
@@ -235,12 +235,12 @@ def test_scan_steady_state(simple_model: Model, mc_to_scan: pd.DataFrame) -> Non
             ).T
 
         # Mock the return value of parallelise
-        mock_results = {}
+        mock_results = []
         for k in range(3):
             mock_ss = MagicMock()
             mock_ss.variables = concs_results[k]
             mock_ss.fluxes = fluxes_results[k]
-            mock_results[k] = mock_ss
+            mock_results.append((k, mock_ss))
 
         mock_parallelise.return_value = mock_results
 
@@ -335,12 +335,12 @@ def test_response_coefficients(simple_model: Model, mc_to_scan: pd.DataFrame) ->
         }
 
         # Mock the return value of parallelise
-        mock_results = {}
+        mock_results = []
         for k in range(3):
             mock_rc = MagicMock()
             mock_rc.variables = concs_results[k]
             mock_rc.fluxes = fluxes_results[k]
-            mock_results[k] = mock_rc
+            mock_results.append((k, mock_rc))
 
         mock_parallelise.return_value = mock_results
 
