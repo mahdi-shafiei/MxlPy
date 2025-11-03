@@ -199,7 +199,7 @@ class MixedSettings:
 
     model: Model
     data: pd.Series | pd.DataFrame
-    residual_fn: ResidualFn
+    residual_fn: ResidualProtocol
     y0: dict[str, float] | None = None
     integrator: IntegratorType | None = None
     loss_fn: LossFn | None = None
@@ -218,7 +218,7 @@ class _Settings:
     p_names: list[str]
     v_names: list[str]
     protocol: pd.DataFrame | None = None
-    residual_fn: ResidualFn | None = None
+    residual_fn: ResidualProtocol | None = None
 
 
 @dataclass
@@ -558,7 +558,8 @@ def protocol_time_course_residual(
         model.update_variable(p, updates[p])
 
     if (protocol := settings.protocol) is None:
-        raise ValueError
+        msg = "No protocol supplied"
+        raise ValueError(msg)
 
     res = (
         Simulator(
@@ -1308,6 +1309,7 @@ def joint_protocol_time_course(
                 y0=i.y0 if i.y0 is not None else y0,
                 integrator=i.integrator if i.integrator is not None else integrator,
                 loss_fn=i.loss_fn if i.loss_fn is not None else loss_fn,
+                protocol=i.protocol,
                 p_names=[j for j in p0 if j in p_names],
                 v_names=[j for j in p0 if j in v_names],
             )
@@ -1390,6 +1392,7 @@ def joint_mixed(
                 loss_fn=i.loss_fn if i.loss_fn is not None else loss_fn,
                 p_names=[j for j in p0 if j in p_names],
                 v_names=[j for j in p0 if j in v_names],
+                protocol=i.protocol,
                 residual_fn=i.residual_fn,
             )
         )
