@@ -25,7 +25,9 @@ nav:
   - Metaprogramming: metaprogramming.ipynb
   - Examples: examples.ipynb
   - Reporting: report.ipynb
-  - Tips: tips.ipynb
+  - Tips:
+    - General: tips.ipynb
+    - Parallel execution: parallel.ipynb
   - How to cite: citing.md
 
 theme:
