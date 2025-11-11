@@ -4793,8 +4793,8 @@ packages:
   requires_python: '>=3.8'
 - pypi: ./
   name: mxlpy
-  version: 0.27.0
-  sha256: 2018f86267067d8f2de84f321b11deb2f925da1f3ab0bb1c1bc9c223f81a9d54
+  version: 0.28.0
+  sha256: 253ecfad3c773e5f58845bb6864632e1d116c85d1318b087c99753346a84f1e5
   requires_dist:
   - diffrax>=0.7.0
   - dill>=0.3.9
@@ -4824,7 +4824,7 @@ packages:
   - keras>=3.9.2 ; extra == 'keras'
   - equinox>=0.13 ; extra == 'equinox'
   - optax>=0.2.5 ; extra == 'equinox'
-  requires_python: '>=3.12'
+  requires_python: '>=3.12,<3.14'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/noarch/nbclient-0.10.2-pyhd8ed1ab_0.conda
   sha256: a20cff739d66c2f89f413e4ba4c6f6b59c50d5c30b5f0d840c13e8c9c2df9135
