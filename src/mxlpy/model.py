@@ -1801,6 +1801,8 @@ class Model:
         if args is not None:
             surrogate.args = args
         if outputs is not None:
+            for output in outputs:
+                self._insert_id(name=output, ctx="surrogate")
             surrogate.outputs = outputs
         if stoichiometries is not None:
             surrogate.stoichiometries = stoichiometries
@@ -1813,6 +1815,7 @@ class Model:
         name: str,
         surrogate: AbstractSurrogate | None = None,
         args: list[str] | None = None,
+        outputs: list[str] | None = None,
         stoichiometries: dict[str, dict[str, float | Derived]] | None = None,
     ) -> Self:
         """Update a surrogate model in the model.
@@ -1824,6 +1827,7 @@ class Model:
             name (str): The name of the surrogate model to update.
             surrogate (AbstractSurrogate): The new surrogate model instance.
             args: A list of arguments for the surrogate model.
+            outputs: Names of values produced by the surrogate model.
             stoichiometries: A dictionary mapping reaction names to stoichiometries.
 
         Returns:
@@ -1836,8 +1840,16 @@ class Model:
 
         if surrogate is None:
             surrogate = self._surrogates[name]
+
+        # Update existing / passed surrogate (other args always take precendece)
         if args is not None:
             surrogate.args = args
+        if outputs is not None:
+            for i in self._surrogates[name].outputs:
+                self._remove_id(name=i)
+            for i in outputs:
+                self._insert_id(name=i, ctx="surrogate")
+            surrogate.outputs = outputs
         if stoichiometries is not None:
             surrogate.stoichiometries = stoichiometries
 
@@ -1855,7 +1867,9 @@ class Model:
 
         """
         self._remove_id(name=name)
-        self._surrogates.pop(name)
+        surrogate = self._surrogates.pop(name)
+        for output in surrogate.outputs:
+            self._remove_id(name=output)
         return self
 
     def get_raw_surrogates(

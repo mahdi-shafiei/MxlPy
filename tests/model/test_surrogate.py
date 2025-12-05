@@ -22,6 +22,7 @@ def test_add_surrogate() -> None:
     surrogates = model.get_raw_surrogates()
     assert "surrogate1" in surrogates
     assert model._ids["surrogate1"] == "surrogate"
+    assert model._ids["v1"] == "surrogate"
 
 
 def test_add_surrogate_existing_name() -> None:
