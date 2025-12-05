@@ -348,7 +348,7 @@ class Simulator:
             _LOGGER.warning(msg)
 
         # Continue with logic
-        full_time_points = protocol.index.join(time_points, how="outer")
+        full_time_points = protocol.index.join(pd.Index(time_points), how="outer")
 
         for t_end, pars in protocol.iterrows():
             self.model.update_parameters(pars.to_dict())
