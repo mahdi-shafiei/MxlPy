@@ -1798,14 +1798,17 @@ class Model:
         """
         self._insert_id(name=name, ctx="surrogate")
 
+        # Update surrogate if necessary
         if args is not None:
             surrogate.args = args
         if outputs is not None:
-            for output in outputs:
-                self._insert_id(name=output, ctx="surrogate")
             surrogate.outputs = outputs
         if stoichiometries is not None:
             surrogate.stoichiometries = stoichiometries
+
+        # Insert ids
+        for output in surrogate.outputs:
+            self._insert_id(name=output, ctx="surrogate")
 
         self._surrogates[name] = surrogate
         return self
@@ -1845,13 +1848,15 @@ class Model:
         if args is not None:
             surrogate.args = args
         if outputs is not None:
-            for i in self._surrogates[name].outputs:
-                self._remove_id(name=i)
-            for i in outputs:
-                self._insert_id(name=i, ctx="surrogate")
             surrogate.outputs = outputs
         if stoichiometries is not None:
             surrogate.stoichiometries = stoichiometries
+
+        # Update ids
+        for i in self._surrogates[name].outputs:
+            self._remove_id(name=i)
+        for i in surrogate.outputs:
+            self._insert_id(name=i, ctx="surrogate")
 
         self._surrogates[name] = surrogate
         return self
