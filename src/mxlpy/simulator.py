@@ -509,6 +509,7 @@ class Simulator:
         # In case someone calls this before the first simulation
         if sim_variables is None:
             self.y0 = self.y0 | variables
+            self._initialise_integrator()
             return self
 
         self.y0 = sim_variables[-1].iloc[-1, :].to_dict() | variables
