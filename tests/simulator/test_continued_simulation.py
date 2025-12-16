@@ -27,7 +27,7 @@ def test_sim_con_sim_sim() -> None:
             .simulate(4, steps=1)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
 
@@ -72,7 +72,7 @@ def test_con_sim_tc() -> None:
             .simulate_time_course([4])
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -89,7 +89,7 @@ def test_con_sim_tc() -> None:
             .simulate_time_course([3, 4])
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -122,7 +122,7 @@ def test_con_tc_sim() -> None:
             .simulate(4, steps=1)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -138,7 +138,7 @@ def test_con_tc_sim() -> None:
             .simulate_time_course([4])
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -171,7 +171,7 @@ def test_con_tc_tc() -> None:
             .simulate_time_course([3, 4])
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -187,7 +187,7 @@ def test_con_tc_tc() -> None:
             .simulate_time_course([4])
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -235,7 +235,7 @@ def test_con_sim_proto() -> None:
             .simulate_protocol(protocol, time_points_per_step=1)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -278,7 +278,7 @@ def test_con_tc_proto() -> None:
             .simulate_protocol(protocol, time_points_per_step=1)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -321,7 +321,7 @@ def test_con_proto_sim() -> None:
             .simulate(12, steps=6)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -364,7 +364,7 @@ def test_con_proto_tc() -> None:
             .simulate_time_course(np.linspace(7, 12, 6))
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -404,7 +404,7 @@ def test_con_proto_proto() -> None:
             .simulate_protocol(protocol, time_points_per_step=1)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -458,7 +458,7 @@ def test_con_sim_ptc() -> None:
             )
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -508,7 +508,7 @@ def test_con_sim_ptc_rel() -> None:
             )
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -557,7 +557,7 @@ def test_con_ptc_sim() -> None:
             .simulate(12, steps=6)
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(
@@ -609,7 +609,7 @@ def test_con_ptc_ptc() -> None:
             )
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
     pd.testing.assert_frame_equal(

@@ -44,7 +44,7 @@ def test_same() -> None:
             )
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
 
@@ -91,7 +91,7 @@ def test_in_between() -> None:
             )
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
 
@@ -138,7 +138,7 @@ def test_both() -> None:
             )
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .variables
     )
 
@@ -187,7 +187,7 @@ def test_time_points_outside_of_protocol(caplog: pytest.LogCaptureFixture) -> No
                 )
                 .get_result()
             )
-            .unwrap()
+            .unwrap_or_err()
             .variables
         )
 

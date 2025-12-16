@@ -110,7 +110,7 @@ class Option[T]:
 
     value: T | None
 
-    def unwrap(self) -> T:
+    def unwrap_or_err(self) -> T:
         """Obtain value if Ok, else raise exception."""
         if (value := self.value) is None:
             msg = "Unexpected `None`"
@@ -130,7 +130,7 @@ class Result[T]:
 
     value: T | Exception
 
-    def unwrap(self) -> T:
+    def unwrap_or_err(self) -> T:
         """Obtain value if Ok, else raise exception."""
         if isinstance(value := self.value, Exception):
             raise value

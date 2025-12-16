@@ -24,7 +24,7 @@ def test_fit_steady_state() -> None:
         data=data,
         minimizer=mock_minimizer,
         residual_fn=mock_residual_proto,
-    ).unwrap()
+    ).unwrap_or_err()
     assert p_fit is not None
     assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)
 
@@ -38,7 +38,7 @@ def tets_fit_time_course() -> None:
         data=data,
         minimizer=mock_minimizer,
         residual_fn=mock_residual_proto,
-    ).unwrap()
+    ).unwrap_or_err()
     assert p_fit is not None
     assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         .update_parameters(p_true)
         .simulate_time_course(np.linspace(0, 1, 11))
         .get_result()
-        .unwrap()
+        .unwrap_or_err()
     ).get_combined()
 
     p_fit = fit.steady_state(
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         p0=p_init,
         data=res.iloc[-1],
         minimizer=fit.LocalScipyMinimizer(),
-    ).unwrap()
+    ).unwrap_or_err()
     assert p_fit is not None
     assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)
 
@@ -71,6 +71,6 @@ if __name__ == "__main__":
         p0=p_init,
         data=res,
         minimizer=fit.LocalScipyMinimizer(),
-    ).unwrap()
+    ).unwrap_or_err()
     assert p_fit is not None
     assert np.allclose(pd.Series(p_fit.best_pars), pd.Series(p_true), rtol=0.1)

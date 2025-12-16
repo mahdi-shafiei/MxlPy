@@ -97,7 +97,7 @@ def routine(test: int) -> bool:
             .simulate_time_course(expected.index)  # type: ignore
             .get_result()
         )
-        .unwrap()
+        .unwrap_or_err()
         .get_combined()
     )
 

@@ -219,8 +219,8 @@ class ProtocolComparison:
 def steady_states(m1: Model, m2: Model) -> SteadyStateComparison:
     """Compare the steady states of two models."""
     return SteadyStateComparison(
-        res1=Simulator(m1).simulate_to_steady_state().get_result().unwrap(),
-        res2=Simulator(m2).simulate_to_steady_state().get_result().unwrap(),
+        res1=Simulator(m1).simulate_to_steady_state().get_result().unwrap_or_err(),
+        res2=Simulator(m2).simulate_to_steady_state().get_result().unwrap_or_err(),
     )
 
 
@@ -230,11 +230,11 @@ def time_courses(m1: Model, m2: Model, time_points: ArrayLike) -> TimeCourseComp
         res1=Simulator(m1)
         .simulate_time_course(time_points=time_points)
         .get_result()
-        .unwrap(),
+        .unwrap_or_err(),
         res2=Simulator(m2)
         .simulate_time_course(time_points=time_points)
         .get_result()
-        .unwrap(),
+        .unwrap_or_err(),
     )
 
 
@@ -245,7 +245,13 @@ def protocol_time_courses(
 ) -> ProtocolComparison:
     """Compare the time courses of two models."""
     return ProtocolComparison(
-        res1=Simulator(m1).simulate_protocol(protocol=protocol).get_result().unwrap(),
-        res2=Simulator(m2).simulate_protocol(protocol=protocol).get_result().unwrap(),
+        res1=Simulator(m1)
+        .simulate_protocol(protocol=protocol)
+        .get_result()
+        .unwrap_or_err(),
+        res2=Simulator(m2)
+        .simulate_protocol(protocol=protocol)
+        .get_result()
+        .unwrap_or_err(),
         protocol=protocol,
     )

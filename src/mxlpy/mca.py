@@ -98,10 +98,10 @@ def _response_coefficient_worker(
 
     conc_resp = (upper.variables.iloc[-1] - lower.variables.iloc[-1]) / (
         2 * displacement * old
-    )
+    )  # pyright: ignore[reportOperatorIssue]
     flux_resp = (upper.fluxes.iloc[-1] - lower.fluxes.iloc[-1]) / (
         2 * displacement * old
-    )
+    )  # pyright: ignore[reportOperatorIssue]
     # Reset
     model.update_parameters({parameter: old})
     if normalized:

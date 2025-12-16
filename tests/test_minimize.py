@@ -16,6 +16,6 @@ def test_default_minimizer() -> None:
         mock_residual_fn,
         p_true,
         bounds={},
-    ).unwrap()
+    ).unwrap_or_err()
     assert p_fit is not None
     assert np.allclose(pd.Series(p_fit.parameters), pd.Series(p_true), rtol=0.1)
