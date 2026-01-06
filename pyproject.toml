@@ -12,6 +12,8 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Software Development",
   "Topic :: Scientific/Engineering",
   "Operating System :: Microsoft :: Windows",
@@ -29,9 +31,8 @@ maintainers = [
 ]
 name = "mxlpy"
 readme = "README.md"
-version = "0.29.0"
+version = "0.30.0"
 dependencies = [
-  "diffrax>=0.7.0",
   "dill>=0.3.9",
   "latexify-py>=0.4.4",
   "lazy-import>=0.2.2",
@@ -65,15 +66,14 @@ tensorflow = [
 keras = [
   "keras>=3.9.2",
 ]
-equinox = [
+jax = [
+  "diffrax>=0.7.0",
   "equinox>=0.13",
   "optax>=0.2.5",
+  "sympy2jax>=0.0.7",
 ]
 sr = [
-  "equinox>=0.13",
-  "optax>=0.2.5",
   "pysr>=1.5.9",
-  "sympy2jax>=0.0.7",
 ]
 
 [dependency-groups]

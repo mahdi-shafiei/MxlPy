@@ -34,9 +34,11 @@ Due to their sizes, the machine learning packages are optional dependencies. You
 pip install mxlpy[torch]
 pip install mxlpy[tensorflow]
 pip install mxlpy[keras]
+pip install mxlpy[jax]
+pip install mxlpy[sr]
 
 # together
-pip install mxlpy[torch, tensorflow, keras]
+pip install mxlpy[torch, tensorflow, keras, jax, sr]
 ```
 
 If you want access to the sundials solver suite via the [assimulo](https://jmodelica.org/assimulo/) package, we recommend setting up a virtual environment via [pixi](https://pixi.sh/) or [mamba / conda](https://mamba.readthedocs.io/en/latest/) using the [conda-forge](https://conda-forge.org/) channel.

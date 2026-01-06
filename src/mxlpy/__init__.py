@@ -56,7 +56,7 @@ from . import (
     scan,
     units,
 )
-from .integrators import DefaultIntegrator, Diffrax, Scipy
+from .integrators import DefaultIntegrator, Scipy
 from .integrators.abstract import AbstractIntegrator, IntegratorProtocol
 from .label_map import LabelMapper
 from .linear_label_map import LinearLabelMapper
@@ -77,6 +77,8 @@ from .types import (
 
 with contextlib.suppress(ImportError):
     from .integrators import Assimulo
+with contextlib.suppress(ImportError):
+    from .integrators import Diffrax
 
 if TYPE_CHECKING:
     from mxlpy.types import ArrayLike
